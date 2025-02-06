@@ -1,0 +1,351 @@
+<%- include("../../views/partials/admin/header.ejs") %>
+
+<div class="d-flex mb-3 justify-content-end">
+    <button id="clearSearchBtn" class="btn btn-success ms-2" onclick="clearField()" data-bs-toggle="modal" data-bs-target="#categoryModal">+ Add Category</button>
+</div>
+<!--modal for handling adding new category-->
+  
+  <!-- Modal -->
+<!-- Add Category Modal -->
+<div class="modal fade" id="categoryModal" tabindex="-1" aria-labelledby="categoryModalLabel" aria-hidden="true">
+    <div class="modal-dialog">
+      <div class="modal-content">
+        <div class="modal-header">
+          <h5 class="modal-title">Add Category</h5>
+          <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+        </div>
+        <form id="addCategoryForm">
+          <div class="modal-body">
+            <div class="mb-3">
+              <label for="addCategoryName" class="form-label">Category Name</label>
+              <input type="text" class="form-control" id="CategoryName" name="name" placeholder="Enter category name">
+            </div>
+            <div class="mb-3">
+              <label for="addCategoryDescription" class="form-label">Description</label>
+              <textarea class="form-control" id="CategoryDescription" name="description" rows="3" placeholder="Enter description"></textarea>
+            </div>
+          </div>
+          <div class="modal-footer">
+            <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+            <button type="submit" class="btn btn-primary">Save Category</button>
+          </div>
+        </form>
+      </div>
+    </div>
+  </div>
+<!-- DataTable with user details -->
+<table class="table" id="categorytable">
+    <thead>
+        <tr>
+            <th scope="col">No</th>
+            <th scope="col">Category Name</th>
+            <th scope="col">Discription</th>
+            <th scope="col">isListed</th>
+            <th scope="col">offers</th>
+            <th scope="col">Updated At</th>
+            <th scope="col">Actions</th>
+        </tr>
+    </thead>
+    <tbody>
+        <% categoryData.forEach((category, i) => { %>
+            <tr id="row-<%=category._id%>">
+                <th scope="row"><%= i + 1 %></th>
+                <td class="category-name"><%= category.name%></td>
+                <td class="category-description"><%= category.discription %></td>
+                <td></td>
+                <td></td>
+                <td><%= category.createdAt ? category.createdAt.toLocaleDateString("en-GB") : 'N/A' %></td>
+                   
+                            <td>
+                              <button class="btn btn-warning" onclick="deleteCategory('<%=category._id%>')">Remove</button>
+                               <button class="btn btn-info" data-bs-toggle="modal" onclick="populateModel('<%=category._id%>','<%=category.name%>','<%=category.discription%>')" data-bs-target="#updateModal">Edit</button>
+                            </td>
+                        </tr>
+                    <% }) %>
+
+</table>
+</div>
+<div class="modal fade" id="updateModal" tabindex="-1" aria-labelledby="categoryModalLabel" aria-hidden="true">
+    <div class="modal-dialog">
+      <div class="modal-content">
+        <div class="modal-header">
+          <h5 class="modal-title" id="categoryModalLabel">Update Category</h5>
+          <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+        </div>
+        <form id="updateCategoryForm">
+          <div class="modal-body">
+            <div class="mb-3">
+              <input type="text" class="form-control" id="categoryid" name="categoryid" style="display:none;">
+              <label for="categoryName" class="form-label">Category Name</label>
+              <input type="text" class="form-control" id="categoryName" name="categoryName">
+            </div>
+            <div class="mb-3">
+              <label for="categoryDescription" class="form-label">Description</label>
+              <textarea class="form-control" id="categoryDescription" name="categoryDescription" rows="3"></textarea>
+            </div>
+          </div>
+          <div class="modal-footer">
+            <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+            <button type="submit" class="btn btn-primary">Update Category</button>
+          </div>
+        </form>
+      </div>
+    </div>
+  </div>
+<style>
+    .table {
+  border-collapse: separate;
+  border-spacing: 0 15px;
+  font-family: 'Poppins', sans-serif;
+  font-size: 14px;
+  background-color: #fff;
+}
+
+.table thead th {
+  background: #091db1;
+  color: white;
+  padding: 12px;
+  border: none;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+
+.table tbody tr {
+  background: #f4f6f9;
+  transition: all 0.3s ease-in-out;
+  box-shadow: 0px 4px 8px rgba(0, 0, 0, 0.1);
+}
+
+.table tbody tr:hover {
+  transform: translateY(-5px);
+  box-shadow: 0px 6px 16px rgba(0, 0, 0, 0.15);
+}
+
+.table td {
+  padding: 10px;
+  border: none;
+}
+
+.btn {
+  border-radius: 20px;
+  padding: 5px 12px;
+  font-size: 12px;
+  text-transform: capitalize;
+}
+.img
+{
+    width:2%;
+}
+</style>
+
+<script>
+  function clearField()
+  {
+    document.getElementById('CategoryName').value='';
+    document.getElementById('CategoryDescription').value='';
+  }
+  $(document).ready(function () {
+  $('#categorytable').DataTable({
+    paging: true,
+    searching: true,
+    order: [[6, 'desce']],  // Sort by the 4th column (Updated At) in descending order
+    columnDefs: [
+      { type: 'date', targets: 3 }  // Treat the 4th column as a date column
+    ]
+  });
+});
+
+$(document).ready(function () {
+  $('#addCategoryForm').on('submit', function (e) {
+    e.preventDefault();
+
+    const name = $('#CategoryName').val();
+    const description = $('#CategoryDescription').val();
+
+    if (name === '' || description === '') {
+      Swal.fire({
+        title: 'All fields are required!',
+        icon: 'error',
+        toast: true,
+        position: 'top-end',
+        showConfirmButton: false,
+        timer: 3000,
+      });
+      return;
+    }
+  if (!/^[A-Za-z0-9 ]*$/.test(name)) {
+    Swal.fire({
+      title: 'Invalid Category Name!',
+      text: 'must not contain special characters.',
+      icon: 'error',
+      toast: true,
+      position: 'top-end',
+      timer: 3000,
+    });
+    return ;
+  }
+
+    $.ajax({
+      url: '/admin/categories/add',
+      type: 'POST',
+      data: { name, description },
+      success: function (response) {
+        if (response.success) {
+          Swal.fire({
+            title: 'Category added successfully!',
+            icon: 'success',
+            toast: true,
+            position: 'top-end',
+            showConfirmButton: false,
+            timer: 3000,
+          });
+          $('#categoryModal').modal('hide');
+          const newRow = `
+            <tr id="row-${response.id}">
+              <th scope="row">${$('#categorytable tbody tr').length + 1}</th>
+              <td class="category-name">${name}</td>
+              <td class="category-description">${description}</td>
+              <td></td>
+              <td></td>
+              <td>${new Date().toLocaleDateString("en-GB")}</td>
+              <td>
+                <button class="btn btn-warning" onclick="deleteCategory('${response.id}')">Remove</button>
+                <button class="btn btn-info" data-bs-toggle="modal" onclick="populateModel('${response.id}', '${name}', '${description}')" data-bs-target="#updateModal">Edit</button>
+              </td>
+            </tr>
+          `;
+      
+      $('#categorytable tbody').append(newRow);  
+
+        } else {
+          Swal.fire( response.message);
+          $('#categoryModal').modal('hide');
+         
+        }
+      },
+      error: function () {
+        Swal.fire('Error', response.message, 'error');
+      }
+    });
+  });
+});
+
+//populate the fields 
+
+function populateModel(id,name, description) {
+  document.getElementById('categoryid').value = id;
+  document.getElementById('categoryName').value = name;
+  document.getElementById('categoryDescription').value = description; 
+}
+
+//update categoryy
+
+
+    $(document).ready(function () {
+  $('#updateCategoryForm').on('submit', function (e) {
+    e.preventDefault();
+
+    const name = $('#categoryName').val();
+    const discription = $('#categoryDescription').val();
+    const id = $('#categoryid').val();
+
+    if (name === '' || discription === '') {
+      Swal.fire({
+        title: 'All fields are required!',
+        icon: 'error',
+        toast: true,
+        position: 'top-end',
+        showConfirmButton: false,
+        timer: 3000,
+      });
+      return;
+    }
+
+    $.ajax({
+      url: '/admin/categories/update',
+      type: 'PUT',
+      data: { id, name, discription },
+      success: function (response) {
+        if (response.success) {
+          Swal.fire({
+            title: 'Category updated successfully!',
+            icon: 'success',
+            toast: true,
+            position: 'top-end',
+            showConfirmButton: false,
+            timer: 3000,
+          });
+
+          // Update the table row dynamically
+          $(`#row-${id} .category-name`).text(name); // Update name
+          $(`#row-${id} .category-description`).text(discription); // Update description
+          $('#updateModal').modal('hide');
+
+        } else {
+          Swal.fire('Error', response.message, 'error');
+        }
+      },
+      error: function () {
+        Swal.fire('Error', 'An error occurred while updating the category.', 'error');
+        $('#updateModal').modal('hide');
+
+      }
+    });
+  });
+});
+//delete a category
+function deleteCategory(id) {
+  const swalWithBootstrapButtons = Swal.mixin({
+    customClass: {
+      confirmButton: "btn btn-success",
+      cancelButton: "btn btn-danger"
+    },
+    buttonsStyling: false
+  });
+
+  swalWithBootstrapButtons.fire({
+    title: "Are you sure?",
+    text: "You won't be able to revert this!",
+    icon: "warning",
+    showCancelButton: true,
+    confirmButtonText: "Yes, delete it!",
+    cancelButtonText: "No, cancel!",
+    reverseButtons: true
+  }).then((result) => {
+    if (result.isConfirmed) {
+      $.ajax({
+        url: '/admin/categories/delete',
+        type: 'DELETE',
+        data: { id },  // Send the ID of the category to delete
+        success: function (response) {
+          if (response.success) {
+            swalWithBootstrapButtons.fire({
+              title: "Deleted!",
+              text: "Your category has been deleted.",
+              icon: "success"
+            });
+            $(`#row-${id}`).remove();
+            setTimeout(() => {
+              location.reload()
+            },1000);
+    
+          } else {
+            Swal.fire('Error', response.message, 'error');
+          }
+        },
+        error: function () {
+          Swal.fire('Error', response.message, 'error');
+        }
+      });
+    } else if (result.dismiss === Swal.DismissReason.cancel) {
+      swalWithBootstrapButtons.fire({
+        title: "Cancelled",
+        text: "Your category is safe :)",
+        icon: "error"
+      });
+    }
+  });
+}
+
+</script>
+<%- include("../../views/partials/admin/footer.ejs") %>

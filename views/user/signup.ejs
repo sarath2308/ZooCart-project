@@ -1,0 +1,91 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Signup</title>
+    <link href="css/signup.css" rel="stylesheet">
+	<script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+</head>
+<body>
+	<%if(message){%>
+		<script>
+          Swal.fire({
+            title:'<%=message%>',
+            icon: 'error',
+            toast: true,
+            position: 'top-end',
+            showConfirmButton: false,
+            timer: 3000
+        });
+		</script>
+		<%}%>
+<div class="container" id="container">
+	<div class="form-container sign-up-container">
+		<form action="/signup" method="post" onsubmit="return validateSignup()">
+			<h1>Create Account</h1>
+		
+			<!-- Social login option (Google) -->
+			<div class="social-container">
+				<a href="/auth/google" class="social"><i class="fab fa-google-plus-g"></i></a>
+			</div>
+			<span>or use your email for registration</span>
+		
+			<!-- Name Input -->
+			<input type="text" id="name" name="name" placeholder="Enter your name"  />
+		
+			<!-- Email Input -->
+			<input type="text" id="email" name="email" placeholder="Enter your email"/>
+		
+			<!-- Phone Number Input -->
+			<input type="text" id="phone" name="phone" placeholder="Enter your phone number" />
+		
+			<!-- Password Input -->
+			<div class="password-container">
+				<input type="password" id="password" name="password" placeholder="Enter password"/>
+				<i id="togglePassword" class="fas fa-eye" onclick="togglePassword()"></i>
+			</div>
+		
+			<!-- Confirm Password Input -->
+			<input type="password" id="confirmPassword" name="confirmPassword" placeholder="Confirm your password"/>
+		
+			<!-- Submit Button -->
+			<button type="submit">Sign Up</button>
+		</form>		 
+		</form>
+	</div>
+	<div class="form-container sign-in-container">
+		<form action="/login" method="post" onsubmit="return validateLogin()">
+			<h1>Sign in</h1>
+			<div class="social-container">
+				<a href="/auth/google" class="social"><i class="fab fa-google-plus-g"></i></a>
+			</div>
+			<span>or use your account</span>
+			<input type="text" id="loginEmail" name="email" placeholder="Email" />
+			<input type="password" id="loginpassword" name="password" placeholder="Password" />
+			<a href="#">Forgot your password?</a>
+			<button type="submit">Sign In</button>
+		</form>
+	</div>
+	<div class="overlay-container">
+		<div class="overlay">
+			<div class="overlay-panel overlay-left">
+				<h1>Welcome Back!</h1>
+				<p>To keep connected with us please login with your personal info</p>
+				<button class="ghost" id="signIn">Sign In</button>
+			</div>
+			<div class="overlay-panel overlay-right">
+				<h1>Hello, Friend!</h1>
+				<p>Enter your personal details and start journey with us</p>
+				<button class="ghost" id="signUp">Sign Up</button>
+			</div>
+		</div>
+	</div>
+</div>
+<head>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.3/css/all.min.css" rel="stylesheet">
+</head>
+<script src="js/signup.js"></script>
+<script src="js/validate.js"></script>
+</body>
+</html>
