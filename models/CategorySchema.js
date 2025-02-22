@@ -10,9 +10,9 @@ const CategorySchema=new Schema({
         type:String,
         required:true,
     },
-    IsListed:{
+    isListed:{
         type:Boolean,
-        default:true,
+        default:false,
     },
     CategoryOffer:{
         type:Number,

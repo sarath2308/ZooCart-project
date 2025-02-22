@@ -9,24 +9,21 @@ const pageerror=async(req,res)=>
 {
    return res.render("pageerror");
 }
-const loginPage=async(req,res)=>
-{
-    if(req.session.admin)
-    {
-        return res.redirect('/admin')
-    }
-    else
-    {
-    console.log("inside login");
+
+const loginPage = async (req, res) => {
     try {
-        return res.render('adminlogin',{message:''})
-    } 
-    catch (error) 
-    {
-       console.log("error occured can't render admin login"); 
+      if (req.session.admin) {
+        return res.redirect('/admin');  // If session exists, redirect to admin page
+      }
+  
+      console.log("Inside login");
+      res.render('adminlogin', { message: '' });  // Render login page with an empty message
+    } catch (error) {
+      console.error("Error occurred: Can't render admin login", error);
+      res.status(500).send("Internal Server Error");
     }
-}
-}
+  };
+  
 const login = async (req, res) => {
     console.log("inside post login");
     
@@ -44,7 +41,7 @@ const login = async (req, res) => {
             if (passwordCheck) {
                 console.log("password check true");
                 
-                req.session.admin = true;
+                req.session.admin = findAdmin.email;
                 return res.redirect('/admin');
             } else {
                 return res.status(401).render("adminlogin", { message: "Incorrect Password" });
@@ -87,10 +84,28 @@ const logout=async(req,res)=>
         }
     })
 }
+const demoAdmin = async (req, res) => {
+    try {
+        const email = "zoocartofficial@gmail.com";
+        const admin = await User.findOne({ email: email,isAdmin:true}); // Use findOne instead of find
+
+        if (admin) {
+            req.session.admin = admin._id; // Store user ID in session
+            return res.redirect("/admin");
+        } else {
+            console.log("Error: addmin not found for demo login.");
+            res.status(404).send("admin not found");
+        }
+    } catch (error) {
+        console.log("Error occurred while using demo admin:", error);
+        res.status(500).send("Internal Server Error");
+    }
+};
 module.exports={
     loginPage,
     login,
     loadDashboard,
     pageerror,
     logout,
+    demoAdmin
 }

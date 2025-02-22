@@ -1,0 +1,506 @@
+<%-include("../../views/partials/admin/header.ejs")%>
+
+<div class="profile container">
+    <h2>All Products</h2>
+    <a href="/admin/logout" class="btn btn-danger logout">Logout</a>
+  </div>
+  <br>
+  <div class="d-flex mb-3 justify-content-end">
+<a href="/admin/products/addproducts" class="btn btn-success">+ Add products</a>
+</div>
+                 <!-- DataTable with user details -->
+                 <table class="table" id="productTable">
+                    <thead>
+                      <tr>
+                        <th scope="col">Name</th>
+                        <th scope="col">Category</th>
+                        <th scope="col">Regular Price</th>
+                        <th scope="col">Sale Price</th>
+                        <th scope="col">Product Offer</th>
+                        <th scope="col">Offer</th>
+                        <th scope="col">Quantity</th>
+                        <th scope="col">Color</th>
+                        <th scope="col">isBlocked</th>
+                        <th scope="col">Status</th>
+                        <th scope="col">Created On</th>
+                        <th scope="col">Actions</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      <% data.forEach((product) => { %>
+                        <tr>
+                          <td><%= product.productName %></td>
+                          <td><%= product.category.name %></td>
+                          <td>₹<%= product.regularPrice.toFixed(2) %></td>
+                          <td>₹<%= product.salePrice.toFixed(2) %></td>
+                          <td>
+                            <% if (product.productOffer === 0) { %>
+                                <span style="color: red;">0%</span>
+                              <% } else { %>
+                                <span style="color: rgb(73, 229, 73);"><%=product.productOffer%>%</span>
+                              <% } %>
+                          </td>
+                          <td>
+                            <% if (product.productOffer === 0) { %>
+                              <button class="btn btn-warning btn-sm" onclick="addOffer('<%= product._id %>')">+ Add</button>
+                            <% } else { %>
+                              <button class="btn btn-info btn-sm" onclick="removeOffer('<%= product._id %>')">Remove</button>
+                            <% } %>
+                          </td>
+                          <td><%= product.quantity %></td>
+                          <td><%= product.color %></td>
+                          <td>
+                            <% if (product.isBlocked) { %>
+                              <span style="color: red;">Blocked</span>
+                            <% } else { %>
+                              <span style="color: green;">Active</span>
+                            <% } %>
+                          </td>
+                          <td>
+                            <% if (product.status === 'Available') { %>
+                              <span style="color: green;">Available</span>
+                            <% } else if (product.status === 'Out of Stock') { %>
+                              <span style="color: orange;">Out of Stock</span>
+                            <% } else { %>
+                              <span style="color: red;">Discontinued</span>
+                            <% } %>
+                          </td>
+                          <td><%= product.createdOn ? product.createdOn.toLocaleDateString('en-GB') : 'N/A' %></td>
+                          <td>
+                           <a href="/admin/products/editproduct?id=<%=product._id%>" class="btn btn-dark mb-2">Edit</a>
+                            <% if (product.isBlocked) { %>
+                              <button class="btn btn-warning btn-sm" onclick="unblockProduct('<%= product._id %>')">Unblock</button>
+                            <% } else { %>
+                              <button class="btn btn-info btn-sm" onclick="blockProduct('<%= product._id %>')">Block</button>
+                            <% } %>
+                            <button class="btn btn-warning btn-sm mt-2" onclick="removeProduct('<%= product._id %>')">Delete</button>
+                          </td>
+                        </tr>
+                      <% }) %>
+                    </tbody>
+                  </table>
+                  
+      </div>
+    <style>
+        .table {
+  border-collapse: separate;
+  border-spacing: 0 15px;
+  font-family: 'Poppins', sans-serif;
+  font-size: 14px;
+  background-color: #fff;
+}
+
+.table thead th {
+  background:#2575fc ;
+  color: white;
+  padding: 12px;
+  border: none;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+
+.table tbody tr {
+  background: #f4f6f9;
+  transition: all 0.3s ease-in-out;
+  box-shadow: 0px 4px 8px rgba(0, 0, 0, 0.1);
+}
+
+.table tbody tr:hover {
+  transform: translateY(-5px);
+  box-shadow: 0px 6px 16px rgba(0, 0, 0, 0.15);
+}
+
+.table td {
+  padding: 10px;
+  border: none;
+}
+
+.btn {
+  border-radius: 10px;
+  padding: 5px 12px;
+  font-size: 12px;
+  text-transform: capitalize;
+}
+.products
+{
+  color: black !important;
+}
+td{
+    padding:10px;
+}
+
+    </style>
+    <script>
+
+$(document).ready(function () {
+  $('#productTable').DataTable({
+    "order": [[12, 'desc']]  // Optionally, specify ordering by a column if needed
+  });
+});
+
+    
+  
+ async function addOffer(productid) {
+    const{value:amount}=await Swal.fire({
+        title:"offer in percentage",
+        input:"number",
+        inputLabel:'percentage',
+        inputPlaceholder:'%'
+    })
+    $.ajax({
+        url:'/admin/products/addoffer',
+        method:"post",
+        data:{
+            percentage:amount,
+            productId:productid,
+        },
+        success:(response)=>
+        {
+            if(response.success)
+        {
+            location.reload()
+            Swal.fire({
+      title: 'Offer Added',
+      text: response.message,
+      icon: 'success',
+      toast: true,
+      position: 'top-end',
+      timer: 3000,
+    });
+        }
+        else
+        {
+            Swal.fire({
+      title: 'error',
+      text: response.message,
+      icon: 'error',
+      toast: true,
+      position: 'top-end',
+      timer: 3000,
+    });
+        }
+        },
+    error:(response)=>
+    {
+        Swal.fire({
+      title: 'error',
+      text: response.message,
+      icon: 'error',
+      toast: true,
+      position: 'top-end',
+      timer: 3000,
+    })
+    }
+  })}
+
+
+  async function removeOffer(id) {
+try {
+    const swalWithBootstrapButtons = Swal.mixin({
+        customClass: {
+            confirmButton: "btn btn-success",
+            cancelButton: "btn btn-danger"
+        },
+        buttonsStyling: false
+    });
+    swalWithBootstrapButtons.fire({
+        title: "Are you sure?",
+        text: "",
+        icon: "warning",
+        showCancelButton: true,
+        confirmButtonText: "Yes, remove",
+        cancelButtonText: "No, cancel!",
+        reverseButtons: true
+    }).then((result) => {
+        if (result.isConfirmed) {
+            $.ajax({
+        url:'/admin/products/removeoffer',
+        method:"post",
+        data:{
+            productId:id,
+        },
+        success:(response)=>
+        {
+            if(response.success)
+        {
+            location.reload()
+            Swal.fire({
+      title: 'Offer removed',
+      text: response.message,
+      icon: 'success',
+      toast: true,
+      position: 'top-end',
+      timer: 3000,
+    });
+        }
+        else
+        {
+            Swal.fire({
+      title: 'error',
+      text: response.message,
+      icon: 'error',
+      toast: true,
+      position: 'top-end',
+      timer: 3000,
+    });
+        }
+        },
+    error:(response)=>
+    {
+        Swal.fire({
+      title: 'error',
+      text: response.message,
+      icon: 'error',
+      toast: true,
+      position: 'top-end',
+      timer: 3000,
+    })
+    }
+  })
+
+        } else {
+            Swal.fire({
+                title: "Cancelled",
+                text: "Your action has been cancelled.",
+                icon: "error"
+            });
+        }
+    });
+ 
+
+} catch (error) {
+    console.log("error occured while sending req to remove offer");
+    
+}
+    
+  }
+  async function blockProduct(id) {
+    try {
+        const swalWithBootstrapButtons = Swal.mixin({
+        customClass: {
+            confirmButton: "btn btn-success",
+            cancelButton: "btn btn-danger"
+        },
+        buttonsStyling: false
+    });
+    swalWithBootstrapButtons.fire({
+        title: "Are you sure?",
+        text: "",
+        icon: "warning",
+        showCancelButton: true,
+        confirmButtonText: "Yes, Block",
+        cancelButtonText: "No, cancel!",
+        reverseButtons: true
+    }).then((result) => {
+        if (result.isConfirmed) {
+            $.ajax({
+        url:'/admin/products/blockproduct',
+        method:"post",
+        data:{
+            productId:id,
+        },
+        success:(response)=>
+        {
+            if(response.success)
+        {
+            location.reload()
+            Swal.fire({
+      title: 'product Blocked',
+      text: 'successfully blocked product',
+      icon: 'success',
+      toast: true,
+      position: 'top-end',
+      timer: 3000,
+    });
+        }
+        else
+        {
+            Swal.fire({
+      title: 'error',
+      text: response.message,
+      icon: 'error',
+      toast: true,
+      position: 'top-end',
+      timer: 3000,
+    });
+        }
+        },
+    error:(response)=>
+    {
+        Swal.fire({
+      title: 'error',
+      text: response.message,
+      icon: 'error',
+      toast: true,
+      position: 'top-end',
+      timer: 3000,
+    })
+    }
+  })
+        } else {
+            Swal.fire({
+                title: "Cancelled",
+                text: "Your action has been cancelled.",
+                icon: "error"
+            });
+        }
+    });
+} catch (error) {
+    console.log("error occured while sending req to block product");
+    
+  }
+}
+  async function unblockProduct(id) {
+    try {
+        const swalWithBootstrapButtons = Swal.mixin({
+        customClass: {
+            confirmButton: "btn btn-success",
+            cancelButton: "btn btn-danger"
+        },
+        buttonsStyling: false
+    });
+    swalWithBootstrapButtons.fire({
+        title: "Are you sure?",
+        text: "",
+        icon: "warning",
+        showCancelButton: true,
+        confirmButtonText: "Yes, unblock",
+        cancelButtonText: "No, cancel!",
+        reverseButtons: true
+    }).then((result) => {
+        if (result.isConfirmed) {
+            $.ajax({
+        url:'/admin/products/unblockproduct',
+        method:"post",
+        data:{
+            productId:id,
+        },
+        success:(response)=>
+        {
+            if(response.success)
+        {
+            location.reload()
+            Swal.fire({
+      title: 'product unblocked',
+      text: 'successfully unblocked product',
+      icon: 'success',
+      toast: true,
+      position: 'top-end',
+      timer: 3000,
+    });
+        }
+        else
+        {
+            Swal.fire({
+      title: 'error',
+      text: response.message,
+      icon: 'error',
+      toast: true,
+      position: 'top-end',
+      timer: 3000,
+    });
+        }
+        },
+    error:(response)=>
+    {
+        Swal.fire({
+      title: 'error',
+      text: response.message,
+      icon: 'error',
+      toast: true,
+      position: 'top-end',
+      timer: 3000,
+    })
+    }
+  })
+        } else {
+            Swal.fire({
+                title: "Cancelled",
+                text: "Your action has been cancelled.",
+                icon: "error"
+            });
+        }
+    });
+} catch (error) {
+    console.log("error occured while sending req to unblock product");
+    
+  }
+  }
+  async function removeProduct(id) {
+    try {
+        const swalWithBootstrapButtons = Swal.mixin({
+        customClass: {
+            confirmButton: "btn btn-success",
+            cancelButton: "btn btn-danger"
+        },
+        buttonsStyling: false
+    });
+    swalWithBootstrapButtons.fire({
+        title: "Are you sure?",
+        text: "",
+        icon: "warning",
+        showCancelButton: true,
+        confirmButtonText: "Yes, remove",
+        cancelButtonText: "No, cancel!",
+        reverseButtons: true
+    }).then((result) => {
+        if (result.isConfirmed) {
+            $.ajax({
+        url:'/admin/products/removeproduct',
+        method:"post",
+        data:{
+            productId:id,
+        },
+        success:(response)=>
+        {
+            if(response.success)
+        {
+            location.reload()
+            Swal.fire({
+      title: 'product removed',
+      text: 'successfully removed product',
+      icon: 'success',
+      toast: true,
+      position: 'top-end',
+      timer: 3000,
+    });
+        }
+        else
+        {
+            Swal.fire({
+      title: 'error',
+      text: response.message,
+      icon: 'error',
+      toast: true,
+      position: 'top-end',
+      timer: 3000,
+    });
+        }
+        },
+    error:(response)=>
+    {
+        Swal.fire({
+      title: 'error',
+      text: response.message,
+      icon: 'error',
+      toast: true,
+      position: 'top-end',
+      timer: 3000,
+    })
+    }
+  })
+        } else {
+            Swal.fire({
+                title: "Cancelled",
+                text: "Your action has been cancelled.",
+                icon: "error"
+            });
+        }
+    });
+} catch (error) {
+    console.log("error occured while sending req to remove product");
+    
+  }
+  }
+</script>
+    <%-include("../../views/partials/admin/footer.ejs")%>

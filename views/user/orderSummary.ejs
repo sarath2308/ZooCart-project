@@ -1,0 +1,267 @@
+ 
+ <%-include("../../views/partials/user/header.ejs")%><!-- Breadcrumb Section Begin -->
+ <section class="breadcrumb-option">
+    <div class="container">
+        <div class="row">
+            <div class="col-lg-12">
+                <div class="breadcrumb__text">
+                    <h4>order summary</h4>
+                    <div class="breadcrumb__links">
+                        <a href="/">Home</a>
+                        <a href="/cart">cart</a>
+                        <a href="/checkout">checkout</a>
+                        <span>order summary</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+<!-- Breadcrumb Section End -->
+
+<!-- Shopping Cart Section Begin -->
+<section class="shopping-cart spad">
+    <div class="container">
+      <div class="row">
+        <!-- Cart Items Table -->
+        <div class="col-lg-8">
+          <div class="shopping__cart__table">
+            <table>
+              <thead>
+                <tr>
+                  <th>Product</th>
+                  <th>Quantity</th>
+                  <th>Total</th>
+                </tr>
+              </thead>
+              <tbody>
+                <% if (products.length > 0) { %>
+                  <% products.forEach(pr => { %>
+                    <tr data-item-id="<%= pr._id %>">
+                      <td class="product__cart__item">
+                        <div class="product__cart__item__pic">
+                            <a href="/productDetails?id=<%=pr.productDetails._id%>" class="btn">
+                          <img src="/uploads/re-image/<%= pr.productDetails.productImage[0] %>" alt="Product Image">
+                          </a>
+                        </div>
+                        <div class="product__cart__item__text">
+                          <h6><%= pr.productDetails.productName %></h6>
+
+                          <h6 style="color:green">
+                            <s style="font-size: 13px; color: grey;">₹<%= pr.productDetails.regularPrice %></s>
+                            ₹<%= pr.productDetails.salePrice %>.0
+                          </h6>
+                        </div>
+                      </td>
+                      <td class="quantity__item">
+                        <div class="quantity">
+                           
+                          <p>x<%=pr.quantity%></p>
+                    
+                          </div>
+                      </td>
+                      <td class="cart__price">
+                        <span id="item-total-<%= pr.productDetails._id %>">₹<%= pr.productDetails.salePrice * pr.quantity %></span>
+                      </td>
+                    </tr>
+                  <% }) %>
+                <% } else { %>
+                  <tr>
+                    <td colspan="4" class="text-center">
+                      <p class="lead mb-4">No items found in Cart</p>
+                    </td>
+                  </tr>
+                <% } %>
+              </tbody>
+            </table>
+          </div>
+          <div class="row">
+            <div class="col-lg-12 col-md-6 col-sm-6">
+              <h3 style="color:rgb(245, 181, 20)">Delivery Address</h3>
+                <div class="address-container">
+                    <div class="address-card">
+                        <div class="address-details">
+                            <h5> <%= addressData.name %>
+        
+                            </h5>
+                            <p style="color: grey;"><%= addressData.addressType %></p>
+                            <p><%= addressData.city %>, <%= addressData.landMark %>, <%= addressData.state %></p>
+                            <p>Pin: <%= addressData.pincode %></p>
+                            <p>Phone: <%= addressData.phone %></p>
+                            <p>Alt Phone: <%= addressData.altPhone %></p>
+                        </div>
+                    </div>
+              </div>
+            </div>
+          </div>
+        </div>
+        <!-- Coupon and Payment Summary -->
+        <div class="col-lg-4 coupon-and-payment">
+          <div class="cart__discount">
+            
+          <div class="cart__total">
+            <h6>Order total</h6>
+            <ul>
+              <li>Total items<span id="total-quantity"><%= totalQuantity %></span></li>
+              <%if(couponData){%>
+              <li>Coupon applied<span id="coupon" style="color: green;">-₹<%= couponData.offerPrice%></span></li>
+              <%}%>
+              <li>Discount <span style="color: rgb(5, 111, 6);" id="discount-amount">-₹<%= grandRegularTotal - grandTotal %></span></li>
+              <li>Total <span style="color: black;" id="grand-total">₹<%= grandTotal %></span></li>
+            </ul>
+            <p>Payment methods</p>
+            <div class="checkout__input__radio">
+              <label for="cashOnDelivery">
+                <input type="radio" name="paymentMethod" id="cashOnDelivery" value="cash" checked>
+                Cash on Delivery
+                <span class="checkmark"></span>
+              </label>
+              <label for="RazoPay">
+               
+                <input type="radio" name="paymentMethod" id="RazoPay" value="razopay" disabled>
+                RazoPay (Disabled)
+                <span class="checkmark"></span>
+              </label>
+            </div>
+            
+            <a  onclick="placeOrder()" style="color: white;background-color: #111111;"  class="btn primary-btnn">Place Order</a>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+  <!-- Shopping Cart Section End -->
+  
+<style>
+    .product__cart__item__pic {
+    width: 120px; /* Set the container width */
+    height: 120px; /* Set the container height */
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    overflow: hidden; /* Prevent overflow */
+    border-radius: 8px; /* Optional: rounded corners */
+}
+
+.product-image {
+    width: 100%; /* Make the image responsive */
+    height: 100%;
+    object-fit: cover; /* Ensures image covers the container while maintaining aspect ratio */
+    border-radius: 8px; /* Match container border-radius */
+}
+.shopping__cart__table table tbody tr td.quantity__item {
+  width: 175px;
+}
+
+.shopping__cart__table table tbody tr td.quantity__item .quantity {
+  width: 80px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.shopping__cart__table table tbody tr td.quantity__item .quantity input {
+  width: 50px;
+  border: none;
+  text-align: center;
+  color: #111111;
+  font-size: 16px;
+  background: transparent;
+}
+
+.shopping__cart__table table tbody tr td.quantity__item .quantity .qtybtn {
+  font-size: 16px;
+  color: #888888;
+  width: 30px;
+  height: 30px;
+  line-height: 25px;
+  text-align: center;
+  cursor: pointer;
+  background: #f0f0f0;
+  border: 1px solid #ddd;
+  border-radius: 4px;
+  margin: 0 5px;
+}
+
+.shopping__cart__table table tbody tr td.quantity__item .quantity .qtybtn:hover {
+  background: #e0e0e0;
+  color: #555;
+}
+.swal2-toast {
+    font-size: 12px !important;  /* Adjust the font size here */
+    font-family: 'Arial', sans-serif; 
+}
+.address-container {
+    margin-top: 15px;
+    display: flex;
+    flex-direction: column;
+    gap: 15px;
+}
+
+/* Address Card */
+.address-card {
+    background: #fff;
+    border-radius: 8px;
+    padding: 15px;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+    display: flex;
+    align-items: center;
+    gap: 15px;
+    position: relative;
+    transition: transform 0.2s ease-in-out;
+}
+
+
+/* D
+/* Address Details */
+.address-details h5 {
+    margin: 0;
+    font-size: 1.1rem;
+    font-weight: 600;
+}
+
+.address-details p {
+    margin: 3px 0;
+    font-size: 0.9rem;
+    color: #555;
+}
+</style>
+<script>
+  function placeOrder() {
+    const paymentMethod = $('input[name="paymentMethod"]:checked').val();
+    
+    if(paymentMethod === 'cash') {
+      // AJAX request for cash on delivery
+      $.ajax({
+        url: '/placeOrder?cart=1',  
+        method: 'POST',
+        data: {
+          paymentMethod: paymentMethod,
+          // add any other order data here
+        },
+        success: function(response) {
+          window.location.href = '/orderPlaced';
+    
+        },
+        error: function(xhr, status, error) {
+          // Handle error
+          alert('Error placing order: ' + error);
+        }
+      });
+    } else {
+      // If the payment method is online (RazoPay) - though currently disabled
+      // Redirect to online payment page
+      window.location.href = '/online-payment';  // change to your online payment page URL
+    }
+  }
+
+  // Example: attach the function to a button click
+  $('#place-order-btn').on('click', function(e) {
+    e.preventDefault();
+    placeOrder();
+  });
+
+    </script>
+    
+    
+  <%-include("../../views/partials/user/footer.ejs")%>

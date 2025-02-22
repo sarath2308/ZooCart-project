@@ -1,11 +1,15 @@
 <%- include("../../views/partials/admin/header.ejs") %>
-        
+<div class="profile">
+  <h2>User Management</h2>
+  <a href="/admin/logout" class="btn btn-danger logout">Logout</a>
+</div>
+<br>
         <!-- DataTable with user details -->
         <table class="table" id="usertable">
             <thead>
                 <tr>
                     <th scope="col">No</th>
-                    <th scope="col">User Id</th>
+                    <!-- <th scope="col">User Id</th> -->
                     <th scope="col">Name</th>
                     <th scope="col">Email</th>
                     <th scope="col">Status</th>
@@ -17,7 +21,7 @@
                 <% users.forEach((user, i) => { %>
                     <tr>
                         <th scope="row"><%= i + 1 %></th>
-                        <td><%= user.customerId %></td>
+                        <!-- <td><%= user.customerId %></td> -->
                         <td><%= user.name %></td>
                         <td><%= user.email %></td>
                         <td>
@@ -85,7 +89,10 @@
   font-size: 12px;
   text-transform: capitalize;
 }
-
+.users
+  {
+    color: black !important;
+  }
     </style>
     <script>
           $(document).ready(function () {

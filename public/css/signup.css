@@ -245,7 +245,7 @@ footer a {
 /* Apply uniform styles to all input fields */
 input {
     width: 100%; /* Ensure all inputs take up the full width of their container */
-    padding: 10px;
+    padding:7px;
     margin: 10px 0;
     box-sizing: border-box; /* Ensures padding doesn't affect the width */
     border: 1px solid #ccc;

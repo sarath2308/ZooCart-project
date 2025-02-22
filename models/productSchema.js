@@ -1,4 +1,4 @@
-const mongoose=required("mongoose")
+const mongoose=require("mongoose")
 const {Schema}=mongoose
 const ProductSchema=new Schema({
     productName:{
@@ -11,8 +11,9 @@ const ProductSchema=new Schema({
     },
     brand:
     {
-        type:String,
-        required:True
+        type:Schema.Types.ObjectId,
+        ref:"Brand",
+        required:true
     },
     category:{
         type:Schema.Types.ObjectId,
@@ -52,7 +53,11 @@ const ProductSchema=new Schema({
         enum:["Available","Out of Stock","Discontinued"],
         required:true,
         default:"Available"
+    },
+    createdOn:{
+        type:Date,
+        default:Date.now
     }
-    },{timestamp:true});
+    })
     const Product=mongoose.model("Product",ProductSchema)
     module.exports=Product;

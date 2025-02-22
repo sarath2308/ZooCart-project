@@ -1,60 +1,321 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Advanced Dashboard</title>
-    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css">
-    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-</head>
-<body>
-    <div class="container-fluid">
-        <div class="row">
-            <nav class="col-md-2 sidebar d-flex flex-column">
-                <h4 class="text-center">MENU</h4>
-                <a href="#" class="bg-light text-dark">Dashboard</a>
-                <a href="#">Users</a>
-                <a href="#">Products</a>
-                <a href="#">Orders</a>
-                <a href="#">Sales Report</a>
-                <a href="#">Coupons</a>
-                <a href="#">Settings</a>
-            </nav>
-            
-            <main class="col-md-10 p-4">
-                <h2 class="mb-4">Dashboard</h2>
-                <div class="row">
-                    <div class="col-md-6">
-                        <div class="card p-3 shadow-sm">
-                            <h5>Total Revenue</h5>
-                            <h3>₹5,23,460.82</h3>
-                            <p>Gained ₹21,140.02 this month</p>
-                        </div>
-                    </div>
-                    <div class="col-md-6">
-                        <div class="card p-3 shadow-sm">
-                            <canvas id="revenueChart"></canvas>
-                        </div>
-                    </div>
-                </div>
-                
-                <div class="row mt-4">
-                    <div class="col-md-6">
-                        <div class="card p-3 shadow-sm">
-                            <canvas id="salesChart"></canvas>
-                        </div>
-                    </div>
-                    <div class="col-md-6">
-                        <div class="card p-3 shadow-sm">
-                            <h5>Total Income</h5>
-                            <h3>₹212,34,6990.82</h3>
-                        </div>
-                    </div>
-                </div>
-            </main>
-        </div>
+<p class="order-successful-text"> ORDER SUCCESSFUL! THANK YOU FOR SHOPPING WITH US. </p>
+<div class="main-div col-md-12 col-lg-12">
+  <div class="track-order-div col-md-8 col-lg-8 col-sm-12 col-xs-12">
+    <p class="track-your-order"> TRACK YOUR ORDER </p>
+    <div class="order-status-div">
+      <img class="order-placed-image" src="https://d30mle0t4iy75h.cloudfront.net/website/track-order-status-1.png" />
+      <p class="order-status-text"> YOUR MOBILE IS ON THE WAY </p>
+      <p class="order-id"> Order ID: 98765</p>
+      
+      <ul class="order-status-animation">
+        <li>
+          <div class="order-placed">
+            <img src="https://cdn.zeplin.io/58e89cb1bcbb20c60457e08c/assets/E67E571F-0710-43B2-8D07-793788CE5A9E.png"/> 
+            <p> Order Placed </p>
+          </div>
+        </li>
+        <li> 
+          <div class="order-processing">
+            <img src="https://cdn.zeplin.io/58e89cb1bcbb20c60457e08c/assets/E67E571F-0710-43B2-8D07-793788CE5A9E.png"/> 
+            <p> Order is being packed </p>
+          </div>
+        </li>
+        <li> 
+          <div class="shipped">
+            <img src="https://cdn.zeplin.io/58e89cb1bcbb20c60457e08c/assets/E67E571F-0710-43B2-8D07-793788CE5A9E.png"/> 
+            <p> Shipped to Courier </p>
+          </div>
+        </li>
+        <li> 
+          <div class="out-for-delivery">
+            <img src="https://cdn.zeplin.io/58e89cb1bcbb20c60457e08c/assets/E67E571F-0710-43B2-8D07-793788CE5A9E.png"/> 
+            <p> Out for Delivery </p>
+          </div>
+        </li>
+        <li> 
+          <div class="delivered">
+            <img src="https://cdn.zeplin.io/58e89cb1bcbb20c60457e08c/assets/E67E571F-0710-43B2-8D07-793788CE5A9E.png"/> 
+            <p> Order Delivered </p>
+          </div>
+        </li>
+      </ul>
     </div>
-    <link href="css/admin.css" rel="stylesheet">
-    <script src="js/admin.js"></script>
-</body>
-</html>
+   
+    <div class="customer-details">
+      <p class="delivery-text"> Delivery Details </p>
+      <p class="delivery-address"> 1234, MG Road, Bangalore </p>
+      <p class="delivery-text"> Contact Number </p>
+      <p class="consumer-phonenumber"> +91 9876543210</p>
+    </div>
+  </div>
+  <div class="col-md-4 col-lg-4 col-sm-12 col-xs-12">
+    <p class="arriving-in-header"> ESTIMATED DELIVERY TIME </p>
+    <div class="arriving-in-details">
+      <ul>
+        <li>
+          <p class="delivery-time"> 2-3 Days</p> 
+        </li>
+        <li>
+          <p class="delivery-boy-num"> Contact Delivery Partner </p>
+        </li>
+        <li>
+          <p class="live-tracking-btn"> Live Track Your Order </p>
+        </li>
+      </ul>
+    </div>
+    <p class="order-information-header"> ORDER INFORMATION </p>
+    <div class="order-information-div">
+      <p class="orderId"> Order ID: 98765 </p>
+      <p class="ordered-time"> Order Placed: 10:30 AM, February 19, 2025 </p>
+    </div>
+    <div class="item-container-div">
+      <ul>
+        <li>
+          <div class="item-list-div">
+            <p> iPhone 15 Pro Max <span class="quantity"> * 1</span> </p>
+            <span class="combo-item"> Color: Space Black </span>
+            <span class="combo-item"> Storage: 256GB </span>
+          </div>
+        </li>
+        <li>
+          <div class="item-list-div">
+            <p> Samsung Galaxy S24 Ultra <span class="quantity"> * 1</span> </p>
+            <span class="combo-item"> Color: Titanium Gray </span>
+            <span class="combo-item"> Storage: 512GB </span>
+          </div>
+        </li>
+      </ul>
+    </div>
+  </div>
+</div>
+
+<style>
+.order-successful-text {
+    font-family: Oswald;
+    font-size: 2.25em;
+    font-weight: bold;
+    color: #444444;
+    padding: 20px;
+  }
+  .track-your-order {
+    padding-top: 20px;
+    padding-left: 0px;
+  }
+  .arriving-in-header{
+    padding-top: 20px;
+    padding-left: 0px;
+  }
+  .main-div {
+    background-color: #f5f5f5;
+  }
+  /* .track-order-div {
+  
+  } */
+  .order-status-div {
+      background-color: #ffffff;
+      box-shadow: 0 2px 2px 0 rgba(181, 181, 181, 0.5);
+      padding: 5px;
+  }
+  .order-placed-image {
+    display: block;
+    margin: auto;
+  }
+  .order-status-text {
+    text-align:center;
+    margin-top: 10px;
+    font-family: Oswald;
+    font-size: 2.25em;
+    font-weight: bold;
+    text-align: center;
+    color: #4cb209;
+  }
+  .order-id {
+    text-align: center;
+    font-family: Lato;
+    font-size: 1em;
+    font-weight: bold;
+    text-align: center;
+    color: #4a4a4a;
+  }
+  .progress-bar {
+    width:60%;
+    height:1px;
+    background-color: #d55e57;
+  }
+  .order-received{
+    width:50px;
+    height:50px;
+        background: url(https://d30mle0t4iy75h.cloudfront.net/website/track-order-status-1.png);
+  }
+  .track-process {
+      position: relative;
+  }
+  .customer-details{
+    box-shadow: 0 2px 2px 0 rgba(181, 181, 181, 0.5);
+    padding-left:20px;
+    font-family: Lato;
+    font-size: 1em;
+    font-weight: 500;
+    background-color: #ffffff;
+    border-top: solid 1px #979797;
+    padding-top: 10px;
+  }
+  .delivery-text{
+    font-family: Lato;
+    font-size: 17px;
+    font-weight: 500;
+    color: #000000;
+  }
+  .delivery-address {
+    font-family: Lato;
+    font-size: 1em;
+    color: #4a4a4a;
+  }
+  .consumer-phonenumber {
+    font-family: Lato;
+    font-size: 1em;
+    color: #000000;
+   padding-bottom: 10px;
+  }
+  .arriving-in-details{
+    box-shadow: 0 2px 2px 0 rgba(181, 181, 181, 0.5);
+    background-color:#ffffff;
+  }
+  
+  .arriving-in-details li {
+    border-bottom: solid 1px #979797;
+  }
+  .arriving-in-details ul {
+    list-style-type: none;
+    padding: 0px;
+  }
+  .delivery-time {
+    font-family: Oswald;
+    font-size: 1.5em;
+    font-weight: 500;
+    color: #000000;
+    text-align:center;
+    padding:5px;
+  }
+  .delivery-boy-num {
+     font-family: OpenSans;
+    font-size: 1.5em;
+    font-weight: bold;
+    text-align: center;
+    color: #cb352b;
+    padding: 5px;
+  }
+  .live-tracking-btn {
+    font-family: OpenSans;
+    font-size: 1.5em;
+    font-weight: bold;
+    color: #cb352b;
+    text-align:center;
+    padding: 5px;
+  }
+  .order-information-header{
+    font-family: Lato;
+    font-size: 1em;
+    font-weight: 500;
+    color: #000000;
+    margin-top: 20px;
+  }
+  .order-information-div {
+    box-shadow: 0 2px 2px 0 rgba(181, 181, 181, 0.5);
+    background-color: #ffffff;
+  }
+  .orderId{
+    font-family: Lato;
+    font-size: 1em;
+    font-weight: bold;
+    color: #4a4a4a;
+    padding-top:10px;
+    padding-left: 15px;
+  }
+  .ordered-time{
+     font-family: Lato;
+     font-size: 1em;
+     color: #4a4a4a;
+     padding-top:5px;
+     padding-left:15px;
+    padding-bottom: 5px;
+  }
+  .item-container-div {
+    box-shadow: 0 2px 2px 0 rgba(181, 181, 181, 0.5);
+    background-color: #ffffff;
+  }
+  .item-container-div ul {
+    list-style-type: none;
+    padding:0px;
+  }
+  .item-container-div li {
+    border-bottom:solid 1px #979797;
+  }
+  .item-container-div p {
+    font-family: Lato;
+    font-size: 1em;
+    color: #000000;
+    padding: 0px;
+    margin:0px;
+  }
+  .item-container-div quantity {
+    font-family: Lato;
+    font-size: 0.1em;
+    color: #787878;
+  }
+  .item-list-div{
+    padding-top:5px;
+    padding-left: 15px;
+    padding-bottom: 5px;
+  }
+  .combo-item {
+    display:block;
+    margin-left: 5px;
+  }
+  .order-status-animation{
+    list-style-type: none;   
+    padding: 0px;
+    width: 100%;
+    display: table;
+    table-layout: fixed;
+  }
+  .order-status-animation img {
+    width: 50px;
+  }
+  .order-status-animation p{
+    font-family: Lato;
+    font-size: 1em;
+    margin-top: 10px;
+    color: #ce453b;
+    word-break: break-word;
+  }
+  
+  .order-status-animation li {
+  /*   display: inline-block;
+    padding-left: 10%; */
+     display: table-cell;
+    width: auto;
+    text-align: center;
+  }
+  .order-status-animation li:first-child {
+    padding-left: 0px;
+  }
+  
+  @media screen and (max-width:640px) {
+    .order-status-animation p{ 
+      font-size: 0.9em;
+    }
+  }  
+  .order-status-animation li {
+    position: relative;
+  }
+  
+  /* .order-placed:after{
+      position: absolute;
+      left: calc(90% - 60px);
+      top:20px;
+      content: " ";
+      width: 160px;
+      height: 1px;
+      border: solid 1px #cb352b;
+  } */</style>

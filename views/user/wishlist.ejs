@@ -1,0 +1,170 @@
+<%-include("../../views/partials/user/header.ejs")%>
+<main class="main">
+
+    <div class="page-header breadcrumb-wrap">
+        <div class="container">
+            <nav aria-label="breadcrumb">
+                <ol class="breadcrumb">
+                    <li class="breadcrumb-item"><a href="/" class="breadcrumb-link">Home</a></li>
+                    <li class="breadcrumb-item"><a href="#" class="breadcrumb-link">Shop</a></li>
+                    <li class="breadcrumb-item active" aria-current="page">My Wishlist</li>
+                </ol>
+            </nav>
+        </div>
+    </div>
+    
+
+<style>
+    .btn:hover .fa-trash {
+        color: rgb(255, 0, 0); /* Change to a different red on hover */
+    }
+    .product-thumbnail {
+    width: 350px; /* Set fixed width */
+    height: 150px; /* Set fixed height */
+    display: flex; /* Use flexbox for alignment */
+    justify-content: center; /* Center image horizontally */
+    align-items: center; /* Center image vertically */
+    overflow: hidden; /* Prevent image overflow */
+}
+
+.product-thumbnail img {
+    width: 100%; /* Image takes up full width of the container */
+    height: 100%; /* Image takes up full height of the container */
+    object-fit: cover; /* Ensures image fills the space without distortion */
+}
+
+
+</style>
+
+   <section class="mt-50 mb-50">
+    <div class="container">
+        <div class="row">
+            <div class="col-12">
+                <div class="table-responsive">
+                    <table class="table shopping-summery text-center clean">
+                        <thead>
+                            <tr class="main-heading">
+                                <th scope="col">Wishlist(<%=wishlist.length%>)</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <%if(wishlist.length>0){%>
+                                <%wishlist.forEach(wish => {%>
+                                    
+                                    <tr>
+                                        <td class="product-details">
+                                            <div class="d-flex align-items-center justify-content-center">
+                                                <div class="image product-thumbnail">
+                                                    <a href="/productDetails?id=<%=wish._id%>" class="btn">
+                                                    <img src="uploads/re-image/<%=wish.productImage[0]%>" alt="Product Image" /></a>
+                                                </div>
+                                    
+                                                <div class="product-info text-left ml-3">
+                                                    <!-- Product Name -->
+                                                    <h5 class="product-name" style="font-weight: bold; font-size: 18px; color: #333;">
+                                                        <%=wish.productName%>
+                                                    </h5>
+                                    
+                                                    <!-- Description -->
+                                                    <p class="font-xs" style=" color: #555;">
+                                                        <%=wish.discription%>
+                                                    </p>
+                                    
+                                                    <!-- Price -->
+                                                    <h6>
+                                                        <s style="font-size: 13px;color:grey;">₹<%=wish.regularPrice%></s> 
+                                                        <span style="font-size: 16px; font-weight: bold; color: #069d06;">₹<%=wish.salePrice%>.0</span>
+                                                    </h6>
+                                                    <br>
+                                    
+                                                    <!-- Action Buttons -->
+                                                    <div class="d-flex">
+                                                        <a href="#" class="btn btn-info btn-sm mr-2">Add to Cart</a>
+                                                        <button class="btn btn-sm text-danger" onclick="removeFromWishlist('<%=wish._id%>')">
+                                                            <i class="fa-solid fa-trash" style="color: rgb(234, 36, 36);"></i> Remove
+                                                        </button>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </td>
+                                    </tr>
+                                    
+                        <%})%>
+                            <%}else{%>
+                            <tr>
+                                <td class="text-center">
+                                    <p class="lead mb-4">No items found in Wishlist</p>
+                                </td>
+                            </tr>
+                            <%}%>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+    </section>
+
+</main>
+<script>
+    function removeFromWishlist(pid)
+    {
+        const swalWithBootstrapButtons = Swal.mixin({
+  customClass: {
+    confirmButton: "btn btn-success",
+    cancelButton: "btn btn-danger"
+  },
+  buttonsStyling: false
+});
+swalWithBootstrapButtons.fire({
+  title: "Are you sure?",
+  text: "You won't be able to revert this!",
+  icon: "warning",
+  showCancelButton: true,
+  confirmButtonText: "Yes, remove it!",
+  cancelButtonText: "No, cancel!",
+  reverseButtons: true
+}).then((result) => {
+  if (result.isConfirmed) {
+        $.ajax({
+            url: `/removeFromWishlist`,
+            method: 'POST',
+            data: {pid:pid},
+            success: function (response) {
+                if(response.success)
+            {
+                swalWithBootstrapButtons.fire({
+      title: "removed from wishlist",
+      text: "Your file has been deleted.",
+      icon: "success"
+    }).then(()=>
+{
+    location.reload();
+})
+    }
+            },
+            error: function (response) {
+                Swal.fire({
+            title:response.message,
+            icon: 'success',
+            toast: true,
+            position: 'top-end',
+            showConfirmButton: false,
+            timer: 2000
+        });
+        }});
+  } else if (
+    /* Read more about handling dismissals below */
+    result.dismiss === Swal.DismissReason.cancel
+  ) {
+    swalWithBootstrapButtons.fire({
+      title: "Cancelled",
+      text: "wishlist not removed",
+      icon: "error"
+    });
+  }
+});
+    }
+</script>
+<!-- Wishlist Section End -->
+<%-include("../../views/partials/user/footer.ejs")%>

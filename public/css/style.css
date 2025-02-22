@@ -838,39 +838,6 @@ ol {
 	margin-bottom: 0;
 }
 
-/*---------------------
-  Instagram
------------------------*/
-
-.instagram {
-	padding-bottom: 0;
-}
-
-.instagram__pic__item {
-	width: 33.33%;
-	float: left;
-	height: 261px;
-	background-position: center center;
-}
-
-.instagram__text {
-	padding-top: 130px;
-}
-
-.instagram__text h2 {
-	color: #111111;
-	font-weight: 700;
-	margin-bottom: 30px;
-}
-
-.instagram__text p {
-	margin-bottom: 65px;
-}
-
-.instagram__text h3 {
-	color: #e53637;
-	font-weight: 700;
-}
 
 /*---------------------
   Product
@@ -1123,53 +1090,33 @@ ol {
 
 .shop__sidebar__search {
 	margin-bottom: 45px;
-}
-
-.shop__sidebar__search form {
+	display: flex;
+	align-items: center;
 	position: relative;
 }
 
-.shop__sidebar__search form input {
+.shop__sidebar__search  input {
 	width: 100%;
 	font-size: 15px;
 	color: #b7b7b7;
 	padding-left: 20px;
 	border: 1px solid #e5e5e5;
 	height: 42px;
+	border-radius: 20px;
 }
-
-.shop__sidebar__search form input::-webkit-input-placeholder {
-	color: #b7b7b7;
-}
-
-.shop__sidebar__search form input::-moz-placeholder {
-	color: #b7b7b7;
-}
-
-.shop__sidebar__search form input:-ms-input-placeholder {
-	color: #b7b7b7;
-}
-
-.shop__sidebar__search form input::-ms-input-placeholder {
-	color: #b7b7b7;
-}
-
-.shop__sidebar__search form input::placeholder {
-	color: #b7b7b7;
-}
-
-.shop__sidebar__search form button {
-	color: #b7b7b7;
-	font-size: 15px;
-	border: none;
-	background: transparent;
+#clear-search {
 	position: absolute;
-	right: 0;
-	padding: 0 15px;
-	top: 0;
-	height: 100%;
-}
-
+	right: 10px;
+	top: 50%;
+	transform: translateY(-50%);
+	font-size: 16px;
+	cursor: pointer;
+	color: #888;
+	display: none;
+  }
+  #clear-search:hover {
+	color: #333;
+  }
 .shop__sidebar__accordion .card {
 	border: none;
 	border-radius: 0;
@@ -1216,9 +1163,9 @@ ol {
 	list-style: none;
 }
 
-.shop__sidebar__categories ul li a,
-.shop__sidebar__price ul li a,
-.shop__sidebar__brand ul li a {
+.shop__sidebar__categories ul li,
+.shop__sidebar__price ul li ,
+.shop__sidebar__brand ul li {
 	color: #b7b7b7;
 	font-size: 15px;
 	line-height: 32px;
@@ -1227,9 +1174,9 @@ ol {
 	transition: all, 0.3s;
 }
 
-.shop__sidebar__categories ul li a:hover,
-.shop__sidebar__price ul li a:hover,
-.shop__sidebar__brand ul li a:hover {
+.shop__sidebar__categories ul li:hover,
+.shop__sidebar__price ul li:hover,
+.shop__sidebar__brand ul li:hover {
 	color: #111111;
 }
 
@@ -1529,6 +1476,7 @@ ol {
 
 .product__details__breadcrumb {
 	margin-bottom: 30px;
+	margin-right: 900px;
 }
 
 .product__details__breadcrumb a {
@@ -2477,7 +2425,7 @@ ol {
 	float: right;
 }
 
-.cart__total .primary-btn {
+.cart__total .primary-btnn {
 	display: block;
 	padding: 12px 10px;
 	text-align: center;

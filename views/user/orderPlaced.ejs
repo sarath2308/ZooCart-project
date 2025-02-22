@@ -1,0 +1,286 @@
+<%- include("../../views/partials/user/header.ejs") %>
+<div class="main-div">
+  <p class="order-successful-text">ORDER SUCCESSFUL</p>
+  <div class="track-order-div">
+    <!-- <p class="track-your-order">TRACK YOUR ORDER</p> -->
+    <div class="order-status-div">
+      <!-- <img class="order-placed-image" src="https://d30mle0t4iy75h.cloudfront.net/website/track-order-status-1.png" alt="Order Status"> -->
+      <p class="order-status-text">YOUR MOBILES IS ON THE WAY</p>
+      <p class="order-id">order id:<%= orderId %></p>
+      <ul class="order-status-animation">
+        <li>
+          <div class="order-step">
+            <!-- <img src="https://cdn.zeplin.io/58e89cb1bcbb20c60457e08c/assets/E67E571F-0710-43B2-8D07-793788CE5A9E.png" alt="Order Placed"> -->
+            <p>Order Placed</p>
+          </div>
+        </li>
+      </ul>
+    </div>
+    <div class="customer-details">
+      <p class="delivery-text">Delivery details</p>
+      <div class="address-container">
+        <div class="address-card">
+            <div class="address-details">
+                <h5> <%= addressData.name %>
+
+                </h5>
+                <p style="color: grey;"><%=addressData.addressType %></p>
+                <p><%= addressData.city %>, <%=addressData.landMark %>, <%= addressData.state %></p>
+                <p>Pin: <%= addressData.pincode %></p>
+                <p>Phone: <%= addressData.phone %></p>
+                <p>Alt Phone: <%=addressData.altPhone %></p>
+            </div>
+        </div>
+  </div>
+      <p class="delivery-address"></p>
+      <p class="delivery-text">Contact Number</p>
+      <p class="consumer-phonenumber">+91 <%=addressData.phone%></p>
+    </div>
+  </div>
+  <div class="order-summary">
+    <p class="arriving-in-header">Expected delivery date</p>
+    <div class="arriving-in-details">
+      <ul>
+        <li><p class="delivery-time"><%=deliveryDate%></p></li>
+        <li><p class="delivery-boy-num">Call Delivery Executive</p></li>
+        <li><p class="live-tracking-btn">Live Track your Order</p></li>
+      </ul>
+    </div>
+    <p class="order-information-header">ORDER INFORMATION</p>
+    <div class="order-information-div">
+      <p class="orderId">Order id: <%=orderId%></p>
+      <p class="ordered-time">Order placed:<%=orderData.createdOnFormatted%></p>
+    </div>
+    <div class="item-container-div">
+      <ul>
+        <li>
+          <div class="item-list-div">
+            <p>Your order</p>
+            <%items.forEach((item)=>{%>
+            <span class="combo-item"><%=item.productDetails.productName%> x<%=item.quantity%></span>
+            <%})%>
+          </div>
+        </li>
+        <li>
+          <div class="item-list-div">
+            <p>Total <span class="quantity"> ₹<%=grandTotal%></span></p>
+          </div>
+        </li>
+      </ul>
+    </div>
+    
+  </div>
+  <a href="/shop" class="btn btn-warning">Continue shopping</a>
+</div>
+
+<style>
+  /* Main container centering */
+  .main-div {
+    max-width: 1200px;
+    margin: 20px auto;
+    padding: 20px;
+    background-color: #f5f5f5;
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: center;
+    gap: 20px;
+  }
+
+  /* Order Success Message */
+  .order-successful-text {
+    width: 100%;
+    text-align: center;
+    font-family: Oswald, sans-serif;
+    font-size: 2.25em;
+    font-weight: bold;
+    color: #444444;
+    padding: 20px 0;
+  }
+
+  /* Left Column (Track Order) */
+  .track-order-div {
+    flex: 1;
+    min-width: 600px;
+    background-color: #ffffff;
+    padding: 20px;
+    box-shadow: 0 2px 2px rgba(181, 181, 181, 0.5);
+    border-radius: 8px;
+  }
+
+  .track-your-order {
+    padding: 0 0 20px;
+    font-size: 1.5em;
+  }
+
+  .order-status-div {
+    text-align: center;
+  }
+
+  .order-placed-image {
+    width: 100px;
+    margin: 0 auto;
+    display: block;
+  }
+
+  .order-status-text {
+    font-family: Oswald, sans-serif;
+    font-size: 2.25em;
+    font-weight: bold;
+    color: #4cb209;
+    margin: 10px 0;
+  }
+
+  .order-id {
+    font-family: Lato, sans-serif;
+    font-size: 1em;
+    font-weight: bold;
+    color: #4a4a4a;
+    margin-bottom: 20px;
+  }
+
+  /* Order Steps */
+  .order-status-animation {
+    list-style: none;
+    padding: 0;
+    margin: 20px 0 0;
+    display: flex;
+    justify-content: space-between;
+  }
+
+  .order-status-animation li {
+    flex: 1;
+    text-align: center;
+  }
+
+  .order-step img {
+    width: 50px;
+  }
+
+  .order-step p {
+    font-family: Lato, sans-serif;
+    font-size: 1em;
+    color: #ce453b;
+    margin-top: 10px;
+  }
+
+  /* Customer Details */
+  .customer-details {
+    background-color: #ffffff;
+    box-shadow: 0 2px 2px rgba(181, 181, 181, 0.5);
+    padding: 20px;
+    margin-top: 20px;
+    border-top: 1px solid #979797;
+    font-family: Lato, sans-serif;
+  }
+
+  .delivery-text {
+    font-size: 17px;
+    font-weight: 500;
+    color: #000000;
+  }
+
+  .delivery-address,
+  .consumer-phonenumber {
+    font-size: 1em;
+    color: #4a4a4a;
+  }
+
+  /* Right Column (Order Summary) */
+  .order-summary {
+    flex: 1;
+    min-width: 400px;
+    background-color: #ffffff;
+    padding: 20px;
+    box-shadow: 0 2px 2px rgba(181, 181, 181, 0.5);
+    border-radius: 8px;
+  }
+
+  .arriving-in-header {
+    font-size: 1.5em;
+    margin-bottom: 10px;
+    font-family: Oswald, sans-serif;
+  }
+
+  .arriving-in-details ul {
+    list-style-type: none;
+    padding: 0;
+    margin: 0;
+  }
+
+  .arriving-in-details li {
+    border-bottom: 1px solid #979797;
+    padding: 10px 0;
+    font-family: Oswald, sans-serif;
+    font-size: 1.25em;
+    text-align: center;
+  }
+
+  .order-information-header {
+    font-size: 1em;
+    font-weight: 500;
+    color: #000;
+    margin-top: 20px;
+    font-family: Lato, sans-serif;
+  }
+
+  .order-information-div {
+    background-color: #ffffff;
+    padding: 15px;
+    box-shadow: 0 2px 2px rgba(181, 181, 181, 0.5);
+    border-radius: 5px;
+    margin-top: 10px;
+    font-family: Lato, sans-serif;
+  }
+
+  .orderId,
+  .ordered-time {
+    font-size: 1em;
+    color: #4a4a4a;
+    margin: 5px 0;
+  }
+
+  .item-container-div {
+    background-color: #ffffff;
+    box-shadow: 0 2px 2px rgba(181, 181, 181, 0.5);
+    margin-top: 20px;
+    padding: 15px;
+    border-radius: 5px;
+    font-family: Lato, sans-serif;
+  }
+
+  .item-container-div ul {
+    list-style-type: none;
+    padding: 0;
+  }
+
+  .item-container-div li {
+    border-bottom: 1px solid #979797;
+    padding: 10px 0;
+  }
+
+  .item-list-div p {
+    margin: 0;
+  }
+
+  .combo-item {
+    display: block;
+    margin-left: 5px;
+  }
+
+  /* Responsive adjustments */
+  @media screen and (max-width: 768px) {
+    .main-div {
+      flex-direction: column;
+      align-items: center;
+    }
+    .track-order-div,
+    .order-summary {
+      min-width: 100%;
+    }
+    .order-status-animation {
+      flex-direction: column;
+      gap: 20px;
+    }
+  }
+</style>
+<%- include("../../views/partials/user/footer.ejs") %>

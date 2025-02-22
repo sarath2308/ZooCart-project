@@ -35,18 +35,12 @@ app.use((req,res,next)=>
 //passport middleware
 app.use(passport.initialize())
 app.use(passport.session());
+
 //handling user requests
 app.use("/",userRouter)
-app.use("/signup",userRouter)
-app.use("/login",userRouter)
-app.use("/verify-otp",userRouter)
-app.use("/resend-otp",userRouter)
-app.use("/logout",userRouter)
-app.use("/page-not-found",userRouter);
-
-
+//admin requests handling
 app.use('/admin',adminRouter)
-const PORT=3000||process.env.PoRT;
+const PORT=3000||process.env.PORT;
 app.listen(PORT,()=>
 {
     console.log("Sever Running......");

@@ -23,7 +23,7 @@ const orderSchema=new Schema({
     }
    }],
    totalPrice:{
-    typeNumber,
+    type:Number,
     required:true
    },
    discount:{

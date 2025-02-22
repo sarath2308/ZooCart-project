@@ -24,7 +24,7 @@ const bannerSchema=new Schema({
     endDate:{
         type:Date,
         required:true
-    }
+    },
 })
 const Banner=mongoose.model("Banner",bannerSchema)
 module.exports=Banner;

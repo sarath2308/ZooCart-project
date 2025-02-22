@@ -1,0 +1,240 @@
+<%-include("../../views/partials/admin/header.ejs")%>
+<head>
+    <head>
+        <link href="https://cdnjs.cloudflare.com/ajax/libs/cropperjs/1.5.12/cropper.min.css" rel="stylesheet">
+        <script src="https://cdnjs.cloudflare.com/ajax/libs/cropperjs/1.5.12/cropper.min.js"></script>
+        <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+      </head>
+<div class="profile container">
+    <h2>All Products</h2>
+    <a href="/admin/logout" class="btn btn-danger logout">Logout</a>
+  </div>
+  <br>
+  <div class="d-flex mb-3 justify-content-end">
+    <a href="#" class="btn btn-success" data-bs-toggle="modal" data-bs-target="#addBannerModal">+ Add Banner</a>
+
+</div>
+                 <!-- DataTable with user details -->
+                 <table class="table" id="bannerTable">
+                    <thead>
+                      <tr>
+                        <th scope="col">Image</th>
+                        <th scope="col">Title</th>
+                        <th scope="col">start Date</th>
+                        <th scope="col">EndDate</th>
+                        <th scope="col">status</th>
+                        <th scope="col">Delete</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      <% data.forEach((banner) => { %>
+                        <tr>
+                          <td><img src="/uploads/re-image/<%= banner.image %>" alt="banner image"></td>
+                          <td><%= banner.title %></td>
+                          <td>₹<%= banner.startDate%></td>
+                          <td>₹<%= banner.endDate%></td>
+                          <td>₹<%if(banner.startDate<Date.now()&&banner.endDate>Date.now()){%>
+                            <span style="color: rgb(0, 255, 51);">active</span>
+                            <% } else { %>
+                              <span style="color: rgb(211, 36, 16);">expired</span>
+                            <% } %>
+                        </td>
+                          <td><a href="/admin/deleteBanner?id=<%=banner._id%>" class="btn btn-danger">Delete</a>
+                            
+                        </tr>
+                      <% }) %>
+                    </tbody>
+                  </table>
+                  
+      </div>
+      <div class="modal fade" id="addBannerModal" tabindex="-1" aria-labelledby="eventModalLabel" aria-hidden="true">
+        <div class="modal-dialog modal-lg">
+            <div class="modal-content">
+                <div class="modal-header bg-primary text-white">
+                    <h5 class="modal-title" id="eventModalLabel">Add Banner</h5>
+                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+                    <form method="post" id="eventForm" action="/admin/addBanner" enctype="multipart/form-data">
+                        <!-- Title -->
+                        <div class="mb-3">
+                            <label for="eventTitle" class="form-label fw-bold">Title</label>
+                            <input type="text" name="title" class="form-control" id="eventTitle" placeholder="Enter event title" required>
+                        </div>
+            
+                        <!-- Description -->
+                        <div class="mb-3">
+                            <label for="eventDescription" class="form-label fw-bold">Description</label>
+                            <textarea name="description" class="form-control" id="eventDescription" rows="4" placeholder="Enter event description" required></textarea>
+                        </div>
+            
+                        <!-- Start Date and End Date -->
+                        <div class="row">
+                            <div class="col-lg-6 mb-3">
+                                <label for="startDate" class="form-label fw-bold">Start Date</label>
+                                <input type="date" name="startDate" class="form-control" id="startDate" required>
+                            </div>
+                            <div class="col-lg-6 mb-3">
+                                <label for="endDate" class="form-label fw-bold">End Date</label>
+                                <input type="date" name="endDate" class="form-control" id="endDate" required>
+                            </div>
+                        </div>
+            
+                        <!-- Link -->
+                        <div class="mb-3">
+                            <label for="eventLink" class="form-label fw-bold">Link</label>
+                            <input type="url" name="link" class="form-control" id="eventLink" placeholder="Enter event link">
+                        </div>
+            
+                        <!-- Image Upload with Cropping -->
+                        <div class="card mb-4">
+                            <div class="card-header bg-light">
+                                <h6 class="mb-0">Upload Image</h6>
+                            </div>
+                            <div class="card-body text-center">
+                                <img id="imagePreview" src="" alt="Uploaded Image" class="img-fluid rounded shadow-sm mb-3" style="max-width: 100%; display: none;">
+                                <input class="form-control" type="file" name="image" id="imageInput" accept="image/png, image/jpeg" onchange="previewImage(event)">
+                                <div id="croppedImageContainer" style="display:none;">
+                                    <img id="croppedImage" class="img-fluid rounded mt-3" style="max-width: 100%;">
+                                    <button type="button" id="cropButton" class="btn btn-sm btn-primary mt-3" onclick="cropImage()">Crop Image</button>
+                                </div>
+                            </div>
+                        </div>
+                    </form>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+                    <button type="button" class="btn btn-success" onclick="validateAndSubmitEvent()">Save Event</button>
+                </div>
+            </div>
+        </div>
+    </div>
+      
+    <style>
+        .table {
+  border-collapse: separate;
+  border-spacing: 0 15px;
+  font-family: 'Poppins', sans-serif;
+  font-size: 14px;
+  background-color: #fff;
+}
+
+.table thead th {
+  background:#2575fc ;
+  color: white;
+  padding: 12px;
+  border: none;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+
+.table tbody tr {
+  background: #f4f6f9;
+  transition: all 0.3s ease-in-out;
+  box-shadow: 0px 4px 8px rgba(0, 0, 0, 0.1);
+}
+
+.table tbody tr:hover {
+  transform: translateY(-5px);
+  box-shadow: 0px 6px 16px rgba(0, 0, 0, 0.15);
+}
+
+.table td {
+  padding: 10px;
+  border: none;
+}
+
+.btn {
+  border-radius: 10px;
+  padding: 5px 12px;
+  font-size: 12px;
+  text-transform: capitalize;
+}
+.products
+{
+  color: black !important;
+}
+td{
+    padding:10px;
+}
+.modal-header {
+    border-bottom: none;
+  }
+  .modal-title {
+    font-weight: bold;
+    font-size: 1.5rem;
+  }
+  .form-label {
+    font-size: 1rem;
+  }
+  .card-header {
+    background-color: #f8f9fa;
+    border-bottom: 1px solid #ddd;
+  }
+  .btn-close {
+    background: none;
+  }
+  #cropButton {
+    display: inline-block;
+    padding: 5px 15px;
+  }
+  .cropped-image {
+    border: 2px solid #ddd;
+    padding: 5px;
+    border-radius: 8px;
+  }
+    </style>
+         <script>
+$(document).ready(function () {
+  $('#bannerTable').DataTable({
+});
+})
+
+
+let cropper;
+
+// Preview image when selected
+function previewImage(event) {
+    const reader = new FileReader();
+    reader.onload = function() {
+        const image = new Image();
+        image.src = reader.result;
+
+        image.onload = function() {
+            document.getElementById('imagePreview').src = image.src;
+            document.getElementById('imagePreview').style.display = 'block';
+            document.getElementById('croppedImageContainer').style.display = 'none';
+
+            // Initialize the cropper once the image is loaded
+            if (cropper) {
+                cropper.destroy();
+            }
+            cropper = new Cropper(image, {
+                aspectRatio: 16 / 9, // Aspect ratio of the cropper
+                viewMode: 1, // Restrict the crop box to the container
+                responsive: true,
+                autoCropArea: 0.8, // Initial crop area size
+                cropBoxResizable: true,
+                zoomable: true
+            });
+        };
+    };
+    reader.readAsDataURL(event.target.files[0]);
+}
+
+// Crop the image based on user's adjustments
+function cropImage() {
+    const canvas = cropper.getCroppedCanvas();
+    const croppedImage = document.getElementById('croppedImage');
+    croppedImage.src = canvas.toDataURL();
+    document.getElementById('croppedImageContainer').style.display = 'block';
+    document.getElementById('cropButton').style.display = 'none';
+}
+
+// Validation and submit
+function validateAndSubmitEvent() {
+    // Add your form validation and submission logic here
+    document.getElementById('eventForm').submit();
+}
+</script>
+<%-include("../../views/partials/admin/footer.ejs")%>

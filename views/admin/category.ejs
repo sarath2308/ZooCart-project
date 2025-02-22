@@ -1,5 +1,9 @@
 <%- include("../../views/partials/admin/header.ejs") %>
-
+<div class="profile">
+  <h2>Category Management</h2>
+  <a href="/admin/logout" class="btn btn-danger logout">Logout</a>
+</div>
+<br>
 <div class="d-flex mb-3 justify-content-end">
     <button id="clearSearchBtn" class="btn btn-success ms-2" onclick="clearField()" data-bs-toggle="modal" data-bs-target="#categoryModal">+ Add Category</button>
 </div>
@@ -41,7 +45,11 @@
             <th scope="col">Category Name</th>
             <th scope="col">Discription</th>
             <th scope="col">isListed</th>
-            <th scope="col">offers</th>
+            <th scope="col">list/unlist</th>
+            <th scope="col">offer %</th>
+            <th scope="col">Offer Action
+              
+            </th>
             <th scope="col">Updated At</th>
             <th scope="col">Actions</th>
         </tr>
@@ -52,8 +60,34 @@
                 <th scope="row"><%= i + 1 %></th>
                 <td class="category-name"><%= category.name%></td>
                 <td class="category-description"><%= category.discription %></td>
-                <td></td>
-                <td></td>
+                <td>
+                  <%if(category.isListed){%>
+                    <span style="color: green;font-size: 0.85rem;">Listed</span>
+                  <%}else{%>
+                    <span style="color: red;font-size: 0.85rem;">Not Listed</span>
+                    <%}%>
+                </td>
+                <td>
+                  <%if(category.isListed){%>
+                    <button class="btn btn-danger" onclick="Unlist('<%=category._id%>')">Unlist</button>
+                  <%}else{%>
+                    <button class="btn btn-success" onclick="List('<%=category._id%>')">List</button>
+                    <%}%>
+                </td>
+                <td>
+                  <%if(category.CategoryOffer===0){%>
+                    <span style="color: rgb(241, 18, 18);font-size: 0.85rem;">0%</span>
+                  <%}else{%>
+                    <span style="color: green;font-size: 0.85rem;"><%=category.CategoryOffer%>%</span>
+                    <%}%>
+                </td>
+                <td>
+                  <%if(category.CategoryOffer===0){%>
+                    <button class="btn btn-dark" onclick="addOffer('<%=category._id%>')">+ add</button>
+                  <%}else{%>
+                    <button class="btn btn-secondary" onclick="removeOffer('<%=category._id%>')">remove</button>
+                    <%}%>
+                </td>
                 <td><%= category.createdAt ? category.createdAt.toLocaleDateString("en-GB") : 'N/A' %></td>
                    
                             <td>
@@ -92,6 +126,8 @@
       </div>
     </div>
   </div>
+ 
+
 <style>
     .table {
   border-collapse: separate;
@@ -136,6 +172,10 @@
 {
     width:2%;
 }
+.category
+  {
+    color: black !important;
+  }
 </style>
 
 <script>
@@ -148,10 +188,6 @@
   $('#categorytable').DataTable({
     paging: true,
     searching: true,
-    order: [[6, 'desce']],  // Sort by the 4th column (Updated At) in descending order
-    columnDefs: [
-      { type: 'date', targets: 3 }  // Treat the 4th column as a date column
-    ]
   });
 });
 
@@ -191,32 +227,8 @@ $(document).ready(function () {
       data: { name, description },
       success: function (response) {
         if (response.success) {
-          Swal.fire({
-            title: 'Category added successfully!',
-            icon: 'success',
-            toast: true,
-            position: 'top-end',
-            showConfirmButton: false,
-            timer: 3000,
-          });
+          location.reload()
           $('#categoryModal').modal('hide');
-          const newRow = `
-            <tr id="row-${response.id}">
-              <th scope="row">${$('#categorytable tbody tr').length + 1}</th>
-              <td class="category-name">${name}</td>
-              <td class="category-description">${description}</td>
-              <td></td>
-              <td></td>
-              <td>${new Date().toLocaleDateString("en-GB")}</td>
-              <td>
-                <button class="btn btn-warning" onclick="deleteCategory('${response.id}')">Remove</button>
-                <button class="btn btn-info" data-bs-toggle="modal" onclick="populateModel('${response.id}', '${name}', '${description}')" data-bs-target="#updateModal">Edit</button>
-              </td>
-            </tr>
-          `;
-      
-      $('#categorytable tbody').append(newRow);  
-
         } else {
           Swal.fire( response.message);
           $('#categoryModal').modal('hide');
@@ -226,9 +238,9 @@ $(document).ready(function () {
       error: function () {
         Swal.fire('Error', response.message, 'error');
       }
-    });
-  });
-});
+    })
+  })
+})
 
 //populate the fields 
 
@@ -341,6 +353,170 @@ function deleteCategory(id) {
       swalWithBootstrapButtons.fire({
         title: "Cancelled",
         text: "Your category is safe :)",
+        icon: "error"
+      });
+    }
+  });
+}
+
+//function for listing the category
+
+function List(id)
+{
+  const swalWithBootstrapButtons = Swal.mixin({
+    customClass: {
+      confirmButton: "btn btn-success",
+      cancelButton: "btn btn-danger"
+    },
+    buttonsStyling: false
+  });
+  swalWithBootstrapButtons.fire({
+    title: "Are you sure?",
+    icon: "warning",
+    showCancelButton: true,
+    confirmButtonText: "Yes,List category",
+    cancelButtonText: "No, cancel!",
+    reverseButtons: true
+  }).then((result) => {
+    if (result.isConfirmed) {
+      $.ajax({
+        url: '/admin/categories/list',
+        type: 'PUT',
+        data: { id },  // Send the ID of the category to delete
+        success: function (response) {
+          if (response.success) {
+          location.reload()
+          } else {
+            Swal.fire('Error', response.message, 'error');
+          }
+        },
+        error: function () {
+          Swal.fire('Error', response.message, 'error');
+        }
+      });
+    } else if (result.dismiss === Swal.DismissReason.cancel) {
+      swalWithBootstrapButtons.fire({
+        title: "Cancelled",
+        text: "Your category is not Listed :)",
+        icon: "error"
+      });
+    }
+  });
+}
+//function for Unlisting the category
+function Unlist(id)
+{
+  const swalWithBootstrapButtons = Swal.mixin({
+    customClass: {
+      confirmButton: "btn btn-success",
+      cancelButton: "btn btn-danger"
+    },
+    buttonsStyling: false
+  });
+  swalWithBootstrapButtons.fire({
+    title: "Are you sure?",
+    icon: "warning",
+    showCancelButton: true,
+    confirmButtonText: "Yes, Unlist it!",
+    cancelButtonText: "No, cancel!",
+    reverseButtons: true
+  }).then((result) => {
+    if (result.isConfirmed) {
+      $.ajax({
+        url: '/admin/categories/unlist',
+        type: 'PUT',
+        data: { id },  // Send the ID of the category to delete
+        success: function (response) {
+          if (response.success) {
+           location.reload()
+          } else {
+            Swal.fire('Error', response.message, 'error');
+          }
+        },
+        error: function () {
+          Swal.fire('Error', response.message, 'error');
+        }
+      });
+    } else if (result.dismiss === Swal.DismissReason.cancel) {
+      swalWithBootstrapButtons.fire({
+        title: "Cancelled",
+        text: "Your category is unlisted :)",
+        icon: "error"
+      });
+    }
+  });
+}
+async function addOffer(id)
+{
+ const{value:amount}=await Swal.fire({
+  title:"Offer in percentage",
+  input:"number",
+  inputLabel:"Percentage",
+  inputPlaceholder:"%",
+ });
+ if(amount)
+ {
+  try {
+    $.ajax({
+        url: '/admin/categories/addoffer',
+        type: 'POST',
+        data: { id,amount },
+        success: function (response) {
+          if (response.success) {
+          location.reload()
+          } else {
+            Swal.fire('Error', response.message, 'error');
+          }
+        },
+        error: function () {
+          Swal.fire('Error', response.message, 'error');
+        }
+      });
+    
+  } catch (error) {
+    console.log("error in adding offer");
+    
+  }
+ }
+}
+
+function removeOffer(id)
+{
+  const swalWithBootstrapButtons = Swal.mixin({
+    customClass: {
+      confirmButton: "btn btn-success",
+      cancelButton: "btn btn-danger"
+    },
+    buttonsStyling: false
+  });
+  swalWithBootstrapButtons.fire({
+    title: "Are you sure?",
+    icon: "warning",
+    showCancelButton: true,
+    confirmButtonText: "Yes, remove Offer!",
+    cancelButtonText: "No, cancel!",
+    reverseButtons: true
+  }).then((result) => {
+    if (result.isConfirmed) {
+      $.ajax({
+        url: '/admin/categories/removeoffer',
+        type: 'POST',
+        data: { id },  // Send the ID of the category to delete
+        success: function (response) {
+          if (response.success) {
+           location.reload()
+          } else {
+            Swal.fire('Error', response.message, 'error');
+          }
+        },
+        error: function () {
+          Swal.fire('Error', response.message, 'error');
+        }
+      });
+    } else if (result.dismiss === Swal.DismissReason.cancel) {
+      swalWithBootstrapButtons.fire({
+        title: "Cancelled",
+        text: "Your category is unlisted :)",
         icon: "error"
       });
     }

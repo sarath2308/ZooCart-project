@@ -1,0 +1,1643 @@
+<%-include("../../views/partials/user/header.ejs")%>
+  <style>
+    body {
+      background-color: rgb(255, 255, 255);
+    }
+    .sidebar {
+      background-color: #b0aeaeb8;
+      color: white;
+      min-height: 100vh;
+      padding: 20px;
+    }
+    .sidebar a {
+      color: rgb(0, 0, 0);
+      text-decoration: none;
+      display: flex;
+      align-items: center;
+      padding-top: 10px;
+      margin: 5px 0;
+      border-radius: 5px;
+      transition: background-color 0.3s;
+      cursor: pointer;
+    }
+    .sidebar a:hover, .sidebar a.active {
+      background-color: rgba(10, 10, 114, 0.1);
+    }
+    .main-content {
+      background-color: white;
+      padding: 70px;
+    }
+    .hidden {
+      display: none;
+    }
+    .avatar1 {
+      width: 50px;
+      height: 50px;
+      border-radius: 50%;
+      object-fit: cover;
+      margin-bottom: 15px;
+      border: 3px solid white;
+    }
+    .product__details__breadcrumb
+    {
+      width:100%;
+      height:50px;
+      background-color: rgba(219, 208, 208, 0.607);
+      display: flex;
+      align-items:center;
+      justify-content:flex-start;
+      padding-left: 20px;
+    }
+    .avatar {
+    width: 120px;
+    height: 120px;
+    border-radius: 50%;
+    object-fit: cover;
+    border: 3px solid #ddd;
+    display: block;
+    margin: 0 auto 10px;
+}
+.swal2-toast {
+    font-size: 12px !important;  /* Adjust the font size here */
+    font-family: 'Arial', sans-serif; 
+}
+/* Address Management Section */
+#address-management {
+    padding: 20px;
+}
+
+/* Add Address Button */
+.add-address-btn {
+    display: block;
+    margin: 10px 0;
+    font-weight: bold;
+}
+
+/* Address Container */
+.address-container {
+    margin-top: 15px;
+    display: flex;
+    flex-direction: column;
+    gap: 15px;
+}
+
+/* Address Card */
+.address-card {
+    background: #fff;
+    border-radius: 8px;
+    padding: 15px;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+    display: flex;
+    align-items: center;
+    gap: 15px;
+    position: relative;
+    transition: transform 0.2s ease-in-out;
+}
+
+.address-card:hover {
+    transform: scale(1.02);
+}
+
+/* Default Address Styling */
+.default {
+    border: 2px solid #007bff;
+    background: #f0f8ff;
+}
+
+/* Default Badge */
+.default-badge {
+    background: #007bff;
+    color: white;
+    font-size: 12px;
+    padding: 3px 8px;
+    border-radius: 5px;
+    margin-left: 8px;
+}
+
+/* Radio Button */
+.default-radio {
+    transform: scale(1.2);
+    margin-right: 10px;
+}
+
+/* Address Details */
+.address-details h5 {
+    margin: 0;
+    font-size: 1.1rem;
+    font-weight: 600;
+}
+
+.address-details p {
+    margin: 3px 0;
+    font-size: 0.9rem;
+    color: #555;
+}
+
+/* Address Actions */
+.address-actions {
+    display: flex;
+    gap: 10px;
+}
+
+
+  </style>
+  <div class="row">
+    <div class="col-lg-12">
+        <div class="product__details__breadcrumb">
+            <a href="/">Home</a>
+            <span>Profile</span>
+        </div>
+    </div>
+</div>
+  <div class="container-fluid">
+    <div class="row">
+      <!-- Sidebar -->
+      <div class="col-md-3 sidebar">
+        <div class="text-center">
+            <img src="uploads/re-image/profile.jpg" alt="User Avatar" class="avatar1">
+            <h6>hello,</h6>
+            <h5><%= data.name %></h5>
+        </div>
+        <br>
+        <nav class="nav flex-column">
+            <a class="nav-link active" onclick="showTab('personal-info')">
+                <i class="bi bi-person-fill"></i> Personal Info
+            </a>
+            <a class="nav-link" onclick="showTab('address-management')">
+                <i class="bi bi-house-door-fill"></i> Address Management
+            </a>
+            <a class="nav-link" onclick="showTab('my-orders')">
+                <i class="bi bi-cart-fill"></i> My Orders
+            </a>
+            <a class="nav-link" href="/wishlist">
+                <i class="bi bi-heart-fill"></i>  Wishlist
+            </a>
+            <a class="nav-link" onclick="showTab('wallet')">
+                <i class="bi bi-wallet-fill"></i> Wallet
+            </a>
+            <a class="nav-link" href="/cart">
+                <i class="bi bi-cart"></i> Cart
+            </a>
+            <a href="/logout" class="nav-link">
+                <i class="bi bi-box-arrow-right"></i> Logout
+            </a>
+        </nav>
+    </div>
+    
+
+      <!-- Main Content -->
+      <div class="col-md-9 p-4">
+        <div class="main-content">
+          <%if(!data.phone){%>
+            <div class="alert alert-warning alert-dismissible fade show" role="alert">
+            Please Add Your Phone Number!
+              <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+            </div>
+          <%}%>
+          <section id="personal-info" class="tab-content position-relative">
+            <h2><i class="bi bi-person-fill"></i> Personal Info</h2>
+        
+            <!-- Dropdown Menu (Top Right Corner) -->
+            <div class="dropdown position-absolute top-0 end-0 mt-2 me-2">
+                <button class="btn btn-secondary dropdown-toggle" type="button" id="profileDropdown" data-bs-toggle="dropdown" aria-expanded="false">
+                   Profile Settings
+                </button>
+                <ul class="dropdown-menu" aria-labelledby="profileDropdown">
+                  <li><a class="dropdown-item" href="#" onclick="showTab('change-email')">Change Email</a></li>
+                  <li><a class="dropdown-item" href="#" onclick="sendVerifyOTP('personal-info','otp-newPassword')">Change Password</a></li>
+                  <li><a class="dropdown-item" href="#" class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#editPersonalInfoModal">Edit My profile</a></li>
+                </ul>
+            </div>
+        
+           <!-- Button to Open the Modal -->
+
+
+<!-- Modal -->
+<div class="modal fade" id="editPersonalInfoModal" tabindex="-1" aria-labelledby="editPersonalInfoLabel" aria-hidden="true">
+  <div class="modal-dialog">
+      <div class="modal-content">
+          <div class="modal-header">
+              <h5 class="modal-title" id="editPersonalInfoLabel">Edit Personal Information</h5>
+              <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+          </div>
+          <div class="modal-body">
+              <form id="editPersonalInfoForm">
+                  <div class="mb-3">
+                      <label for="fullName" class="form-label">Full Name</label>
+                      <input type="text" class="form-control" id="fullName" placeholder="Enter full name" value="<%=data.name%>">
+                  </div>
+                  <div class="mb-3">
+                      <label for="email" class="form-label">Email</label>
+                      <input type="email" class="form-control" id="email" placeholder="Enter email" value="<%=data.email%>" readonly>
+                  </div>
+                  <div class="mb-3">
+                      <label for="phone" class="form-label">Phone</label>
+                      <input type="tel" class="form-control" id="phone" placeholder="Enter phone number" value="<%=data.phone%>">
+                  </div>
+                  <div id="error-message" class="text-danger"></div>
+              </form>
+          </div>
+          <div class="modal-footer">
+              <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+              <button type="button" class="btn btn-success" id="saveChanges">Save Changes</button>
+          </div>
+      </div>
+  </div>
+</div>
+
+
+
+
+
+
+            <!-- User Profile Image -->
+            <div class="text-center">
+                <img src="uploads/re-image/profile.jpg" class="avatar" alt="User Avatar">
+            </div>
+        
+            <!-- User Info -->
+            <form id="userForm">
+                <div class="mb-3 text-center">
+                    <h4><%= data.name %></h4>
+                </div>
+        
+                <!-- Email -->
+                <div class="mb-3">
+                    <label for="email" class="form-label">Email</label>
+                    <input type="email" class="form-control" id="email" value="<%= data.email %>" readonly>
+                </div>
+        
+                <!-- Phone Number -->
+                <div class="mb-3">
+                    <label for="phone" class="form-label">Phone Number</label>
+                    <% if (data.phone) { %>
+                        <input type="tel" class="form-control" id="phone" value="<%= data.phone %>" readonly>
+                    <% } else { %>
+                        <input type="tel" class="form-control" id="phone" placeholder="Add Phone Number">
+                        <button type="button" class="btn btn-primary mt-2" onclick="addPhone()">Save</button>
+                    <% } %>
+                </div>
+            </form>
+            <br><br>
+            <h3> <button class="btn btn-info"onclick="showTab('address-management')">Manage Address</button></h3>
+            <div class="address-container">
+              <% addressData.forEach((ad) => { %>
+                <%if(ad.default){%>
+              <div class="address-card">
+                  <!-- The radio button will only be checked if this address is marked as default -->
+                  <div class="address-details">
+                      <h5> <%= ad.name %>
+                          <% if (ad.default) { %>
+                          <span class="default-badge">Default</span>
+                          <% } %>
+                      </h5>
+                      <p style="color: grey;"><%= ad.addressType %></p>
+                      <p><%= ad.city %>, <%= ad.landMark %>, <%= ad.state %></p>
+                      <p>Pin: <%= ad.pincode %></p>
+                      <p>Phone: <%= ad.phone %></p>
+                      <p>Alt Phone: <%= ad.altPhone %></p>
+                  </div>
+                  <div class="address-actions">
+                  </div>
+              </div>
+              <%}%>
+              <% }) %>
+          </div>
+        </section>
+        
+
+        <section id="address-management" class="tab-content hidden">
+          <h2><i class="bi bi-house-door-fill"></i> Address Management</h2>
+      
+          <!-- Add New Address Button -->
+          <button class="btn btn-info" data-bs-toggle="modal" data-bs-target="#addAddressModal">
+              + Add New Address
+          </button>
+      
+          <!-- Address List -->
+          <div class="address-container">
+              <% addressData.forEach((ad) => { %>
+              <div class="address-card <%= ad.default ? 'default' : '' %>" data-address-id="<%= ad._id %>">
+                  <!-- The radio button will only be checked if this address is marked as default -->
+                  <input type="radio" name="defaultAddress" <% if (ad.default) { %> checked <% } %> class="default-radio">
+                  <div class="address-details">
+                      <h5> <%= ad.name %>
+                          <% if (ad.default) { %>
+                          <span class="default-badge">Default</span>
+                          <% } %>
+                      </h5>
+                      <p style="color: grey;"><%= ad.addressType %></p>
+                      <p><%= ad.city %>, <%= ad.landMark %>, <%= ad.state %></p>
+                      <p>Pin: <%= ad.pincode %></p>
+                      <p>Phone: <%= ad.phone %></p>
+                      <p>Alt Phone: <%= ad.altPhone %></p>
+                  </div>
+                  <div class="address-actions">
+                    <button class="btn btn-info" data-bs-toggle="modal" onclick="populateModel('<%=ad._id%>','<%=ad.name%>','<%=ad.city%>','<%=ad.landMark%>','<%=ad.state%>','<%=ad.pincode%>','<%=ad.phone%>','<%=ad.altPhone%>')" data-bs-target="#editModal">Edit</button>
+                      <button class="btn btn-outline-danger btn-sm delete-btn" onclick="deleteAddress('<%=ad._id%>')">Delete</button>
+                  </div>
+              </div>
+              <% }) %>
+          </div>
+      </section>
+      
+
+    
+<!-- Add New Address Modal -->
+<div class="modal fade" id="addAddressModal" tabindex="-1" aria-labelledby="addAddressModalLabel" aria-hidden="true">
+  <div class="modal-dialog modal-lg">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title" id="addAddressModalLabel">Add New Address</h5>
+        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+      </div>
+      <div class="modal-body">
+        <form id="addressForm">
+          <!-- Address Type -->
+          <div class="mb-3">
+            <label for="addressType" class="form-label">Address Type</label>
+            <select class="form-select" id="addressType">
+              <option value="Home">Home</option>
+              <option value="Work">Work</option>
+              <option value="Other">Other</option>
+            </select>
+          </div>
+
+          <!-- Name -->
+          <div class="mb-3">
+            <label for="name" class="form-label">Full Name</label>
+            <input type="text" class="form-control" id="name">
+          </div>
+
+          <!-- City & State -->
+          <div class="row">
+            <div class="col-md-6">
+              <label for="city" class="form-label">City</label>
+              <input type="text" class="form-control" id="city">
+            </div>
+            <div class="col-md-6">
+              <label for="state" class="form-label">State</label>
+              <input type="text" class="form-control" id="state">
+            </div>
+          </div>
+
+          <!-- Landmark -->
+          <div class="mb-3">
+            <label for="landmark" class="form-label">Landmark</label>
+            <input type="text" class="form-control" id="landmark" >
+          </div>
+
+          <!-- Pincode & Phone -->
+          <div class="row">
+            <div class="col-md-6">
+              <label for="pincode" class="form-label">Pincode</label>
+              <input type="number" class="form-control" id="pincode">
+            </div>
+            <div class="col-md-6">
+              <label for="phone" class="form-label">Phone Number</label>
+              <input type="text" class="form-control" id="phone">
+            </div>
+          </div>
+
+          <!-- Alternate Phone -->
+          <div class="mb-3">
+            <label for="altPhone" class="form-label">Alternate Phone</label>
+            <input type="text" class="form-control" id="altPhone">
+          </div>
+
+          <!-- Set as Default Address -->
+          <div class="form-check">
+            <input class="form-check-input" type="checkbox" id="defaultAddress">
+            <label class="form-check-label" for="defaultAddress">
+              Set as Default Address
+            </label>
+          </div>
+
+          <!-- Submit Button -->
+          <div class="modal-footer">
+            <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+            <button type="submit" class="btn btn-primary">Save Address</button>
+          </div>
+        </form>
+      </div>
+    </div>
+  </div>
+</div>
+
+
+<!--  edit addresss option-->
+
+<div class="modal fade" id="editModal" tabindex="-1" aria-labelledby="editAddressModalLabel" aria-hidden="true">
+  <div class="modal-dialog modal-lg">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title" id="addAddressModalLabel">Edit Address</h5>
+        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+      </div>
+      <div class="modal-body">
+        <form id="editaddressForm">
+          <!-- Address Type -->
+          <div class="mb-3">
+            <label for="addressType" class="form-label">Address Type</label>
+            <select class="form-select" id="editAddressType">
+              <option value="Home">Home</option>
+              <option value="Work">Work</option>
+              <option value="Other">Other</option>
+            </select>
+          </div>
+          <input type="text" id="address-id" style="display: none;">
+          <!-- Name -->
+          <div class="mb-3">
+            <label for="name" class="form-label">Full Name</label>
+            <input type="text" class="form-control" id="editName">
+          </div>
+
+          <!-- City & State -->
+          <div class="row">
+            <div class="col-md-6">
+              <label for="city" class="form-label">City</label>
+              <input type="text" class="form-control" id="editCity">
+            </div>
+            <div class="col-md-6">
+              <label for="state" class="form-label">State</label>
+              <input type="text" class="form-control" id="editState">
+            </div>
+          </div>
+
+          <!-- Landmark -->
+          <div class="mb-3">
+            <label for="landmark" class="form-label">Landmark</label>
+            <input type="text" class="form-control" id="editLandmark" >
+          </div>
+
+          <!-- Pincode & Phone -->
+          <div class="row">
+            <div class="col-md-6">
+              <label for="pincode" class="form-label">Pincode</label>
+              <input type="number" class="form-control" id="editPincode">
+            </div>
+            <div class="col-md-6">
+              <label for="phone" class="form-label">Phone Number</label>
+              <input type="text" class="form-control" id="editPhone">
+            </div>
+          </div>
+
+          <!-- Alternate Phone -->
+          <div class="mb-3">
+            <label for="altPhone" class="form-label">Alternate Phone</label>
+            <input type="text" class="form-control" id="editAltPhone">
+          </div>
+        
+          <!-- Submit Button -->
+          <div class="modal-footer">
+            <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+            <button type="submit" class="btn btn-primary">Update Address</button>
+          </div>
+        </form>
+      </div>
+    </div>
+  </div>
+</div>
+
+
+
+
+      
+
+          <!-- My Orders Section -->
+          <section id="my-orders" class="tab-content hidden">
+            <h2>Your Orders</h2>
+            <% if (orders && orders.length > 0) { %>
+              <% orders.forEach(function(order) { %>
+                <div class="order-container">
+                  <div class="order-header">
+                    <span>Order ID: <%= order.readableOrderId %></span>
+                    <span class="order-status">Status: <%= order.status %></span>
+                  </div>
+                  <div class="ordered-items">
+                    <% order.orderedItems.forEach(function(item) { %>
+                      <div class="ordered-item">
+                        <% if (item.product && item.product.productImage) { %>
+                          <a href="/productDetails?id=<%=item.product._id%>" class="btn">
+                          <img src="uploads/re-image/<%= item.product.productImage %>" alt="<%= item.product.productName %>" class="product-image">
+                          </a>
+                          <% } else { %>
+                          <img src="/images/default-product.png" alt="No image" class="product-image">
+                        <% } %>
+                        <div class="product-details">
+                          <p><strong>Product:</strong> <%= item.product ? item.product.productName : 'Unknown Product' %></p>
+                          <p><strong>Price:</strong> ₹<%= item.price %></p>
+                          <p><strong>Quantity:</strong> <%= item.quantity %></p>
+                        </div>
+                      </div>
+                    <% }); %>
+                  </div>
+                  <div class="order-footer">
+                    <% 
+                      // Calculate expected delivery date: 4 days from invoiceDate (or createdOn)
+                      const invoiceDate = new Date(order.invoiceDate);
+                      invoiceDate.setDate(invoiceDate.getDate() + 4);
+                    %>
+                    <p>Expected Delivery: <%= invoiceDate.toLocaleDateString() %></p>
+                  </div>
+                </div>
+              <% }); %>
+            <% } else { %>
+              <p>You have no orders yet.</p>
+            <% } %>
+          </section>
+          
+          <style>
+            /* Container for each order */
+            .order-container {
+              border: 1px solid #ddd;
+              border-radius: 8px;
+              padding: 15px;
+              margin-bottom: 20px;
+              background-color: #fff;
+            }
+            .order-header {
+              display: flex;
+              justify-content: space-between;
+              font-size: 1.2em;
+              margin-bottom: 10px;
+            }
+            .order-status {
+              font-weight: bold;
+              color: #4cb209;
+            }
+            /* Ordered item styling */
+            .ordered-item {
+              display: flex;
+              align-items: center;
+              padding: 10px 0;
+              border-bottom: 1px solid #eee;
+            }
+            .ordered-item:last-child {
+              border-bottom: none;
+            }
+            .product-image {
+              width: 80px;
+              height: 80px;
+              object-fit: cover;
+              margin-right: 15px;
+              border-radius: 4px;
+            }
+            .product-details p {
+              margin: 4px 0;
+            }
+            /* Order footer styling */
+            .order-footer {
+              margin-top: 10px;
+              font-size: 0.9em;
+              color: #555;
+            }
+          </style>
+          
+          <!-- Wishlist Section -->
+          <section id="wishlist" class="tab-content hidden">
+            <h2><i class="bi bi-heart-fill"></i> Wishlist</h2>
+            <p>View and manage your favorite products.</p>
+          </section>
+
+          <!-- Wallet Section -->
+          <section id="wallet" class="tab-content hidden">
+            <h2><i class="bi bi-wallet-fill"></i> Wallet</h2>
+            <p>Check your balance and transactions.</p>
+          </section>
+
+  <!-- Change Email Section -->
+  <section id="change-email" class="tab-content hidden">
+    <h2><i class="bi bi-envelope-fill"></i> Change Email</h2>
+    <form id="emailForm1">
+      <div class="mb-3">
+        <label for="existingEmail" class="form-label">Existing Email</label>
+        <input type="email" class="form-control" id="existingEmail" value="<%= data.email %>" readonly>
+      </div>
+      <button type="button" class="btn btn-primary" onclick=" sendVerifyOTP('change-email',' otp-existingEmail')">Send OTP</button>
+    </form>
+  </section>
+
+
+     <!-- Change Email Section -->
+     <section id="new-email" class="tab-content hidden">
+      <h2><i class="bi bi-envelope-fill"></i> Change Email</h2>
+      <form id="emailForm">
+        <div class="mb-3">
+          <label class="form-label">New Email</label>
+          <input type="text" class="form-control" id="newEmail" placeholder="Enter new email">
+        </div>
+        <button type="submit" class="btn btn-primary">Send OTP</button>
+      </form>
+    </section>
+
+    <!-- OTP Verification Section -->
+    <section id="otp-existingEmail" class="tab-content hidden card" style="max-width: 400px; margin: 0 auto; padding: 20px; border: 1px solid #ddd; border-radius: 10px; box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);">
+      <h1 style="text-align: center; font-size: 24px; margin-bottom: 10px;">OTP Verification</h1>
+      <p style="text-align: center; color: #666; margin-bottom: 20px;">Enter the 6-digit code sent to your email.</p>
+      <div class="card-body">
+          <form id="otp-form" style="display: flex; flex-direction: column; align-items: center;">
+              <input type="text" id="otp-input" maxlength="6" placeholder="Enter OTP" aria-label="Enter OTP"
+                  style="width: 100%; max-width: 200px; height: 40px; text-align: center; font-size: 18px; border: 1px solid #ccc; border-radius: 5px; padding: 5px;">
+              <button type="submit" class="submit-btn"
+                  style="margin-top: 20px; padding: 10px 20px; background-color: #007bff; color: white; border: none; border-radius: 5px; cursor: pointer; font-size: 16px;">
+                  Verify
+              </button>
+          </form>
+          <p class="resend-text" style="text-align: center; margin-top: 20px; color: #666;">
+              Didn't receive the code?
+              <a href="#" class="resend-link" style="display: none; color: #007bff; text-decoration: none;">Resend OTP</a>
+          </p>
+          <p id="timer" style="text-align: center; margin-top: 10px; color: #666;">Time left: 60s</p>
+      </div>
+    </section>
+    
+
+    <!--validate otp for new User-->
+    <section id="otp-newEmail" class="tab-content hidden card" style="max-width: 400px; margin: 0 auto; padding: 20px; border: 1px solid #ddd; border-radius: 10px; box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);">
+      <h1 style="text-align: center; font-size: 24px; margin-bottom: 10px;">OTP Verification</h1>
+      <p style="text-align: center; color: #666; margin-bottom: 20px;">Enter the 6-digit code sent to your email.</p>
+      <div class="card-body">
+          <form id="otp-newEmail-form" style="display: flex; flex-direction: column; align-items: center;">
+              <input type="text" id="otp-input2" maxlength="6" placeholder="Enter OTP" aria-label="Enter OTP"
+                  style="width: 100%; max-width: 200px; height: 40px; text-align: center; font-size: 18px; border: 1px solid #ccc; border-radius: 5px; padding: 5px;">
+              <button type="submit" class="submit-btn"
+                  style="margin-top: 20px; padding: 10px 20px; background-color: #007bff; color: white; border: none; border-radius: 5px; cursor: pointer; font-size: 16px;">
+                  Verify
+              </button>
+          </form>
+          <p class="resend-text" style="text-align: center; margin-top: 20px; color: #666;">
+              Didn't receive the code?
+              <a href="#" class="resend-link2" style="display: none; color: #007bff; text-decoration: none;">Resend OTP</a>
+          </p>
+          <p id="timer2" style="text-align: center; margin-top: 10px; color: #666;">Time left: 60s</p>
+      </div>
+    </section>
+
+
+
+    <section id="otp-newPassword" class="tab-content hidden card" style="max-width: 400px; margin: 0 auto; padding: 20px; border: 1px solid #ddd; border-radius: 10px; box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);">
+      <h1 style="text-align: center; font-size: 24px; margin-bottom: 10px;">OTP Verification</h1>
+      <p style="text-align: center; color: #666; margin-bottom: 20px;">Enter the 6-digit code sent to your email.</p>
+      <div class="card-body">
+          <form id="otp-newPassword-form" style="display: flex; flex-direction: column; align-items: center;">
+              <input type="text" id="otp-input3" maxlength="6" placeholder="Enter OTP" aria-label="Enter OTP"
+                  style="width: 100%; max-width: 200px; height: 40px; text-align: center; font-size: 18px; border: 1px solid #ccc; border-radius: 5px; padding: 5px;">
+              <button type="submit" class="submit-btn"
+                  style="margin-top: 20px; padding: 10px 20px; background-color: #007bff; color: white; border: none; border-radius: 5px; cursor: pointer; font-size: 16px;">
+                  Verify
+              </button>
+          </form>
+          <p class="resend-text" style="text-align: center; margin-top: 20px; color: #666;">
+              Didn't receive the code?
+              <a href="#" class="resend-link3" style="display: none; color: #007bff; text-decoration: none;">Resend OTP</a>
+          </p>
+          <p id="timer3" style="text-align: center; margin-top: 10px; color: #666;">Time left: 60s</p>
+      </div>
+    </section>
+    
+    <!-- Change Password Section -->
+    <section id="change-password" class="tab-content hidden">
+      <h2><i class="bi bi-lock-fill"></i> Change Password</h2>
+      <form id="newPassword-form">
+        <div class="mb-3">
+          <label class="form-label">New Password</label>
+          <input type="password" class="form-control" id="newPassword">
+        </div>
+        <button type="submit" class="btn btn-primary">Update Password</button>
+      </form>
+    </section>
+  </div>
+</div>
+</div>
+</div>
+
+  <script>
+
+    //poppulate dit addresss
+
+function populateModel(addressId,name,city,landmark,state,pincode,phone,altPhone)
+{
+document.getElementById("address-id").value=addressId;
+document.getElementById("editName").value=name;
+document.getElementById("editCity").value=city;
+document.getElementById("editLandmark").value=landmark;
+document.getElementById("editState").value=state;
+document.getElementById("editPincode").value=pincode;
+document.getElementById("editPhone").value=phone;
+document.getElementById("editAltPhone").value=altPhone;
+
+}
+$(document).ready(function () {
+    $(".default-radio").on("change", function () {
+        const selectedCard = $(this).closest(".address-card");
+        const addressId = selectedCard.data("address-id");
+
+        // Disable the radio button during the AJAX request
+        $(this).prop("disabled", true);
+
+        // Uncheck other radio buttons and remove 'default' class and badge from other address cards
+        $(".default-radio").not(this).prop("checked", false); // Uncheck other radio buttons
+        $(".address-card").removeClass("default").find(".default-badge").remove();
+
+        // Add 'default' class and badge to the selected address card
+        selectedCard.addClass("default");
+        const h5 = selectedCard.find("h5");
+        const badge = $("<span>").addClass("default-badge").text("Default");
+        h5.append(badge);
+
+        // Send the update to the backend using AJAX
+        updateDefaultAddress(addressId, selectedCard, $(this));
+    });
+
+    function updateDefaultAddress(addressId, selectedCard, radioButton) {
+        $.ajax({
+            url: '/update-default-address', // Backend route to update the default address
+            method: 'POST',
+            data: { addressId: addressId },
+            success: function (response) {
+                if (response.success) {
+                    console.log("Default address updated successfully");
+                } else {
+                    console.log("Failed to update default address");
+                    // Revert UI changes if the backend update fails
+                    selectedCard.removeClass("default");
+                    selectedCard.find(".default-badge").remove();
+                }
+            },
+            error: function (error) {
+                console.error("Error while updating default address:", error);
+                // Revert UI changes if there's an error
+                selectedCard.removeClass("default");
+                selectedCard.find(".default-badge").remove();
+            },
+            complete: function () {
+                // Re-enable the radio button after the request is complete
+                radioButton.prop("disabled", false);
+            }
+        });
+    }
+});
+
+
+
+ const timerDisplay = document.getElementById('timer');
+    const resendLink = document.querySelector('.resend-link');
+
+  // 1 minute in seconds
+    let timerInterval;
+    let timeLeft = 60;
+
+    // Function to start the countdown timer
+    function startTimer() {
+    clearInterval(timerInterval); // Clear any previous timer
+    timeLeft = 60; // Reset time
+    timerDisplay.textContent = `Time left: ${timeLeft}s`; // Reset display
+
+    timerInterval = setInterval(() => {
+        if (timeLeft > 0) {
+            timeLeft--;
+            timerDisplay.textContent = `Time left: ${timeLeft}s`;
+        } else {
+            clearInterval(timerInterval);
+            timerDisplay.textContent = 'Time expired!';
+            resendLink.style.display = 'inline'; // Show the resend link
+        }
+    }, 1000);
+}
+
+
+const timerDisplay2 = document.getElementById('timer2');
+    const resendLink2 = document.querySelector('.resend-link2');
+
+  // 1 minute in seconds
+    let timerInterval2;
+    let timeLeft2 = 60;
+
+    // Function to start the countdown timer
+    function startTimer2() {
+    clearInterval(timerInterval2); // Clear any previous timer
+    timeLeft2 = 60; // Reset time
+    timerDisplay2.textContent = `Time left: ${timeLeft2}s`; // Reset display
+
+    timerInterval2 = setInterval(() => {
+        if (timeLeft2 > 0) {
+            timeLeft2--;
+            timerDisplay2.textContent = `Time left: ${timeLeft2}s`;
+        } else {
+            clearInterval(timerInterval2);
+            timerDisplay2.textContent = 'Time expired!';
+            resendLink2.style.display = 'inline'; // Show the resend link
+        }
+    }, 1000);
+}
+
+const timerDisplay3 = document.getElementById('timer3');
+    const resendLink3 = document.querySelector('.resend-link3');
+
+  // 1 minute in seconds
+    let timerInterval3;
+    let timeLeft3 = 60;
+
+    // Function to start the countdown timer
+    function startTimer3() {
+    clearInterval(timerInterval3); // Clear any previous timer
+    timeLeft3 = 60; // Reset time
+    timerDisplay3.textContent = `Time left: ${timeLeft3}s`; // Reset display
+
+    timerInterval3 = setInterval(() => {
+        if (timeLeft3 > 0) {
+            timeLeft3--;
+            timerDisplay3.textContent = `Time left: ${timeLeft3}s`;
+        } else {
+            clearInterval(timerInterval3);
+            timerDisplay3.textContent = 'Time expired!';
+            resendLink3.style.display = 'inline'; // Show the resend link
+        }
+    }, 1000);
+}
+
+
+
+
+
+
+
+
+    function showTab(tabId) {
+      document.querySelectorAll('.tab-content').forEach(section => section.classList.add('hidden'));
+      document.querySelectorAll('.sidebar a').forEach(link => link.classList.remove('active'));
+      document.getElementById(tabId).classList.remove('hidden');
+      event.target.classList.add('active');
+    }
+
+    function toggleEdit(fieldId, button) {
+      const inputField = document.getElementById(fieldId);
+      if (inputField.readOnly) {
+        inputField.readOnly = false;
+        inputField.focus();
+        button.innerHTML = '<i class="bi bi-check-lg"></i>';
+        button.classList.remove('btn-outline-primary');
+        button.classList.add('btn-success');
+      } else {
+        inputField.readOnly = true;
+        button.innerHTML = '<i class="bi bi-pencil"></i>';
+        button.classList.remove('btn-success');
+        button.classList.add('btn-outline-primary');
+      }
+      document.getElementById("saveChanges").classList.remove("d-none");
+    }
+
+    $(document).ready(function () {
+        $("#phone").on("input", function () {
+            if ($(this).val().trim().length > 0) {
+                $("#phoneError").remove();
+            }
+        });
+
+        $("#userForm").submit(function (event) {
+            event.preventDefault();
+
+            let name = $("#fullName").val().trim();
+            let email = $("#email").val().trim();
+            let phone = $("#phone").val().trim();
+
+            if (!name || !email || !phone) {
+                Swal.fire({
+                    title: 'Please fill out all fields',
+                    icon: 'error',
+                    toast: true,
+                    position: 'top-end',
+                    showConfirmButton: false,
+                    timer: 3000
+                });
+                return;
+            }
+
+    // Phone number validation
+    const phonePattern = /^(\+?[0-9]{1,4})?[-\s]?[0-9]{10}$/;
+    if (!phonePattern.test(phone)) {
+        Swal.fire({
+            title: 'invalid phoneNumber!',
+            icon: 'error',
+            toast: true,
+            position: 'top-end',
+            showConfirmButton: false,
+            timer: 3000
+        });
+        return ;
+    }
+
+            let formData = { name, email, phone };
+
+            $.ajax({
+                url: "/update-profile",
+                type: "POST",
+                data: {
+                  name,
+                  email,
+                  phone
+                },
+                success: function (response) {
+                    Swal.fire({
+                        title: 'Profile Updated Successfully',
+                        icon: 'success',
+                        toast: true,
+                        position: 'top-end',
+                        showConfirmButton: false,
+                        timer: 3000
+                    });
+                },
+                error: function (xhr) {
+                    Swal.fire({
+                        title: 'Error updating profile',
+                        text: xhr.responseJSON ? xhr.responseJSON.message : 'Something went wrong!',
+                        icon: 'error',
+                        toast: true,
+                        position: 'top-end',
+                        showConfirmButton: false,
+                        timer: 3000
+                    });
+                }
+            });
+        });
+    });
+
+    function addPhone() {
+    let phone = document.getElementById("phone").value.trim();
+    if (phone === "") {
+        Swal.fire("Error", "Please enter a valid phone number.", "error");
+        return;
+    }
+    
+    $.ajax({
+        url: "/add-phone",
+        type: "POST",
+        data: { phone: phone },
+        success: function (response) {
+            Swal.fire("Success", "Phone number added successfully!", "success")
+                .then(() => location.reload());
+        },
+        error: function () {
+            Swal.fire("Error", "Something went wrong!", "error");
+        }
+    });
+}
+
+//send verify the user otp to email
+
+function sendVerifyOTP(hide,show) {
+  let email = document.getElementById("existingEmail").value.trim();
+  
+  if (!email) {
+    Swal.fire("Error", "Please enter a valid email!", "error");
+    return;
+  }
+
+  $.ajax({
+    url: "/send-otp",
+    type: "POST",
+    data: { email: email },
+    success: function () {
+      Swal.fire({
+            title:'Your OTP has been sent successfully. Please check your inbox',
+            icon: 'success',
+            toast: true,
+            position: 'top-end',
+            showConfirmButton: false,
+            timer: 3000
+        });
+          document.getElementById(show).classList.remove("hidden");
+          document.getElementById(hide).classList.add("hidden");
+          if(show==="otp-newPassword")
+        {
+          startTimer3()
+        }
+        else
+        {
+          startTimer();
+        }
+    },
+    error: function () {
+      Swal.fire("Error", "Failed to send OTP!", "error");
+    }
+  });
+}
+ 
+
+//new email verification
+function NewVerifyOTP() {
+  let email = document.getElementById("newEmail").value.trim();
+  
+  if (!email) {
+    Swal.fire("Error", "Please enter a valid email!", "error");
+    return;
+  }
+
+  $.ajax({
+    url: "/send-updateEmail-otp",
+    type: "POST",
+    data: { email: email },
+    success: function () {
+      Swal.fire({
+            title:'Your OTP has been sent successfully. Please check your inbox',
+            icon: 'success',
+            toast: true,
+            position: 'top-end',
+            showConfirmButton: false,
+            timer: 3000,
+        })
+    
+          document.getElementById("otp-newEmail").classList.remove("hidden");
+          document.getElementById("new-email").classList.add("hidden");
+                startTimer2();
+    },
+    error: function () {
+      Swal.fire("Error", "Failed to send OTP!", "error");
+    }
+  });
+}
+$("#otp-form").submit(function (event) {
+            event.preventDefault();
+
+            let otp = $("#otp-input").val().trim();
+           
+
+            if (!otp) {
+                Swal.fire({
+                    title: 'Please enter Otp',
+                    icon: 'error',
+                    toast: true,
+                    position: 'top-end',
+                    showConfirmButton: false,
+                    timer: 3000
+                });
+                return;
+            }
+            const secondVerify=false;
+            validateOtp(otp,secondVerify)
+          })
+
+   $("#emailForm").submit(function (event) {
+            event.preventDefault();
+
+         let email=$("#newEmail").val().trim();
+         if(email === '')
+          {
+            Swal.fire({
+            title: 'Enter new Email',
+            icon: 'error',
+            toast: true,
+            position: 'top-end',
+            showConfirmButton: false,
+            timer: 3000
+        });
+          }
+        })
+  $("#newPassword-form").submit(function (event) {
+            event.preventDefault();
+
+         let password=$("#newPassword").val().trim();
+         if(password === '')
+          {
+            Swal.fire({
+            title: 'Enter a password',
+            icon: 'error',
+            toast: true,
+            position: 'top-end',
+            showConfirmButton: false,
+            timer: 3000
+        });
+      }
+        const regexpass = /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&])[A-Za-z\d@$!%*?&]{8,}$/;
+          if (!regexpass.test(password)) {
+        Swal.fire({
+            title: 'Choose a Strong Password!(Example@123)',
+            icon: 'error',
+            toast: true,
+            position: 'top-end',
+            showConfirmButton: false,
+            timer: 3000
+        });
+        return false;
+    }
+    $.ajax({
+        type: "POST",
+        url: "/new-password",
+        data: {password},
+        success: function(response) {
+            if (response.success) {
+                Swal.fire({
+                    title: response.message,
+                    icon: 'success',
+                    toast: true,
+                    position: 'top-end',
+                    showConfirmButton: false,
+                    timer: 3000
+                }).then(()=>
+              {
+                location.reload();
+              })
+              }
+            }, 
+        error: function() {
+            Swal.fire({
+                title: reponse.message,
+                icon: 'error',
+                toast: true,
+                position: 'top-end',
+                showConfirmButton: false,
+                timer: 3000
+            });
+        }
+    });
+})
+   
+        // Handle resend OTP link
+        resendLink.addEventListener('click', (e) => {
+        e.preventDefault();
+        if (timeLeft <= 0) {
+            Swal.fire({
+                title: 'Resending OTP...',
+                icon: 'info',
+                toast: true,
+                position: 'top-end',
+                showConfirmButton: false,
+                timer: 2000
+            }).then(() => {
+                // Clear OTP input fields
+                otpDigits.forEach(digit => {
+                    digit.value = '';
+                });
+                otpDigits[0].focus(); // Focus on the first input field
+
+                // Reset the timer
+                timeLeft = 60;
+                startTimer();
+                resendLink.style.display = 'none'; // Hide the resend link
+
+                // Add logic to resend OTP (e.g., make an AJAX call)
+                resendOtp();
+            });
+        }
+    });
+
+
+$("#otp-newPassword-form").submit(function (event) {
+    event.preventDefault();
+
+    let otp = $("#otp-input3").val().trim();
+    if (otp === '' || otp.length < 6) {
+        Swal.fire({
+            title: 'Enter a valid OTP',
+            icon: 'error',
+            toast: true,
+            position: 'top-end',
+            showConfirmButton: false,
+            timer: 3000
+        });
+        return; // Stop the function if OTP is invalid
+    }
+
+    validatePasswordOtp(otp); // Call function only if OTP is valid
+});
+
+
+
+   
+        // Handle resend OTP link
+        resendLink.addEventListener('click', (e) => {
+        e.preventDefault();
+        if (timeLeft <= 0) {
+            Swal.fire({
+                title: 'Resending OTP...',
+                icon: 'info',
+                toast: true,
+                position: 'top-end',
+                showConfirmButton: false,
+                timer: 2000
+            }).then(() => {
+                timeLeft = 60;
+                startTimer();
+                resendLink.style.display = 'none'; // Hide the resend link
+
+                // Add logic to resend OTP (e.g., make an AJAX call)
+                resendOtp();
+            });
+        }
+    });
+
+
+    function  validatePasswordOtp(otp) {
+    console.log(otp);
+    console.log("inside validate Password OtP");
+    
+    $.ajax({
+        type: "POST",
+        url: "verify-profileOtp",
+        data: { otp: otp},
+        success: function(response) {
+            if (response.success) {
+                Swal.fire({
+                    title: response.message,
+                    icon: 'success',
+                    toast: true,
+                    position: 'top-end',
+                    showConfirmButton: false,
+                    timer: 3000
+                })
+                  document.getElementById("otp-newPassword").classList.add("hidden");
+                  document.getElementById("change-password").classList.remove("hidden");
+              }
+        },
+        error: function() {
+            Swal.fire({
+                title: "Invalid OTP!",
+                icon: 'error',
+                toast: true,
+                position: 'top-end',
+                showConfirmButton: false,
+                timer: 3000
+            });
+        }
+    });
+
+    return false;
+}
+
+    // Function to validate OTP via AJAX
+function validateOtp(otp,verify) {
+    console.log(otp);
+    console.log(verify);
+    
+    $.ajax({
+        type: "POST",
+        url: "verify-profileOtp",
+        data: { otp: otp ,
+          verify:verify,
+
+        },
+        success: function(response) {
+            if (response.success) {
+                Swal.fire({
+                    title: response.message,
+                    icon: 'success',
+                    toast: true,
+                    position: 'top-end',
+                    showConfirmButton: false,
+                    timer: 3000
+                }).then(() => {
+                  if(!verify)
+                {
+                  document.getElementById("otp-existingEmail").classList.add("hidden");
+                  document.getElementById("new-email").classList.remove("hidden");
+
+                // Reset the timer
+                resendLink.style.display = 'none'; //
+                }
+                else
+                {
+                 location.reload();
+                }
+                timeLeft=60;
+                resendLink.style.display = 'none'; //
+                })
+              }
+                  
+            else {
+                Swal.fire({
+                    title: response.message,
+                    icon: 'error',
+                    toast: true,
+                    position: 'top-end',
+                    showConfirmButton: false,
+                    timer: 3000
+                });
+            }
+        },
+        error: function() {
+            Swal.fire({
+                title: "Invalid OTP!",
+                icon: 'error',
+                toast: true,
+                position: 'top-end',
+                showConfirmButton: false,
+                timer: 3000
+            });
+        }
+    });
+
+    return false;
+}
+
+// Function to resend OTP
+function resendOtp() {
+    $.ajax({
+        type: "POST",
+        url: "/user-resend-otp",
+        success: function(response) {
+            Swal.fire({
+                title: 'OTP Resent Successfully',
+                icon: 'success',
+                toast: true,
+                position: 'top-end',
+                showConfirmButton: false,
+                timer: 3000
+            });
+        },
+        error: function() {
+            Swal.fire({
+                title: "Failed to Resend OTP!",
+                icon: 'error',
+                toast: true,
+                position: 'top-end',
+                showConfirmButton: false,
+                timer: 3000
+            });
+        }
+    });
+}
+
+
+
+$(document).ready(function () {
+    $("#saveChanges").click(function () {
+        let name = $("#fullName").val().trim();
+        let phone = $("#phone").val().trim();
+
+        if (!name || !phone) {
+            $("#error-message").text("All fields are required!");
+            return;
+        }
+
+        const phonePattern = /^(\+?[0-9]{1,4})?[-\s]?[0-9]{10}$/;
+        if (!phonePattern.test(phone)) {
+            $("#error-message").text("Invalid phone number!");
+            return;
+        }
+
+        $.ajax({
+            url: "/update-profile",
+            type: "POST",
+            data: { name, phone },
+            success: function (response) {
+                Swal.fire({
+                    title: 'Profile Updated Successfully',
+                    icon: 'success',
+                    toast: true,
+                    position: 'top-end',
+                    showConfirmButton: false,
+                    timer: 3000
+                }).then(() => {
+                    $("#editPersonalInfoModal").modal("hide");
+                    location.reload();
+                });
+            },
+            error: function (xhr) {
+                Swal.fire({
+                    title: 'Error updating profile',
+                    text: xhr.responseJSON ? xhr.responseJSON.message : 'Something went wrong!',
+                    icon: 'error',
+                    toast: true,
+                    position: 'top-end',
+                    showConfirmButton: false,
+                    timer: 3000
+                });
+            }
+        });
+    });
+});
+
+//form for adding new Address---------------------------------------------------------------------------------------------------------------------------
+  
+document.getElementById("addressForm").addEventListener("submit", function (e) {
+    e.preventDefault();
+
+    // Collect form data
+    const addressType = document.getElementById("addressType").value;
+    const name = document.getElementById("name").value.trim();
+    const city = document.getElementById("city").value.trim();
+    const landMark = document.getElementById("landmark").value.trim();
+    const state = document.getElementById("state").value.trim();
+    const pincode = document.getElementById("pincode").value.trim();
+    const phone = document.getElementById("phone").value.trim();
+    const altPhone = document.getElementById("altPhone").value.trim();
+    const isDefault = document.getElementById("defaultAddress").checked;
+
+    // Validation
+    if (!name || !city || !landMark || !state || !pincode || !phone) {
+        Swal.fire("Error", "All fields are required!", "error");
+        return;
+    }
+
+    if (!/^\d{6}$/.test(pincode)) {
+        Swal.fire("Error", "Invalid Pincode! Must be 6 digits.", "error");
+        return;
+    }
+
+    if (!/^\d{10}$/.test(phone)) {
+        Swal.fire("Error", "Invalid Phone Number! Must be 10 digits.", "error");
+        return;
+    }
+
+    if (altPhone && !/^\d{10}$/.test(altPhone)) {
+        Swal.fire("Error", "Invalid Alternate Phone Number!", "error");
+        return;
+    }
+
+    // If validation passes, store data
+    const addressData = {
+        addressType,
+        name,
+        city,
+        landMark,
+        state,
+        pincode,
+        phone,
+        altPhone,
+        default: isDefault
+    };
+
+    $.ajax({
+            url: "/add-address",
+            type: "POST",
+            data: {addressData},
+            success: function (response) {
+                Swal.fire({
+                    title: 'address added Successfully',
+                    icon: 'success',
+                    toast: true,
+                    position: 'top-end',
+                    showConfirmButton: false,
+                    timer: 3000
+                }).then(() => {
+                    $("#addAddressModal").modal("hide");
+                    location.reload();
+                });
+            },
+            error: function (xhr) {
+                Swal.fire({
+                    title: 'Error adding address',
+                    text: xhr.responseJSON ? xhr.responseJSON.message : 'Something went wrong!',
+                    icon: 'error',
+                    toast: true,
+                    position: 'top-end',
+                    showConfirmButton: false,
+                    timer: 3000
+                });
+            }
+        });
+      })
+     
+//update modal validation and ajax
+document.getElementById("editaddressForm").addEventListener("submit", function (e) {
+    e.preventDefault();
+
+    // Collect form data
+    const addressId = document.getElementById("address-id").value;
+    const addressType = document.getElementById("editAddressType").value;
+    const name = document.getElementById("editName").value.trim();
+    const city = document.getElementById("editCity").value.trim();
+    const landMark = document.getElementById("editLandmark").value.trim();
+    const state = document.getElementById("editState").value.trim();
+    const pincode = document.getElementById("editPincode").value.trim();
+    const phone = document.getElementById("editPhone").value.trim();
+    const altPhone = document.getElementById("editAltPhone").value.trim();
+
+
+    // Validation
+    if (!name || !city || !landMark || !state || !pincode || !phone||!altPhone) {
+        Swal.fire( "All fields are required!", "error");
+        return;
+    }
+
+    if (!/^\d{6}$/.test(pincode)) {
+        Swal.fire("Error", "Invalid Pincode! Must be 6 digits.", "error");
+        return;
+    }
+
+    if (!/^\d{10}$/.test(phone)) {
+        Swal.fire("Error", "Invalid Phone Number! Must be 10 digits.", "error");
+        return;
+    }
+
+    if (altPhone && !/^\d{10}$/.test(altPhone)) {
+        Swal.fire("Error", "Invalid Alternate Phone Number!", "error");
+        return;
+    }
+  if(phone === altPhone)
+  {
+    Swal.fire( "phone number and alternate phone number should not be same!", "error");
+    return;
+  }
+    // If validation passes, store data
+    const addressData = {
+        addressId,
+        addressType,
+        name,
+        city,
+        landMark,
+        state,
+        pincode,
+        phone,
+        altPhone,
+    };
+
+    $.ajax({
+            url: "/edit-address",
+            type: "POST",
+            data: {addressData},
+            success: function (response) {
+                Swal.fire({
+                    title: 'address updated Successfully',
+                    icon: 'success',
+                    toast: true,
+                    position: 'top-end',
+                    showConfirmButton: false,
+                    timer: 3000
+                }).then(() => {
+                    $("#addAddressModal").modal("hide");
+                    location.reload();
+                });
+            },
+            error: function (xhr) {
+                Swal.fire({
+                    title: 'Error adding address',
+                    text: xhr.responseJSON ? xhr.responseJSON.message : 'Something went wrong!',
+                    icon: 'error',
+                    toast: true,
+                    position: 'top-end',
+                    showConfirmButton: false,
+                    timer: 3000
+                });
+            }
+        });
+      })
+     
+
+      //delete addresss--------------------------------------------
+      function deleteAddress(addressId)
+      {
+        const swalWithBootstrapButtons = Swal.mixin({
+  customClass: {
+    confirmButton: "btn btn-success",
+    cancelButton: "btn btn-danger"
+  },
+  buttonsStyling: false
+});
+swalWithBootstrapButtons.fire({
+  title: "Are you sure?",
+  text: "You won't be able to revert this!",
+  icon: "warning",
+  showCancelButton: true,
+  confirmButtonText: "Yes, delete it!",
+  cancelButtonText: "No, cancel!",
+  reverseButtons: true
+}).then((result) => {
+  if (result.isConfirmed) {
+    $.ajax({
+            url: "/delete-address",
+            type: "POST",
+            data: {addressId},
+            success: function (response) {
+
+     swalWithBootstrapButtons.fire({
+      title: "Deleted!",
+      text: "Your file has been deleted.",
+      icon: "success"
+    }).then(()=>
+  {
+    location.reload();
+  })
+  },
+    error:function(response)
+    {
+      Swal.fire({
+                    title: 'Error deleting address',
+                    text: xhr.responseJSON ? xhr.responseJSON.message : 'Something went wrong!',
+                    icon: 'error',
+                    toast: true,
+                    position: 'top-end',
+                    showConfirmButton: false,
+                    timer: 3000
+                });
+    }
+  })
+
+  } else if (
+    /* Read more about handling dismissals below */
+    result.dismiss === Swal.DismissReason.cancel
+  ) {
+    swalWithBootstrapButtons.fire({
+      title: "Cancelled",
+      text: "Your imaginary file is safe :)",
+      icon: "error"
+    });
+  }
+});
+      }
+
+  </script>
+
+
+<%-include("../../views/partials/user/footer.ejs")%>
