@@ -9,6 +9,7 @@ const Address=require("../../models/addressSchema.js")
 const Order=require("../../models/orderSchema.js")
 const env=require("dotenv").config();
 const bcrypt=require("bcrypt")
+
 const loadHomePage=async(req,res)=>
 {
     try{
@@ -190,11 +191,13 @@ const loginPage = async (req, res) => {
         return res.status(500).render("signup", {success:false, message: "An error occurred. Please try again later." });
     }
 }
+
 const securePassword=async(password)=>
 {
     const passwordHash=await bcrypt.hash(password,10)
     return passwordHash;
 }
+
 const verifyOtp = async (req, res) => {
     try {
         console.log("Inside verify OTP");
@@ -263,6 +266,7 @@ const verifyOtp = async (req, res) => {
         return res.status(500).json({ success: false, message: "An error occurred. Please try again later." });
     }
 };
+
 const resendOtp=async(req,res)=>
 {
     if (!req.session.userData) {
@@ -295,6 +299,8 @@ const resendOtp=async(req,res)=>
         res.status(500).json({success:false,message:"Internal Server Error,Please Try again"}) 
     }
 }
+
+
 const logout=async(req,res)=>
 {
     try
@@ -320,6 +326,7 @@ catch(error)
 }
 }
 
+
 const loadforgot=async(req,res)=>
 {
     try {
@@ -332,6 +339,7 @@ const loadforgot=async(req,res)=>
 }
 
 //send forgot password otp
+
 
 async function forgotEmail(email, otp) {
     try {
@@ -540,24 +548,27 @@ const updatePassword=async(req,res)=>
 //user progile loading
 const loadUserProfile = async (req, res) => {
     try {
-      const userId = req.session.user;
+      const userId = req.session.user || req.user._id;
   
       // Fetch user details
       const data = await User.findOne({ _id: userId });
+      
   
       // Fetch address data (assuming Address schema has a field called "address")
       const addressDoc = await Address.findOne({ userId: userId });
-  
-      // Retrieve orders using the orderHistory from the user document
+    console.log("address Data");
+    console.log(addressDoc);
+    
       const orders = await Order.find({ _id: { $in: data.orderHistory } })
         .populate("address") // populate the delivery address
         .populate({
           path: "orderedItems.product", // populate the product details in each ordered item
           model: "Product",
         });
-  
-      // Convert orderId (UUID) into a numeric representation using BigInt for each order
-      const ordersWithReadableId = orders.map((order) => {
+        let ordersWithReadableId =[]
+      if(orders!==null)
+      {
+      ordersWithReadableId = orders.map((order) => {
         if (order.orderId) {
           // Remove dashes and convert to BigInt
           const hexString = order.orderId.replace(/-/g, "");
@@ -566,11 +577,12 @@ const loadUserProfile = async (req, res) => {
         }
         return order;
       });
+    }
   
       return res.render("UserProfile", {
         data,
         addressData: addressDoc ? addressDoc.address : null,
-        orders: ordersWithReadableId,
+        orders: ordersWithReadableId ?  ordersWithReadableId :null,
       });
     } catch (error) {
       console.error("Error loading user profile:", error);

@@ -6,7 +6,7 @@ const User=require("../../models/userSchema")
 const productDetails=async(req,res)=>
 {
     try {
-        const userId=req.session.user;
+        const userId=req.session.user || req.user._id;
         const userData=await User.findById({_id:userId})
         const productId=req.query.id;
         const productData=await Product.findById({_id:productId}).populate('category').populate('brand')

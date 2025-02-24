@@ -6,7 +6,7 @@ const User=require("../../models/userSchema")
 const loadWishlist=async(req,res)=>
 {
     try {
-        const id=req.session.user;
+        const id=req.session.user ||req.user._id;
         const user=await User.findById({_id:id})
         const products=await Products.find({_id:{$in:user.wishlist}}).populate('category').populate('brand')
         return res.render("wishlist",

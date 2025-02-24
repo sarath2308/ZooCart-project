@@ -9,7 +9,7 @@ const Category = require("../../models/CategorySchema")
 
 const loadCart = async (req, res) => {
   try {
-    const userId = req.session.user;
+    const userId = req.session.user || req.user._id;;
     const userData=await User.findById({_id:userId})
     const oid = new mongoose.Types.ObjectId(userId);
 

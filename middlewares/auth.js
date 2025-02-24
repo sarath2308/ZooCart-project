@@ -1,27 +1,30 @@
 const User=require('../models/userSchema')
 const userAuth = async (req, res, next) => {
-    const id=req.session.user;
-    try {
-      if (!req.session.user) {
-        return res.redirect('/signup');  // No session, redirect to signup
-      }
-  
-      const user = await User.findById({_id:id});
-      if (user) {
-        if(user.isBlocked)
-        {
-            return res.redirect("/logout");
-        }
-        next();  // Proceed if the user exists and is not blocked
-      } else {
-        console.log(" does not exist");
-        res.redirect('/logout');
-      }
-    } catch (error) {
-      console.error("Error in User auth middleware:", error);
-      res.status(500).send("Internal Server Error");
+  const id = req.session.user || (req.user && req.user._id);
+  try {
+    if (!req.session.user && !req.user) {
+      return res.redirect('/signup'); // No session, redirect to signup
     }
-  };
+    
+    const user = await User.findById(id);
+    if (user) {
+      if (user.isBlocked) {
+        
+          return res.redirect('/logout');  // Or any other route (maybe a blocked notice page)
+
+      } else {
+        next(); // Proceed if the user exists and is not blocked
+      }
+    } else {
+      console.log("User does not exist");
+      res.redirect('/logout');
+    }
+  } catch (error) {
+    console.error("Error in user auth middleware:", error);
+    res.status(500).send("Internal Server Error");
+  }
+};
+
 const adminAuth=(req,res,next)=>
 {
     if(!req.session.admin)
