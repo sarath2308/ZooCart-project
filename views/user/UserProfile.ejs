@@ -506,7 +506,7 @@
                     <input type="text" id="otp-password" maxlength="6" placeholder="Enter OTP" aria-label="Enter OTP"
                       style="width: 100%; max-width: 200px; height: 40px; text-align: center; font-size: 18px; border: 1px solid #ccc; border-radius: 5px; padding: 5px;">
                     <button type="submit" class="submit-btn"
-                      style="margin-top: 20px; padding: 10px 20px; background-color: #007bff; color: white; border: none; border-radius: 5px; cursor: pointer; font-size: 16px;"  onclick="verifyOTP('otp-existing', 'existingEmail')"
+                      style="margin-top: 20px; padding: 10px 20px; background-color: #007bff; color: white; border: none; border-radius: 5px; cursor: pointer; font-size: 16px;"
                       onclick="verifyOTP('otp-password', 'password')">Verify OTP</button>
                     
                   </form>
@@ -1228,9 +1228,22 @@ const timerDisplay3= document.getElementById('timer3');
         Swal.fire("Error", "Please enter a new password!", "error");
         return;
       }
+    
+      const regex = /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)[A-Za-z\d]{8,}$/;
+      if(!regex.test(newPassword))
+      {
+        Swal.fire({
+            title: 'choose a strong Password(Example@123)',
+            icon: 'success',
+            toast: true,
+            position: 'top-end',
+            showConfirmButton: false,
+            timer: 3000
+          });
+      }
       
       $.ajax({
-        url: `/api/users/${userId}/password`,
+        url: `/api/users/password`,
         type: "PUT",
         data: { newPassword: newPassword },
         success: function () {
@@ -1241,7 +1254,10 @@ const timerDisplay3= document.getElementById('timer3');
             position: 'top-end',
             showConfirmButton: false,
             timer: 3000
-          });
+          }).then(()=>
+        {
+          location.reload()
+        })
           // Optionally, update UI or redirect.
         },
         error: function () {

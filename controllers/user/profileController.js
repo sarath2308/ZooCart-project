@@ -270,12 +270,12 @@ const verifyOtp=async(req,res)=>
 const newPassword=async(req,res)=>
 {
     try {
-        const {password}=req.body;
-        const userId=req.session.user;
+        const {newPassword}=req.body;
+        const userId = req.session.user || (req.user && req.user._id);
         const findUser=await User.findOne({_id:userId})
         if(findUser)
         {
-            const hashPassword=await bcrypt.hash(password,10)
+            const hashPassword=await bcrypt.hash(newPassword,10)
             const updatePassword=await User.updateOne({_id:userId},{$set:{password:hashPassword}})
             if(updatePassword.modifiedCount>0)
             {

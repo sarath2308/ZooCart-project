@@ -45,7 +45,7 @@ router.post("/add-phone",userAuth,profileController.addPhone)
 router.post("/api/users/:otpType/otp",userAuth,profileController.sendOtp)
 router.get('/fetchProducts',userAuth,userController.fetchProducts)
 router.post('/api/users/:otpType/otp/verify',userAuth,profileController.verifyOtp)
-router.post("/new-password",userAuth,profileController.newPassword)
+router.put("/api/users/password",userAuth,profileController.newPassword)
 router.put("/api/users/email",userAuth,profileController.updateEmail)
 // router.post("/user-resend-otp",userAuth,profileController.)
 
