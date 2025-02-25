@@ -26,9 +26,29 @@ const orderSchema=new Schema({
     type:Number,
     required:true
    },
+   handlingFee:{
+    type:Number,
+    default:7
+   },
+   packagingFee:{
+    type:Number,
+     default:10,
+   },
+   deliveryCharge:{
+    type:String,
+    default:'Free'
+   },
    discount:{
     type:Number,
     default:0
+   },
+   paymentMethod:{
+     type:String,
+     required:true
+   },
+   totalQuantity:{
+    type:Number,
+    default:1,
    },
    finalAmount:{
     type:Number,

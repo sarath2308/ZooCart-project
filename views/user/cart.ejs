@@ -18,7 +18,7 @@
 </section>
 <!-- Breadcrumb Section End -->
   <script>
-const products = <%- JSON.stringify(products) %>;
+const products = <%-JSON.stringify(products) %>
 
   </script>
 
@@ -121,14 +121,22 @@ const products = <%- JSON.stringify(products) %>;
             
           </div>
           <div class="cart__total">
-            <h6>Cart total</h6>
+            <h6>Cart Total</h6>
             <ul>
-              <li>Total items<span id="total-quantity"><%= totalQuantity %></span></li>
-              <li>Discount <span style="color: rgb(5, 111, 6);" id="discount-amount">-₹<%= grandRegularTotal - grandTotal %></span></li>
-              <li>Total <span style="color: black;" id="grand-total">₹<%= grandTotal %></span></li>
+              <li>Total items <span id="total-quantity" style="color:blue"><%= totalQuantity %></span></li>
+              <li>Grand Total <span id="grand-regularTotal" >₹ <%= grandRegularTotal %></span></li>
+              <li>Total Discount <span style="color: rgb(5, 111, 6);" id="discount-amount">-₹<%= grandRegularTotal - grandTotal %></span></li>
+              <li>Handling Fee <span id="handling-fee" style="color:rgb(0, 0, 0)">₹ <%= handlingFee %></span></li>
+              <li>Packaging Fee <span id="packaging-fee" style="color:rgba(0, 0, 0, 0.778)">₹<%= packagingFee %></span></li>
+              <li>Delivery <span id="delivery-info" style="color: green;">Free</span></li>
+              <li style="color:blue">Inclusive of all Taxes</li>
+              <hr style=" border: 1px solid #757272; margin: 0 auto;">
+
+              <li>Total Payable <span style="color: black;font-size: large;" id="grand-total">₹ <%= grandTotal  %></span></li>
             </ul>
-            <a  onclick="checkOut()" style="color: white;background-color: #111111;"  class="btn primary-btnn">Proceed to checkout</a>
+            <a onclick="checkOut()" style="color: white; background-color: #111111;" class="btn primary-btnn">Proceed to checkout</a>
           </div>
+          
         </div>
       </div>
     </div>
@@ -257,17 +265,19 @@ const products = <%- JSON.stringify(products) %>;
  
   function updateCartQuantity(itemId, newQuantity) {
     $.ajax({
-      url: '/update-cart',
-      type: 'POST',
+      url: `/api/cart/item/${itemId}`,
+      type: 'PUT',
       contentType: 'application/json',
       data: JSON.stringify({ itemId: itemId, quantity: newQuantity }),
       success: function(responseData) {
         if (responseData.success) {
           // Update the item's total price in the DOM
           $('#item-total-' + itemId).text('₹' + responseData.updatedItem.itemTotal);
-          // Update overall cart totals if necessary
+          $('#grand-regularTotal').text('₹' +responseData.grandRegularTotal)
+          $('#packaging-fee').text('₹' +responseData.packagingFee)
+          $('#handling-fee').text('₹' +responseData.handlingFee)
           $('#total-quantity').text(responseData.totalQuantity);
-          $('#grand-total').text('₹' + responseData.grandTotal);
+          $('#grand-total').text('₹' + responseData.grandTotal)
           $('#discount-amount').text('-₹' + (responseData.grandRegularTotal - responseData.grandTotal));
         } else {
           alert(responseData.message || 'Failed to update cart');
@@ -392,7 +402,7 @@ function checkOut() {
       reverseButtons: true
     }).then((result) => {
       if (result.isConfirmed) {
-        window.location.href = `/checkOut?cart=1`;
+        window.location.href = `/checkout?cart=1`;
       
       } else if (result.dismiss === Swal.DismissReason.cancel) {
         swalWithBootstrapButtons.fire({
@@ -403,7 +413,7 @@ function checkOut() {
       }
     });
   } else {
-    window.location.href = `/checkOut?cart=1`;
+    window.location.href = `/checkout?cart=1`;
   }
 }
   </script>

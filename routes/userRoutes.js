@@ -64,17 +64,16 @@ router.post("/removeFromWishlist",userAuth,wishlistController.removeFromWishlist
 //cart management
 router.get("/cart",userAuth,cartController.loadCart)
 router.post("/addToCart",userAuth,cartController.addToCart)
-router.post("/update-cart",userAuth,cartController.updateCart)
+router.put("/api/cart/item/:itemId",userAuth,cartController.updateCart)
 router.post("/remove-cart-item",userAuth,cartController.removeItem)
 
 
 //checkout
-router.get("/checkOut",userAuth,checkoutController.loadCheckOut)
-router.post("/apply-coupon",userAuth,checkoutController.applyCoupon)
-router.post("/save-address",userAuth,profileController.addAddress)
-router.post("/orderSummary",userAuth,checkoutController.orderSummary)
-router.post("/placeOrder",userAuth,checkoutController.placeOrder)
-router.get("/orderPlaced",userAuth,checkoutController.orderPlaced)
+router.get("/checkout",userAuth,checkoutController.loadCheckOut);
+router.post("/api/coupons/apply",userAuth,checkoutController.applyCoupon)
+router.post("/api/addresses",userAuth,profileController.addAddress)
+router.post("/api/orders/placeOrder",userAuth,checkoutController.placeOrder)
+router.get("/users/order/orderPlaced/",userAuth,checkoutController.orderPlaced)
 
 
 router.get('/demoUser',userController.demoUser)

@@ -184,20 +184,6 @@
       </div>
     </div>
     
-    <!-- Animated Place Order Button -->
-    <button class="order-btn" onclick="placeOrderAnimation()">
-      <span class="default">Place Order</span>
-      <span class="success">
-        Order Placed
-        <svg viewBox="0 0 12 10" style="vertical-align: middle;">
-          <polyline points="1.5 6 4.5 9 10.5 1"></polyline>
-        </svg>
-      </span>
-      <!-- Example truck element (optional) -->
-      <div class="truck">
-        <!-- Simple placeholder for truck animation -->
-      </div>
-    </button>
     
   </div>
   
@@ -239,23 +225,7 @@
       }
     }
     
-    function placeOrderAnimation() {
-      var button = document.querySelector('.order-btn');
-      if (!button.classList.contains('animate')) {
-        button.classList.add('animate');
-        // After 3 seconds, swap text from default to success
-        setTimeout(() => {
-          button.querySelector('span.default').style.display = 'none';
-          button.querySelector('span.success').style.display = 'block';
-        }, 3000);
-        // Reset after 6.5 seconds
-        setTimeout(() => {
-          button.classList.remove('animate');
-          button.querySelector('span.default').style.display = 'block';
-          button.querySelector('span.success').style.display = 'none';
-        }, 6500);
-      }
-    }
+   
   </script>
 </body>
 </html>

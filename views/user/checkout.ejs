@@ -5,11 +5,11 @@
   <div class="container">
     <div class="row">
       <div class="col-lg-12">
-        <div class="breadcrumb__text">
+        <div class="breadcrumb__text py-2">
           <h4>Check Out</h4>
           <div class="breadcrumb__links">
-            <a href="./index.html">Home</a>
-            <a href="./shop.html">Shop</a>
+            <a href="/">Home</a>
+            <a href="/shop">Shop</a>
             <span>Check Out</span>
           </div>
         </div>
@@ -22,146 +22,363 @@
 <!-- Checkout Section Begin -->
 <section class="checkout spad">
   <div class="container">
-    <div class="checkout__form">
-      <form action="/orderSummary?cart=1" method="POST">
-        <div class="row">
-          <!-- Left Column: Addresses & Billing Details -->
-          <div class="col-lg-8 col-md-6">
-            <h6 class="checkout__title">Choose Delivery Address</h6>
-            
-            <!-- Address List -->
-            <div class="address-container">
-                <% addressData.forEach((ad) => { %>
-                <div class="address-card <%= ad.default ? 'default' : '' %>" data-address-id="<%= ad._id %>">
-                    <!-- The radio button will only be checked if this address is marked as default -->
-                    <input type="radio" name="addressId" value="<%=ad._id%>"<% if (ad.default) { %> checked <% } %> class="default-radio">
-                    <div class="address-details">
-                        <h5> <%= ad.name %>
-                            <% if (ad.default) { %>
+    <div class="row">
+      <!-- Left Column: Accordion -->
+      <div class="col-lg-8 col-md-6">
+        <div class="accordion" id="checkoutAccordion">
+          <!-- Section 1: Delivery Address -->
+          <div class="accordion-item mb-3" id="section-address" style="min-height: 120px; width: 100%;">
+            <h2 class="accordion-header" id="headingAddress">
+              <button class="accordion-button" type="button" data-bs-toggle="collapse" data-bs-target="#collapseAddress" aria-expanded="true" aria-controls="collapseAddress">
+                1. Choose Delivery Address
+                <span class="completed-badge d-none" id="address-completed">Completed</span>
+              </button>
+            </h2>
+            <div id="collapseAddress" class="accordion-collapse collapse show" aria-labelledby="headingAddress" data-bs-parent="#checkoutAccordion">
+              <div class="accordion-body">
+                <!-- Address List -->
+                <div class="address-container">
+                  <% addressData.forEach((ad) => { %>
+                    <div class="address-card <%= ad.default ? 'default' : '' %>" data-address-id="<%= ad._id %>">
+                      <input type="radio" name="addressId" value="<%= ad._id %>" <% if (ad.default) { %> checked <% } %> class="default-radio">
+                      <div class="address-details">
+                        <h5>
+                          <%= ad.name %>
+                          <% if (ad.default) { %>
                             <span class="default-badge">Default</span>
-                            <% } %>
+                          <% } %>
                         </h5>
                         <p style="color: grey;"><%= ad.addressType %></p>
                         <p><%= ad.city %>, <%= ad.landMark %>, <%= ad.state %></p>
                         <p>Pin: <%= ad.pincode %></p>
                         <p>Phone: <%= ad.phone %></p>
                         <p>Alt Phone: <%= ad.altPhone %></p>
-                    </div>
-                </div>
-                <% }) %>
-            </div>
-            <br>
-            <!-- Add New Address Button -->
-            <div class="checkout__input add-address">
-              <button type="button" class="btn btn-primary" onclick="showAddAddressForm()">
-                <span class="icon_plus"></span> Add New Address
-              </button>
-            </div>
-            <!-- Hidden Add Address Form -->
-            <div id="addAddressForm" style="display:none; margin-top:20px;">
-              <h6 class="checkout__title">Add New Address</h6>
-              <div class="row">
-                <div class="col-lg-6">
-                  <div class="checkout__input">
-                    <p>name<span>*</span></p>
-                    <input type="text" id="name" name="name"placeholder="your name">
-                  </div>
-                </div>
-                <div class="col-lg-6">
-                  <div class="checkout__input">
-                    <p>landMark</p>
-                    <input type="text" id="landmark" placeholder="shopping complex,park etc..">
-                  </div>
-                </div>
-              </div>
-              <div class="checkout__input">
-                <p>City<span>*</span></p>
-                <input type="text" id="city">
-              </div>
-              <div class="checkout__input">
-                <p>State<span>*</span></p>
-                <input type="text" id="state">
-              </div>
-              <div class="checkout__input">
-                <p>Postcode/ZIP<span>*</span></p>
-                <input type="text" id="pincode">
-              </div>
-              <div class="checkout__input">
-                <p>phone<span>*</span></p>
-                <input type="text" id="phone">
-              </div>
-              <div class="checkout__input">
-                <p>Alternative phone<span>*</span></p>
-                <input type="text" id="altPhone">
-              </div>
-              <div class="checkout__input">
-                <button type="button" class="btn btn-success" onclick="saveAddress()">Save Address</button>
-                <button type="button" class="btn btn-secondary" onclick="hideAddAddressForm()">Cancel</button>
-              </div>
-            </div>
-          </div>
-          
-          <!-- Right Column: Coupon & Order Summary -->
-          <div class="col-lg-4 col-md-6">
-            <div class="checkout__coupon mb-4">
-                <h6 class="coupon__code">
-                  <span class="icon_tag_alt"></span> Have a coupon?
-                </h6>
-                <div class="row">
-                  <div class="col-md-6">
-                    <input type="text" id="coupon-code-input" name="coupon" class="form-control" placeholder="Enter coupon code">
-                  </div>
-                  <div class="col-md-6">
-                    <div class="dropdown">
-                        <button class="btn btn-secondary dropdown-toggle" type="button" id="dropdownMenuButton1" data-bs-toggle="dropdown" aria-expanded="false">
-                          Available Coupon
-                        </button>
-                        <ul class="dropdown-menu" aria-labelledby="dropdownMenuButton1">
-                            <%couponData.forEach((cou)=>{%>
-                                <%if(cou.minimumPrice<=grandTotal){%>
-                            <li><a class="dropdown-item" href="#" onclick="selectCoupon('<%=cou.code%>'); return false;"><%=cou.code%>(₹<%=cou.offerPrice%> OFF)</a></li>
-                            <%}%>
-                            <%})%>
-                        </ul>
                       </div>
-                  </div>
+                    </div>
+                  <% }); %>
                 </div>
                 <br>
-                <button type="button" class="btn btn-success w-100" onclick="applyCoupon()">Apply Coupon</button>
-                <div id="coupon-message" style="margin-top:10px;"></div>
+                <!-- Add New Address Button -->
+                <div class="checkout__input add-address">
+                  <button type="button" class="btn btn-primary" onclick="showAddAddressForm()">
+                    <span class="icon_plus"></span> Add New Address
+                  </button>
+                </div>
+                <!-- Hidden Add Address Form -->
+                <div id="addAddressForm" style="display:none; margin-top:20px;">
+                  <h6 class="checkout__title">Add New Address</h6>
+                  <div class="row">
+                    <div class="col-lg-6">
+                      <div class="checkout__input">
+                        <p>Name<span>*</span></p>
+                        <input type="text" id="name" name="name" placeholder="Your name">
+                      </div>
+                    </div>
+                    <div class="col-lg-6">
+                      <div class="checkout__input">
+                        <p>LandMark</p>
+                        <input type="text" id="landmark" placeholder="Shopping complex, park, etc.">
+                      </div>
+                    </div>
+                  </div>
+                  <div class="checkout__input">
+                    <p>City<span>*</span></p>
+                    <input type="text" id="city">
+                  </div>
+                  <div class="checkout__input">
+                    <p>State<span>*</span></p>
+                    <input type="text" id="state">
+                  </div>
+                  <div class="checkout__input">
+                    <p>Postcode/ZIP<span>*</span></p>
+                    <input type="text" id="pincode">
+                  </div>
+                  <div class="checkout__input">
+                    <p>Phone<span>*</span></p>
+                    <input type="text" id="phone">
+                  </div>
+                  <div class="checkout__input">
+                    <p>Alternative Phone<span>*</span></p>
+                    <input type="text" id="altPhone">
+                  </div>
+                  <div class="checkout__input">
+                    <button type="button" class="btn btn-success" onclick="saveAddress()">Save Address</button>
+                    <button type="button" class="btn btn-secondary" onclick="hideAddAddressForm()">Cancel</button>
+                  </div>
+                </div>
+                <!-- Mark as Complete Button for Delivery Address -->
+                <button type="button" class="btn btn-success mt-3" onclick="markComplete('section-address', 'address-completed')">Confirm & Save</button>
               </div>
-            
-            <!-- Order Summary -->
-
-  <div class="checkout__order">
-    <h4 class="order__title">Your order</h4>
-    <div class="checkout__order__products">Product <span>Total</span></div>
-    <ul class="checkout__total__products" id="order-products">
-      <% if (products && products.length > 0) { %>
-        <% products.forEach(function(item, index) { %>
-          <li>
-            <%= index + 1 %>. <%= item.productDetails.productName %> <small>x<%= item.quantity %></small>
-            <span>₹<%= item.productDetails.salePrice * item.quantity %></span>
-          </li>
-        <% }); %>
-      <% } %>
-    </ul>
-    <ul class="checkout__total__all" id="order-totals">
-      <li id="discount-li" style="color:green;">Discount <span style="color: green;">-₹<%= grandRegularTotal - grandTotal %></span></li>
-      <li id="subtotal-li">Subtotal <span>₹<%= grandTotal %></span></li>
-      <li id="total-li">Total Payable <span>₹<%= grandTotal %></span></li>
-      <% if (couponApplied) { %>
-        <li id="coupon-li">Coupon Applied (<%= appliedCoupon %>): <span>₹<%= couponOfferPrice %> OFF</span></li>
-      <% } %>
-    </ul>
-    <button type="submit" class="site-btn">PLACE ORDER</button>
-  </div>
-            
+            </div>
+          </div>
+          <!-- Section 2: Payment Method -->
+          <div class="accordion-item mb-3" id="section-payment" style="min-height: 120px; width: 100%;">
+            <h2 class="accordion-header" id="headingPayment">
+              <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#collapsePayment" aria-expanded="false" aria-controls="collapsePayment">
+                2. Payment Method
+                <span class="completed-badge d-none" id="payment-completed">Completed</span>
+              </button>
+            </h2>
+            <div id="collapsePayment" class="accordion-collapse collapse" aria-labelledby="headingPayment" data-bs-parent="#checkoutAccordion">
+              <div class="accordion-body">
+                <p>Select your payment method:</p>
+                <div class="form-check">
+                  <input class="form-check-input" type="radio" name="paymentOption" id="pay1" value="RazorPay">
+                  <label class="form-check-label" for="pay1">RazorPay</label>
+                </div>
+                <div class="form-check">
+                  <input class="form-check-input" type="radio" name="paymentOption" id="pay2" value="Cash on Delivery">
+                  <label class="form-check-label" for="pay2">Cash on Delivery</label>
+                </div>
+                <!-- Mark as Complete Button for Payment -->
+                <button type="button" class="btn btn-success mt-3" onclick="markComplete('section-payment', 'payment-completed')">confirm payment option</button>
+              </div>
+            </div>
+          </div>
+          <!-- Section 3: Order Summary -->
+          <div class="accordion-item mb-3" id="section-summary" style="min-height: 120px; width: 100%;">
+            <h2 class="accordion-header" id="headingSummary">
+              <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#collapseSummary" aria-expanded="false" aria-controls="collapseSummary">
+                3. Order Summary
+                <span class="completed-badge d-none" id="summary-completed">Completed</span>
+              </button>
+            </h2>
+            <div id="collapseSummary" class="accordion-collapse collapse" aria-labelledby="headingSummary" data-bs-parent="#checkoutAccordion">
+              <div class="accordion-body">
+                <p>Review your order details:</p>
+                <div class="shopping__cart__table">
+                  <table>
+                    <thead>
+                      <tr>
+                        <th>Product</th>
+                        <th>Quantity</th>
+                        <th>Total</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      <% if (products.length > 0) { %>
+                        <% products.forEach(pr => { %>
+                          <tr data-item-id="<%= pr._id %>">
+                            <td class="product__cart__item">
+                              <div class="product__cart__item__pic">
+                                  <a href="/productDetails?id=<%=pr.productDetails._id%>" class="btn">
+                                <img src="/uploads/re-image/<%= pr.productDetails.productImage[0] %>" alt="Product Image">
+                                </a>
+                              </div>
+                              <div class="product__cart__item__text">
+                                <h6><%= pr.productDetails.productName %></h6>
+        
+                                <h6 style="color:green">
+                                  <s style="font-size: 13px; color: grey;">₹<%= pr.productDetails.regularPrice %></s>
+                                  ₹<%= pr.productDetails.salePrice %>.0
+                                </h6>
+                              </div>
+                            </td>
+                            <td class="quantity__item">
+                              <div class="quantity">
+                                 
+                                <p>x<%=pr.quantity%></p>
+                          
+                                </div>
+                            </td>
+                            <td class="cart__price">
+                              <span id="item-total-<%= pr.productDetails._id %>">₹<%= pr.productDetails.salePrice * pr.quantity %></span>
+                            </td>
+                          </tr>
+                        <% }) %>
+                      <% } else { %>
+                        <tr>
+                          <td colspan="4" class="text-center">
+                            <p class="lead mb-4">No items</p>
+                          </td>
+                        </tr>
+                      <% } %>
+                    </tbody>
+                  </table>
+                </div>
+             
+                <!-- Mark as Complete Button for Order Summary -->
+                <a type="button" href="#placeOrder"class="btn btn-success mt-3" onclick="markComplete('section-summary', 'summary-completed')">Confirm Order</a>
+              </div>
+            </div>
           </div>
         </div>
-      </form>
+      </div>
+      
+      <div class="col-lg-4 col-md-6">
+        <div class="checkout__coupon mb-4">
+            <h6 class="coupon__code">
+              <span class="icon_tag_alt"></span> Have a coupon?
+            </h6>
+            <div class="row">
+              <div class="col-md-6">
+                <input type="text" id="coupon-code-input" name="coupon" class="form-control" placeholder="Enter coupon code">
+              </div>
+              <div class="col-md-6">
+                <div class="dropdown">
+                    <button class="btn btn-secondary dropdown-toggle" type="button" id="dropdownMenuButton1" data-bs-toggle="dropdown" aria-expanded="false">
+                      Available Coupon
+                    </button>
+                    <ul class="dropdown-menu" aria-labelledby="dropdownMenuButton1">
+                        <%couponData.forEach((cou)=>{%>
+                            <%if(cou.minimumPrice<=grandTotal){%>
+                        <li><a class="dropdown-item" href="#" onclick="selectCoupon('<%=cou.code%>'); return false;"><%=cou.code%>(₹<%=cou.offerPrice%> OFF)</a></li>
+                        <%}%>
+                        <%})%>
+                    </ul>
+                  </div>
+              </div>
+            </div>
+            <br>
+            <button type="button" class="btn btn-success w-100" onclick="applyCoupon()">Apply Coupon</button>
+            <div id="coupon-message" style="margin-top:10px;"></div>
+          </div>
+        
+        <!-- Order Summary -->
+
+<div class="checkout__order">
+<h4 class="order__title">Your order</h4>
+<div class="checkout__order__products">Product <span>Total</span></div>
+<ul class="checkout__total__all" id="order-totals">
+    <li>Total items <span id="total-quantity" style="color:blue"><%= totalQuantity %></span></li>
+    <li>Grand Total <span id="grand-regularTotal" >₹ <%= grandRegularTotal %></span></li>
+    <li>Total Discount <span style="color: rgb(5, 111, 6);" id="discount-amount">-₹<%= grandRegularTotal - grandTotal %></span></li>
+    <li style="color:green;">Coupon extra discount <span id="coupon-added" style="color:rgb(255, 42, 9)">not added</span></li>
+    <li>Handling Fee <span id="handling-fee" style="color:rgb(0, 0, 0)">₹ <%= handlingFee %></span></li>
+    <li>Packaging Fee <span id="packaging-fee" style="color:rgba(0, 0, 0, 0.778)">₹<%= packagingFee %></span></li>
+    <li>Delivery <span id="delivery-info" style="color: green;">Free</span></li>
+    <li style="color:blue">Inclusive of all Taxes</li>
+    <hr style=" border: 1px solid #757272; margin: 0 auto;">
+
+    <li>Total Payable <span style="color: black;font-size: large;" id="grand-total">₹ <%= grandTotal  %></span></li>
+</ul>
+<button onclick="placeOrder()" id="placeOrder" class="site-btn">PLACE ORDER</button>
+
+<script>
+  function placeOrder() {
+    // Define the required accordion section IDs
+    const requiredSections = ['section-address', 'section-payment', 'section-summary'];
+    let allCompleted = true;
+    
+    // Check each section for the 'completed' class
+    requiredSections.forEach(function(id) {
+      const section = document.getElementById(id);
+      if (!section || !section.classList.contains('completed')) {
+        allCompleted = false;
+      }
+    });
+    
+    // If not all sections are complete, show a warning
+    if (!allCompleted) {
+      Swal.fire({
+        title: 'Incomplete Steps',
+        text: 'Please complete all sections before placing your order.',
+        icon: 'warning',
+        toast: true,
+        position: 'top-end',
+        showConfirmButton: false,
+        timer: 3000
+      });
+      return;
+    }
+
+    // 1. Get the selected address id from the radio inputs.
+    var addressId = $('input[name="addressId"]:checked').val();
+    if (!addressId) {
+      Swal.fire({
+        title: 'No address selected',
+        text: 'Please select a delivery address.',
+        icon: 'warning',
+        toast: true,
+        position: 'top-end',
+        timer: 3000,
+        showConfirmButton: false
+      });
+      return;
+    }
+    
+    // 2. Get the selected payment method.
+    var paymentMethod = $('input[name="paymentOption"]:checked').val();
+    if (!paymentMethod) {
+      Swal.fire({
+        title: 'No payment method selected',
+        text: 'Please select a payment method.',
+        icon: 'warning',
+        toast: true,
+        position: 'top-end',
+        timer: 3000,
+        showConfirmButton: false
+      });
+      return;
+    }
+    
+  
+    var totalQuantity = $('#total-quantity').text().trim();  
+    var grandRegularTotal = $('#grand-regularTotal').text().replace(/[^\d.]/g, '').trim();
+    var discountAmount = $('#discount-amount').text().replace(/[^\d.]/g, '').trim();
+    var couponAddedText = $('#coupon-added').text().trim(); 
+     var couponValue = parseFloat(couponAddedText.replace(/[^\d.]/g, ''));
+
+    var handlingFee = $('#handling-fee').text().replace(/[^\d.]/g, '').trim();
+    var packagingFee = $('#packaging-fee').text().replace(/[^\d.]/g, '').trim();
+    var grandTotal = $('#grand-total').text().replace(/[^\d.]/g, '').trim();
+
+    // 4. Build an order data object.
+    var orderData = {
+      addressId: addressId,
+      paymentMethod: paymentMethod,
+      totalQuantity: parseInt(totalQuantity),
+      grandRegularTotal: parseFloat(grandRegularTotal),
+      discountAmount: parseFloat(discountAmount),
+      coupon:couponValue?couponValue:null,
+      handlingFee: parseFloat(handlingFee),
+      packagingFee: parseFloat(packagingFee),
+      grandTotal: parseFloat(grandTotal)
+    };
+
+    console.log("Order Data: ", orderData);
+    
+    // 5. Use AJAX to send orderData to your REST API endpoint.
+    $.ajax({
+      url: '/api/orders/placeOrder?cart=1',
+      type: 'POST',
+      data: JSON.stringify(orderData),
+      contentType: 'application/json',
+      success: function(response) {
+        Swal.fire({
+          title: 'Order Placed Successfully!',
+          icon: 'success',
+          toast: true,
+          position: 'top-end',
+          timer: 3000,
+          showConfirmButton: false
+        }).then(() => {
+          window.location.href = `/users/order/orderPlaced/`; // Or your confirmation page URL
+        });
+      },
+      error: function(err) {
+        console.error("Error placing order:", err);
+        Swal.fire({
+          title: 'Error',
+          text: 'There was an error placing your order. Please try again.',
+          icon: 'error',
+          toast: true,
+          position: 'top-end',
+          timer: 3000,
+          showConfirmButton: false
+        });
+      }
+    });
+  }
+
+</script>
+
+</div>
+      </div>
     </div>
-  </div>
+  </form>
+</div>
+</div>
 </section>
 <!-- Checkout Section End -->
 
@@ -175,33 +392,14 @@
     margin-right: 5px;
     vertical-align: middle;
   }
-  /* Increase the address card size */
-  .address-item {
-    padding: 20px;
-    font-size: 1rem;
-  }
-  .address-details {
-    display: inline-block;
-    vertical-align: middle;
-  }
-  /* Adjust default badge styling if needed */
-  .default-badge {
-    background: #007bff;
-    color: #fff;
-    font-size: 0.8rem;
-    padding: 2px 6px;
-    border-radius: 3px;
-    margin-left: 8px;
-  }
+  /* Address Card */
   .address-container {
     margin-top: 15px;
     display: flex;
     flex-direction: column;
     gap: 15px;
-}
-
-/* Address Card */
-.address-card {
+  }
+  .address-card {
     background: #fff;
     border-radius: 8px;
     padding: 15px;
@@ -209,49 +407,162 @@
     display: flex;
     align-items: center;
     gap: 15px;
-    position: relative;
     transition: transform 0.2s ease-in-out;
-}
-
-.address-card:hover {
+  }
+  .address-card:hover {
     transform: scale(1.02);
-}
-
-/* Default Address Styling */
-.default {
-    border: 2px solid #007bff;
-    background: #f0f8ff;
-}
-
-/* Default Badge */
-.default-badge {
+  }
+  .default-badge {
     background: #007bff;
-    color: white;
+    color: #fff;
     font-size: 12px;
     padding: 3px 8px;
     border-radius: 5px;
     margin-left: 8px;
-}
-
-/* Radio Button */
-.default-radio {
-    transform: scale(1.2);
-    margin-right: 10px;
-}
-
-/* Address Details */
-.address-details h5 {
+  }
+  .address-details h5 {
     margin: 0;
     font-size: 1.1rem;
     font-weight: 600;
-}
-
-.address-details p {
+  }
+  .address-details p {
     margin: 3px 0;
     font-size: 0.9rem;
     color: #555;
+  }
+  .completed-badge {
+      font-size: 0.9em;
+      color: #155724;
+      background-color: #c3e6cb;
+      padding: 2px 6px;
+      border-radius: 4px;
+      margin-left: 10px;
+    }
+    .product__cart__item__pic {
+    width: 120px; /* Set the container width */
+    height: 120px; /* Set the container height */
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    overflow: hidden; /* Prevent overflow */
+    border-radius: 8px; /* Optional: rounded corners */
 }
 
+.product-image {
+    width: 100%; /* Make the image responsive */
+    height: 100%;
+    object-fit: cover; /* Ensures image covers the container while maintaining aspect ratio */
+    border-radius: 8px; /* Match container border-radius */
+}
+.shopping__cart__table table tbody tr td.quantity__item {
+  width: 175px;
+}
+
+.shopping__cart__table table tbody tr td.quantity__item .quantity {
+  width: 80px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.shopping__cart__table table tbody tr td.quantity__item .quantity input {
+  width: 50px;
+  border: none;
+  text-align: center;
+  color: #111111;
+  font-size: 16px;
+  background: transparent;
+}
+
+.shopping__cart__table table tbody tr td.quantity__item .quantity .qtybtn {
+  font-size: 16px;
+  color: #888888;
+  width: 30px;
+  height: 30px;
+  line-height: 25px;
+  text-align: center;
+  cursor: pointer;
+  background: #f0f0f0;
+  border: 1px solid #ddd;
+  border-radius: 4px;
+  margin: 0 5px;
+}
+
+.shopping__cart__table table tbody tr td.quantity__item .quantity .qtybtn:hover {
+  background: #e0e0e0;
+  color: #555;
+}
+.swal2-toast {
+    font-size: 12px !important;  /* Adjust the font size here */
+    font-family: 'Arial', sans-serif; 
+}
+input[type="radio"] {
+    width: 15px;
+    height: 15px;
+    margin-right: 5px;
+    vertical-align: middle;
+  }
+  /* Address Card Styling */
+  .address-container {
+    margin-top: 15px;
+    display: flex;
+    flex-direction: column;
+    gap: 15px;
+  }
+  .address-card {
+    background: #fff;
+    border-radius: 8px;
+    padding: 15px;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+    display: flex;
+    align-items: center;
+    gap: 15px;
+    transition: transform 0.2s ease-in-out;
+  }
+  .address-card:hover {
+    transform: scale(1.02);
+  }
+  .default-badge {
+    background: #007bff;
+    color: #fff;
+    font-size: 12px;
+    padding: 3px 8px;
+    border-radius: 5px;
+    margin-left: 8px;
+  }
+  .address-details h5 {
+    margin: 0;
+    font-size: 1.1rem;
+    font-weight: 600;
+  }
+  .address-details p {
+    margin: 3px 0;
+    font-size: 0.9rem;
+    color: #555;
+  }
+  /* Coupon container adjustments */
+  .coupon-container {
+    position: absolute;
+    top: 20px;
+    right: 20px;
+    text-align: right;
+  }
+  .coupon-container input {
+    width: 150px;
+    border-radius: 4px;
+    padding: 4px 6px;
+    border: 1px solid #ddd;
+  }
+  .coupon-container button {
+    margin-top: 5px;
+  }
+  /* Order summary container */
+  .order-summary {
+    padding-top: 30px;
+  }
+  hr {
+    margin: 10px auto;
+  }
 </style>
 
 <script>
@@ -262,9 +573,87 @@
   function hideAddAddressForm() {
     document.getElementById('addAddressForm').style.display = 'none';
   }
-//save addresss
+  
+  // Function to mark an accordion section as complete
+  function markComplete(sectionId, badgeId) {
+    var section = document.getElementById(sectionId);
+    var badge = document.getElementById(badgeId);
+    
+    // Check if a radio option is selected in this section (if applicable)
+    var radios = section.querySelectorAll("input[type='radio']");
+    var isChecked = Array.from(radios).some(radio => radio.checked);
+    if (radios.length > 0 && !isChecked) {
+      Swal.fire({
+            title:'choose one option to proceed',
+            icon: 'warning',
+            toast: true,
+            position: 'top-end',
+            showConfirmButton: false,
+            timer: 3000
+        });
+      return;
+    }
+    
+    // Mark section as completed visually
+    section.classList.add("completed");
+    badge.classList.remove("d-none");
+    
+    // Collapse current section using Bootstrap's collapse API
+    var collapseElem = section.querySelector('.accordion-collapse');
+    var bsCollapse = new bootstrap.Collapse(collapseElem, { toggle: false });
+    bsCollapse.hide();
+    
+    // Automatically open the next section, if available
+    var nextItem = section.nextElementSibling;
+    if (nextItem && nextItem.classList.contains("accordion-item")) {
+      var nextCollapse = nextItem.querySelector('.accordion-collapse');
+      var bsNextCollapse = new bootstrap.Collapse(nextCollapse, { toggle: false });
+      bsNextCollapse.show();
+    }
+  }
+  
+  function selectCoupon(code) {
+    document.getElementById('coupon-code-input').value = code;
+  }
+  
+  function applyCoupon() {
 
-function saveAddress() {
+    var couponCode = document.getElementById('coupon-code-input').value.trim();
+    if (!couponCode) {
+      document.getElementById('coupon-message').innerHTML = "<span class='text-danger'>Please enter a coupon code.</span>";
+      return;
+    }
+
+    $.ajax({
+      url:'/api/coupons/apply',
+      type: 'POST',
+      contentType: 'application/json',
+      data: JSON.stringify({ couponCode: couponCode, cart: true }),  // You may include more data if needed.
+      success: function(response) {
+        if (response.success) {
+          // Update the order summary fields with new totals and coupon details.
+          // Adjust property names as per your backend response.
+          $('#grand-total').text('₹' + response.grandTotal)
+          $('#coupon-added').text('-₹' + response.couponOfferPrice + ' OFF').css('color', 'green');
+
+          $('#coupon-message').html("<span class='text-success'>Coupon '" + couponCode + "' applied successfully!</span>");
+        } else {
+          $('#coupon-message').html("<span class='text-danger'>" + response.message + "</span>");
+        }
+      },
+      error: function(err) {
+        console.error("Error applying coupon:", err);
+        $('#coupon-message').html("<span class='text-danger'>Error applying coupon. Please try again later.</span>");
+      }
+    });
+    // Simulate coupon application. In real use, you would call an API.
+  }
+
+
+
+
+
+  function saveAddress() {
   // Collect field values from the form
   const name = $('#name').val().trim();
   const landmark = $('#landmark').val().trim();
@@ -335,7 +724,7 @@ function saveAddress() {
 
   // Send the data via AJAX POST
   $.ajax({
-    url: '/save-address',   // adjust this endpoint to match your backend route
+    url: '/api/addresses',
     type: 'POST',
     data:{addressData:addressData},
     success: function(response) {
@@ -367,47 +756,5 @@ function saveAddress() {
   });
 }
 
-
-
-
-  function selectCoupon(code) {
-    // Set the coupon code input value when a coupon is selected.
-    document.getElementById('coupon-code-input').value = code;
-  }
-
-  function applyCoupon() {
-    var couponCode = document.getElementById('coupon-code-input').value.trim();
-    if (!couponCode) {
-      document.getElementById('coupon-message').innerHTML = "<span class='text-danger'>Please enter a coupon code.</span>";
-      return;
-    }
-    
-    // AJAX call to send the coupon to the backend for validation and recalculation.
-    $.ajax({
-      url: '/apply-coupon',
-      type: 'POST',
-      contentType: 'application/json',
-      data: JSON.stringify({ couponCode: couponCode, cart: true }),  // You may include more data if needed.
-      success: function(response) {
-        if (response.success) {
-          // Update the order summary fields with new totals and coupon details.
-          // Adjust property names as per your backend response.
-          $('#order-totals').html(`
-          <li id="discount-li" style="color: green; font-weight: bold;">Discount <span style="float: right;">-₹${response.grandRegularTotal - response.grandTotal}</span></li>
-          <li id="coupon-li" style="color: green; font-weight: bold;">Coupon Applied <span style="float: right;color: green; ">-₹${response.couponOfferPrice} OFF</span></li>
-          <li id="subtotal-li">Subtotal <span style="float: right;">₹${response.grandTotal}</span></li>
-          <li id="total-li">Total Payable <span style="float: right;">₹${response.grandTotal}</span></li>
-          `);
-          $('#coupon-message').html("<span class='text-success'>Coupon '" + couponCode + "' applied successfully!</span>");
-        } else {
-          $('#coupon-message').html("<span class='text-danger'>" + response.message + "</span>");
-        }
-      },
-      error: function(err) {
-        console.error("Error applying coupon:", err);
-        $('#coupon-message').html("<span class='text-danger'>Error applying coupon. Please try again later.</span>");
-      }
-    });
-  }
 
 </script>

@@ -152,7 +152,7 @@
                 <div class="product__item__pic set-bg" data-setbg="uploads/re-image/<%= product.productImage[0] %>">
                   <ul class="product__hover">
                     <li>
-                      <a class="btn" href="#" onclick="addToWishlist('<%= product._id %>')">
+                      <a class="btn" onclick="addToWishlist('<%= product._id %>')">
                         <img src="img/icon/heart.png" alt="wishlist">
                       </a>
                     </li>
@@ -398,5 +398,72 @@
     // Initial fetch
     fetchProducts();
   });
+
+
+  function addToCart(pid) {
+    $.ajax({
+        url: `/addToCart`,
+        method: 'POST',
+        data: JSON.stringify({ pid: pid }), // Ensure proper data format
+        contentType: "application/json", // Specify content type
+        dataType: "json", // Expect JSON response
+        success: function (response) {
+            Swal.fire({
+                title: response.message,
+                icon: 'success',
+                toast: true,
+                position: 'top-end',
+                showConfirmButton: false,
+                timer: 2000
+            });
+        },
+        error: function (xhr) {
+            let errorMessage = "Something went wrong!";
+            if (xhr.responseJSON && xhr.responseJSON.message) {
+                errorMessage = xhr.responseJSON.message;
+            }
+            Swal.fire({
+                title: errorMessage,
+                icon: 'error',
+                toast: true,
+                position: 'top-end',
+                showConfirmButton: false,
+                timer: 2000
+            });
+        }
+    });
+}
+
+function addToWishlist(pid)
+    {
+        $.ajax({
+            url: `/addToWishlist`,
+            method: 'POST',
+            data: {pid:pid},
+            success: function (response) {
+                if(response.success)
+            {
+                Swal.fire({
+            title:response.message,
+            icon: 'success',
+            toast: true,
+            position: 'top-end',
+            showConfirmButton: false,
+            timer: 2000
+        });
+    }
+            },
+            error: function (response) {
+                Swal.fire({
+            title:response.message,
+            icon: 'success',
+            toast: true,
+            position: 'top-end',
+            showConfirmButton: false,
+            timer: 2000
+        });
+        }});
+    }
+
 </script>
 <%- include("../../views/partials/user/footer.ejs") %>

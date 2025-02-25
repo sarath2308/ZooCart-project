@@ -9,7 +9,7 @@ const Category = require("../../models/CategorySchema")
 
 const loadCart = async (req, res) => {
   try {
-    const userId = req.session.user || req.user._id;;
+    const userId = req.session.user || (req.user && req.user._id);
     const userData=await User.findById({_id:userId})
     const oid = new mongoose.Types.ObjectId(userId);
 
@@ -63,11 +63,20 @@ const loadCart = async (req, res) => {
       grandRegularTotal = 0;
       totalQuantity = 0;
     }
+    const handlingFee=7*totalQuantity;
+     const packagingFee=10*totalQuantity;
+     grandTotal+=handlingFee+packagingFee;
+     req.session.cartProducts=items;
+     req.session.grandTotal=grandTotal;
+     req.session.grandRegularTotal=grandRegularTotal;
+     req.session.totalQuantity=totalQuantity;
 
     res.render("cart", {
       products:items,           // cart items with product details
       grandTotal,      // total using salePrice
-      grandRegularTotal, // total using regularPrice
+      grandRegularTotal,
+      handlingFee,
+      packagingFee, // total using regularPrice
       totalQuantity,
       userData
 
@@ -84,7 +93,7 @@ const loadCart = async (req, res) => {
         console.log("req arrived at addToCart ");
         
         const { pid } = req.body;
-        const userId = req.session.user;
+        const userId = req.session.user || (req.user && req.user._id);
         const user=await User.findById({_id:userId})
         const checkProduct=await Product.findById({_id:pid})
         const checkCategory=checkProduct.category;
@@ -150,10 +159,10 @@ const loadCart = async (req, res) => {
     const updateCart = async (req, res) => {
       try {
         console.log("Request arrived at updateCart");
-        
-        let { itemId, quantity } = req.body;
+        let itemId=req.params.itemId;
+        let { quantity } = req.body;
         const itemObjId = new mongoose.Types.ObjectId(itemId);
-        const userId = req.session.user;
+        const userId = req.session.user || (req.user && req.user._id);
       
         let cart = await Cart.findOne({ userId: userId });
         if (!cart) {
@@ -233,17 +242,29 @@ const loadCart = async (req, res) => {
           grandRegularTotal = 0;
           totalQuantity = 0;
         }
-        
+        //updated data to the session
+        req.session.cartProducts=items;
+        req.session.grandTotal=grandTotal;
+        req.session.grandRegularTotal=grandRegularTotal;
+        req.session.totalQuantity=totalQuantity;
+        const handlingFee =7*totalQuantity;
+        const packagingFee =10*totalQuantity;
+         console.log(grandTotal);
+         
         return res.status(200).json({
           success: true,
           message: "Cart updated successfully",
           updatedItem: { _id: foundItem._id, quantity: foundItem.quantity, itemTotal },
           items,
           totalQuantity,
-          grandTotal,
-          grandRegularTotal
+          grandTotal:grandTotal+handlingFee+packagingFee,
+          grandRegularTotal,
+          handlingFee,
+          packagingFee
         });
       } catch (error) {
+        console.log(error);
+        
          res.status(500).json({ success: false, message: "Error updating cart" });
       }
     };
@@ -254,7 +275,7 @@ const removeItem=async(req,res)=>
 {
   try {
     const {itemId}=req.body;
-    const userId=req.session.user;
+    const userId = req.session.user || (req.user && req.user._id);
     const itemObjId = new mongoose.Types.ObjectId(itemId);
     let cart = await Cart.findOne({ userId: userId });
         if (!cart) {
@@ -274,6 +295,7 @@ if (foundItemIndex === -1) {
   // Remove the found item from the cart items array
   cart.items.splice(foundItemIndex, 1);
   await cart.save();
+  req.session.cartProducts=cart.items;
         
        
         const oid = new mongoose.Types.ObjectId(userId);

@@ -28,8 +28,7 @@ const addToWishlist = async (req, res) => {
         console.log("req arrived at add to Wishlist");
         
       const { pid } = req.body;
-      const userId = req.session.user;
-  
+      const userId = req.session.user || (req.user && req.user._id);
       // Check if pid and userId are provided
       if (!pid || !userId) {
         return res.status(400).json({ success: false, message: "Product ID and User ID are required" });
