@@ -8,6 +8,7 @@ const Category = require("../../models/CategorySchema")
 const Address=require("../../models/addressSchema")
 const Order=require("../../models/orderSchema")
 const {v4:uuidv4}=require('uuid')
+const { loginPage } = require("./userController")
 
 
 const loadCheckOut = async (req, res) => {
@@ -278,9 +279,19 @@ const orderPlaced=async(req,res)=>
   console.log("inside order placed ........................................");
   try {
     const userId = req.session.user || (req.user && req.user._id);
-    const order=req.session.order;
-   const items=order.orderedItems.map((val))
-   
+    const orderId=req.session.order._id;
+
+    const orderData=await Order.findById({_id:orderId}).populate("orderedItems.product")
+   const addressId=orderData.address;
+   const deliveryAddressDoc = await Address.findOne({ userId: userId });
+   let deliveryAddress;
+
+   if (!deliveryAddressDoc) {
+       console.log("No address found for this user.");
+   } else {
+       deliveryAddress = deliveryAddressDoc.address.find(addr => addr._id.toString() === addressId.toString());
+       console.log("Delivery Address:", deliveryAddress);
+   }
     
     const uuid = orderData.orderId;
     const hexString = uuid.replace(/-/g, '');
@@ -293,15 +304,25 @@ const orderPlaced=async(req,res)=>
     const options = { year: 'numeric', month: 'long', day: 'numeric' };
 orderData.createdOnFormatted = createdOn.toLocaleDateString('en-US', options);
 const deliveryDateFormatted = deliveryDate.toLocaleDateString('en-US', options);
+  const orderedDate = new Date(orderData.createdOn).toLocaleString('en-US', { 
+      timeZone: 'Asia/Kolkata', 
+      year: 'numeric', 
+      month: 'long', 
+      day: 'numeric', 
+      hour: '2-digit', 
+      minute: '2-digit', 
+      second: '2-digit' 
+  });
+
 
 
     return res.render("orderPlaced",{
-      items:orderItems,
-      orderData,
+      data:orderData,
       orderId:numericValue,
-      addressData:deliveryAddress,
       deliveryDate:deliveryDateFormatted,
-      grandTotal,
+      orderedDate,
+      deliveryAddress
+
   })
   } catch (error) {
     console.log(error);

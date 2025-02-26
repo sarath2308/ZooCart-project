@@ -554,25 +554,23 @@ const loadUserProfile = async (req, res) => {
       const data = await User.findOne({ _id: userId });
       
   
-      // Fetch address data (assuming Address schema has a field called "address")
       const addressDoc = await Address.findOne({ userId: userId });
     console.log("address Data");
     console.log(addressDoc);
     
       const orders = await Order.find({ _id: { $in: data.orderHistory } })
-        .populate("address") // populate the delivery address
+        .populate("address") 
         .populate({
-          path: "orderedItems.product", // populate the product details in each ordered item
+          path: "orderedItems.product", 
           model: "Product",
-        });
+        }).sort({createdOn:-1})
         let ordersWithReadableId =[]
       if(orders!==null)
       {
       ordersWithReadableId = orders.map((order) => {
         if (order.orderId) {
-          // Remove dashes and convert to BigInt
           const hexString = order.orderId.replace(/-/g, "");
-          // Store numeric value as a string to avoid potential issues with BigInt in templates
+      
           order.readableOrderId = BigInt("0x" + hexString).toString();
         }
         return order;

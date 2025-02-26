@@ -73,7 +73,7 @@ router.get("/checkout",userAuth,checkoutController.loadCheckOut);
 router.post("/api/coupons/apply",userAuth,checkoutController.applyCoupon)
 router.post("/api/addresses",userAuth,profileController.addAddress)
 router.post("/api/orders/placeOrder",userAuth,checkoutController.placeOrder)
-router.get("/users/order/orderPlaced/",userAuth,checkoutController.orderPlaced)
+router.get("/orderInvoice",userAuth,checkoutController.orderPlaced)
 
 
 router.get('/demoUser',userController.demoUser)

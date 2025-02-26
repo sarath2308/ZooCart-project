@@ -152,77 +152,84 @@
 
 /* Order Container & Items */
 .order-container {
-  border: 1px solid #ddd;
-  border-radius: 8px;
-  padding: 15px;
-  margin-bottom: 20px;
-  background-color: #fff;
+    border: 1px solid #ddd;
+    border-radius: 8px;
+    padding: 15px;
+    margin-bottom: 20px;
+    background: #fff;
+    box-shadow: 2px 2px 10px rgba(0, 0, 0, 0.1);
 }
 
+.order-container:hover
+{
+  transform: scale(1.02);
+}
 .order-header {
-  display: flex;
-  justify-content: space-between;
-  font-size: 1.2em;
-  margin-bottom: 10px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    font-size: 16px;
+    font-weight: bold;
+    margin-bottom: 10px;
 }
 
 .order-status {
-  font-weight: bold;
-  color: #4cb209;
+    color: #ff6600;
+}
+
+/* Main Order Layout */
+.order-content {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    flex-wrap: wrap;
+    gap: 15px;
+}
+
+/* Order Items - Horizontal (for exactly 2 items) */
+.ordered-items.horizontal {
+    display: flex;
+    gap: 15px;
+    flex-wrap: nowrap;
+}
+
+/* Order Items - Vertical (for more than 2 items) */
+.ordered-items.vertical {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
 }
 
 .ordered-item {
-  display: flex;
-  align-items: center;
-  padding: 10px 0;
-  border-bottom: 1px solid #eee;
-}
-
-.ordered-item:last-child {
-  border-bottom: none;
+    display: flex;
+    align-items: center;
+    gap: 15px;
+    border: 1px solid #eee;
+    padding: 10px;
+    border-radius: 5px;
+    background: #f9f9f9;
+    width: 100%;
 }
 
 .product-image {
-  width: 80px;
-  height: 80px;
-  object-fit: cover;
-  margin-right: 15px;
-  border-radius: 4px;
+    width: 80px;
+    height: 80px;
+    object-fit: cover;
+    border-radius: 5px;
 }
 
 .product-details p {
-  margin: 4px 0;
+    margin: 5px 0;
+    font-size: 14px;
 }
 
-.order-footer {
-  margin-top: 10px;
-  font-size: 0.9em;
-  color: #555;
+/* Order Info (Delivery Date & Status) */
+.order-info {
+    text-align: right;
+    font-size: 14px;
+    min-width: 150px;
 }
 
-/* Pagination Styling */
-.product-pagination {
-  text-align: center;
-  margin-top: 20px;
-}
-
-.product-pagination a {
-  display: inline-block;
-  margin: 0 5px;
-  padding: 8px 12px;
-  text-decoration: none;
-  border: 1px solid #ddd;
-  border-radius: 4px;
-  color: #333;
-  cursor: pointer;
-  transition: background-color 0.3s;
-}
-
-.product-pagination a.active {
-  background-color: #007bff;
-  color: #fff;
-  border-color: #007bff;
-}
 
   </style>
   <div class="row">
@@ -742,44 +749,54 @@
           <section id="my-orders" class="tab-content hidden">
             <h2>Your Orders</h2>
             <% if (orders && orders.length > 0) { %>
-              <% orders.forEach(function(order) { %>
-                <div class="order-container">
-                  <div class="order-header">
-                    <span>Order ID: <%= order.readableOrderId %></span>
-                    <span class="order-status">Status: <%= order.status %></span>
-                  </div>
-                  <div class="ordered-items">
-                    <% order.orderedItems.forEach(function(item) { %>
-                      <div class="ordered-item">
-                        <% if (item.product && item.product.productImage) { %>
-                          <a href="/productDetails?id=<%=item.product._id%>" class="btn">
-                          <img src="uploads/re-image/<%= item.product.productImage %>" alt="<%= item.product.productName %>" class="product-image">
-                          </a>
-                          <% } else { %>
-                          <img src="/images/default-product.png" alt="No image" class="product-image">
-                        <% } %>
-                        <div class="product-details">
-                          <p><strong>Product:</strong> <%= item.product ? item.product.productName : 'Unknown Product' %></p>
-                          <p><strong>Price:</strong> ₹<%= item.price %></p>
-                          <p><strong>Quantity:</strong> <%= item.quantity %></p>
+                <% orders.forEach(function(order) { %>
+                    <div class="order-container"onclick="orderDetails('<%=order._id%>')">
+                        <div class="order-header">
+                            <span><strong>Order ID:</strong> <%= order.readableOrderId %></span>
+                            <span class="order-status"><strong>Status:</strong> <%= order.status %></span>
                         </div>
-                      </div>
-                    <% }); %>
-                  </div>
-                  <div class="order-footer">
-                    <% 
-                      // Calculate expected delivery date: 4 days from invoiceDate (or createdOn)
-                      const invoiceDate = new Date(order.invoiceDate);
-                      invoiceDate.setDate(invoiceDate.getDate() + 4);
-                    %>
-                    <p>Expected Delivery: <%= invoiceDate.toLocaleDateString() %></p>
-                  </div>
-                </div>
-              <% }); %>
+        
+                        <div class="order-content">
+                            <!-- Ordered Items (Dynamically Layout) -->
+                            <div class="ordered-items <%= order.orderedItems.length <=2 ? 'horizontal' : 'vertical' %>">
+                                <% order.orderedItems.forEach(function(item) { %>
+                                    <div class="ordered-item">
+                                        <% if (item.product && item.product.productImage) { %>
+                                            <a href="/productDetails?id=<%=item.product._id%>" class="btn">
+                                                <img src="uploads/re-image/<%= item.product.productImage %>" 
+                                                     alt="<%= item.product.productName %>" 
+                                                     class="product-image">
+                                            </a>
+                                        <% } else { %>
+                                            <img src="/images/default-product.png" alt="No image" class="product-image">
+                                        <% } %>
+                                        <div class="product-details">
+                                            <p><strong>Product:</strong> <%= item.product ? item.product.productName : 'Unknown Product' %></p>
+                                            <p><strong>Price:</strong> ₹<%= item.price %></p>
+                                            <p><strong>Quantity:</strong> <%= item.quantity %></p>
+                                        </div>
+                                    </div>
+                                <% }); %>
+                            </div>
+        
+                            <!-- Order Info (Status & Delivery Date) -->
+                            <div class="order-info">
+                                <% 
+                                    const invoiceDate = new Date(order.invoiceDate);
+                                    invoiceDate.setDate(invoiceDate.getDate() + 4);
+                                %>
+                                <p style="font-weight: bolder;"><strong style="color:green">Expected Delivery:</strong> <%= invoiceDate.toLocaleDateString() %></p>
+                            </div>
+                        </div>
+                    </div>
+                <% }); %>
             <% } else { %>
-              <p>You have no orders yet.</p>
+                <p>You have no orders yet.</p>
             <% } %>
-          </section>
+        </section>
+        
+        
+        
           </div>
           </div>
           </div>
@@ -788,7 +805,19 @@
 
   <script>
 
-    //poppulate dit addresss
+  function orderDetails(orderId)
+  {
+    console.log(orderId);
+    
+    Swal.fire({
+            title: 'order details called',
+            icon: 'success',
+            toast: true,
+            position: 'top-end',
+            showConfirmButton: false,
+            timer: 3000
+        });
+  }
 
 function populateModel(addressId,name,city,landmark,state,pincode,phone,altPhone)
 {

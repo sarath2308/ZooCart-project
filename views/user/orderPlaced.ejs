@@ -1,286 +1,189 @@
-<%- include("../../views/partials/user/header.ejs") %>
-<div class="main-div">
-  <p class="order-successful-text">ORDER SUCCESSFUL</p>
-  <div class="track-order-div">
-    <!-- <p class="track-your-order">TRACK YOUR ORDER</p> -->
-    <div class="order-status-div">
-      <!-- <img class="order-placed-image" src="https://d30mle0t4iy75h.cloudfront.net/website/track-order-status-1.png" alt="Order Status"> -->
-      <p class="order-status-text">YOUR MOBILES IS ON THE WAY</p>
-      <p class="order-id">order id:<%= orderId %></p>
-      <ul class="order-status-animation">
-        <li>
-          <div class="order-step">
-            <!-- <img src="https://cdn.zeplin.io/58e89cb1bcbb20c60457e08c/assets/E67E571F-0710-43B2-8D07-793788CE5A9E.png" alt="Order Placed"> -->
-            <p>Order Placed</p>
-          </div>
-        </li>
-      </ul>
-    </div>
-    <div class="customer-details">
-      <p class="delivery-text">Delivery details</p>
-      <div class="address-container">
-        <div class="address-card">
-            <div class="address-details">
-                <h5> <%= addressData.name %>
+<%-include("../../views/partials/user/header.ejs") %>
 
-                </h5>
-                <p style="color: grey;"><%=addressData.addressType %></p>
-                <p><%= addressData.city %>, <%=addressData.landMark %>, <%= addressData.state %></p>
-                <p>Pin: <%= addressData.pincode %></p>
-                <p>Phone: <%= addressData.phone %></p>
-                <p>Alt Phone: <%=addressData.altPhone %></p>
-            </div>
+<style>
+  .order-summary-container {
+      max-width: 700px;
+      margin: auto;
+      background: #fff;
+      padding: 20px;
+      border-radius: 10px;
+      box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+  }
+
+  .order-summary-header {
+      text-align: center;
+      margin-bottom: 20px;
+  }
+
+  .order-summary-section {
+      margin-bottom: 20px;
+      padding-bottom: 10px;
+      border-bottom: 1px solid #ddd;
+  }
+
+  .order-summary-section h3 {
+      margin-bottom: 10px;
+      color: #444;
+  }
+  .order-summary-detail {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    margin-bottom: 10px;
+}
+
+.label {
+    font-weight: bold;
+    width: 30%; /* Adjust width of the label */
+}
+
+.address {
+    text-align: right;
+    width: 50%;
+}
+
+
+  .order-summary-product {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 10px 0;
+      border-bottom: 1px solid #eee;
+  }
+
+  .order-summary-product img {
+      width: 100px;
+      height: 100px;
+      border-radius: 5px;
+      object-fit: cover;
+  }
+
+  .order-summary-product-info {
+      flex: 1;
+      margin-left: 10px;
+  }
+
+  .order-summary-buttons {
+      display: flex;
+      justify-content: center;
+      gap: 10px;
+      margin-top: 20px;
+  }
+
+  .order-summary-btn {
+      background: #007bff;
+      color: #fff;
+      border: none;
+      padding: 10px 15px;
+      cursor: pointer;
+      border-radius: 5px;
+  }
+
+  .order-summary-btn:hover {
+      background: #0056b3;
+  }
+
+  /* Print Styling */
+  /* Print Styling */
+@media print {
+    body * {
+        visibility: hidden;
+    }
+    .order-summary-container, .order-summary-container * {
+        visibility: visible;
+    }
+    .order-summary-container {
+        position: absolute;
+        left: 0;
+        top: 0;
+        width: 100%;
+        max-width: 100%;
+        height: 100%;
+        padding: 30px;
+        box-sizing: border-box;
+        page-break-before: always;
+    }
+}
+
+</style>
+
+<div class="order-summary-container" id="orderSummary">
+  <div class="order-summary-header">
+      <h2>Order Summary</h2>
+  </div>
+  
+  <div class="order-summary-section">
+      <h3>Order Details</h3>
+      <div class="order-summary-detail"><span>Order ID:</span> <span><%=orderId%></span></div>
+      <div class="order-summary-detail"><span>Date:</span> <span><%=orderedDate%></span></div>
+      <div class="order-summary-detail"><span>Status:</span> <span style="color:rgb(250, 191, 16)"><%=data.status%></span></div>
+  </div>
+  
+  <div class="order-summary-section">
+      <h3>Shipping Information</h3>
+      <div class="order-summary-detail"><span>Expected Delivery:</span> <span><%=deliveryDate%></span></div>
+      <div class="order-summary-detail">
+        <span class="label">Shipping Address:</span>
+        <div class="address">
+            <span><%= deliveryAddress.name %></span><br>
+            <span><%= deliveryAddress.city %>-<%= deliveryAddress.pincode %></span><br>
+            <span><%= deliveryAddress.landMark %></span><br>
+            <span><%= deliveryAddress.state %> </span><br>
+            <span><%= deliveryAddress.phone %></span><br>
+            <% if (deliveryAddress.altPhone) { %>
+                <span>Alt:<%= deliveryAddress.altPhone %></span>
+            <% } %>
         </div>
-  </div>
-      <p class="delivery-address"></p>
-      <p class="delivery-text">Contact Number</p>
-      <p class="consumer-phonenumber">+91 <%=addressData.phone%></p>
-    </div>
-  </div>
-  <div class="order-summary">
-    <p class="arriving-in-header">Expected delivery date</p>
-    <div class="arriving-in-details">
-      <ul>
-        <li><p class="delivery-time"><%=deliveryDate%></p></li>
-        <li><p class="delivery-boy-num">Call Delivery Executive</p></li>
-        <li><p class="live-tracking-btn">Live Track your Order</p></li>
-      </ul>
-    </div>
-    <p class="order-information-header">ORDER INFORMATION</p>
-    <div class="order-information-div">
-      <p class="orderId">Order id: <%=orderId%></p>
-      <p class="ordered-time">Order placed:<%=orderData.createdOnFormatted%></p>
-    </div>
-    <div class="item-container-div">
-      <ul>
-        <li>
-          <div class="item-list-div">
-            <p>Your order</p>
-            <%items.forEach((item)=>{%>
-            <span class="combo-item"><%=item.productDetails.productName%> x<%=item.quantity%></span>
-            <%})%>
-          </div>
-        </li>
-        <li>
-          <div class="item-list-div">
-            <p>Total <span class="quantity"> ₹<%=grandTotal%></span></p>
-          </div>
-        </li>
-      </ul>
     </div>
     
   </div>
-  <a href="/shop" class="btn btn-warning">Continue shopping</a>
+  
+  <div class="order-summary-section">
+    <h3>Products Ordered</h3>
+    <% data.orderedItems.forEach((item) => { %>
+        <div class="order-summary-product">
+            <div class="product-info">
+                <img src="uploads/re-image/<%= item.product.productImage[0] %>" alt="Product Image">
+                <div class="order-summary-product-details">
+                    <div class="product-name"><%= item.product.productName %></div>
+                    <div class="quantity" style="color:#007bff">Qty: <%= item.quantity %></div>
+                </div>
+            </div>
+            <div class="product-price" style="font-weight: bold;">₹<%=item.price *item.quantity%></div>
+        </div>
+    <% }) %>
 </div>
 
-<style>
-  /* Main container centering */
-  .main-div {
-    max-width: 1200px;
-    margin: 20px auto;
-    padding: 20px;
-    background-color: #f5f5f5;
-    display: flex;
-    flex-wrap: wrap;
-    justify-content: center;
-    gap: 20px;
-  }
+  
+  <div class="order-summary-section">
+      <h3>Payment Details</h3>
+      <div class="order-summary-detail"><span>Subtotal:</span> <span style="font-weight:bold;">₹<%=data.totalPrice%></span></div>
+      <div class="order-summary-detail"><span>Total Discount:</span> <span style="color:green;font-weight:bold">-₹<%=data.discount%></span></div>
+      <div class="order-summary-detail"><span>handling fee:</span> <span style="font-weight: bold;">₹<%=data.handlingFee%></span></div>
+      <div class="order-summary-detail"><span>Packaging Fee</span> <span style="font-weight: bold;">₹<%=data.packagingFee%></span></div>
+      <div class="order-summary-detail"><span>Delivery</span> <span style="font-weight: bold;color: green;"><%=data.deliveryCharge%></span></div>
+      <div class="order-summary-detail"><span>Payment Method:</span> <span style="font-weight: bold;"><%=data.paymentMethod%></span></div>
+      <div class="order-summary-detail"><span>Coupon:</span> <span style="font-weight: bold;"><%=data.coupon?'applied':'not applied'%></span></div>
+      <div class="order-summary-detail"><span>Total Amount:(inclusive of all taxes):</span> <span style="font-weight: bold;">₹<%=data.finalAmount%>.0</span></div>
+    </div>
+  
+  <div class="order-summary-buttons">
+      <button class="order-summary-btn" onclick="window.print()">Download Invoice (PDF)</button>
+      <a class="btn btn-warning " href="/shop">Continue Shopping</a>
+  </div>
+</div>
 
-  /* Order Success Message */
-  .order-successful-text {
-    width: 100%;
-    text-align: center;
-    font-family: Oswald, sans-serif;
-    font-size: 2.25em;
-    font-weight: bold;
-    color: #444444;
-    padding: 20px 0;
-  }
+<script>
+//   function captureOrderSummary() {
+//       let orderSection = document.getElementById("orderSummary");
 
-  /* Left Column (Track Order) */
-  .track-order-div {
-    flex: 1;
-    min-width: 600px;
-    background-color: #ffffff;
-    padding: 20px;
-    box-shadow: 0 2px 2px rgba(181, 181, 181, 0.5);
-    border-radius: 8px;
-  }
-
-  .track-your-order {
-    padding: 0 0 20px;
-    font-size: 1.5em;
-  }
-
-  .order-status-div {
-    text-align: center;
-  }
-
-  .order-placed-image {
-    width: 100px;
-    margin: 0 auto;
-    display: block;
-  }
-
-  .order-status-text {
-    font-family: Oswald, sans-serif;
-    font-size: 2.25em;
-    font-weight: bold;
-    color: #4cb209;
-    margin: 10px 0;
-  }
-
-  .order-id {
-    font-family: Lato, sans-serif;
-    font-size: 1em;
-    font-weight: bold;
-    color: #4a4a4a;
-    margin-bottom: 20px;
-  }
-
-  /* Order Steps */
-  .order-status-animation {
-    list-style: none;
-    padding: 0;
-    margin: 20px 0 0;
-    display: flex;
-    justify-content: space-between;
-  }
-
-  .order-status-animation li {
-    flex: 1;
-    text-align: center;
-  }
-
-  .order-step img {
-    width: 50px;
-  }
-
-  .order-step p {
-    font-family: Lato, sans-serif;
-    font-size: 1em;
-    color: #ce453b;
-    margin-top: 10px;
-  }
-
-  /* Customer Details */
-  .customer-details {
-    background-color: #ffffff;
-    box-shadow: 0 2px 2px rgba(181, 181, 181, 0.5);
-    padding: 20px;
-    margin-top: 20px;
-    border-top: 1px solid #979797;
-    font-family: Lato, sans-serif;
-  }
-
-  .delivery-text {
-    font-size: 17px;
-    font-weight: 500;
-    color: #000000;
-  }
-
-  .delivery-address,
-  .consumer-phonenumber {
-    font-size: 1em;
-    color: #4a4a4a;
-  }
-
-  /* Right Column (Order Summary) */
-  .order-summary {
-    flex: 1;
-    min-width: 400px;
-    background-color: #ffffff;
-    padding: 20px;
-    box-shadow: 0 2px 2px rgba(181, 181, 181, 0.5);
-    border-radius: 8px;
-  }
-
-  .arriving-in-header {
-    font-size: 1.5em;
-    margin-bottom: 10px;
-    font-family: Oswald, sans-serif;
-  }
-
-  .arriving-in-details ul {
-    list-style-type: none;
-    padding: 0;
-    margin: 0;
-  }
-
-  .arriving-in-details li {
-    border-bottom: 1px solid #979797;
-    padding: 10px 0;
-    font-family: Oswald, sans-serif;
-    font-size: 1.25em;
-    text-align: center;
-  }
-
-  .order-information-header {
-    font-size: 1em;
-    font-weight: 500;
-    color: #000;
-    margin-top: 20px;
-    font-family: Lato, sans-serif;
-  }
-
-  .order-information-div {
-    background-color: #ffffff;
-    padding: 15px;
-    box-shadow: 0 2px 2px rgba(181, 181, 181, 0.5);
-    border-radius: 5px;
-    margin-top: 10px;
-    font-family: Lato, sans-serif;
-  }
-
-  .orderId,
-  .ordered-time {
-    font-size: 1em;
-    color: #4a4a4a;
-    margin: 5px 0;
-  }
-
-  .item-container-div {
-    background-color: #ffffff;
-    box-shadow: 0 2px 2px rgba(181, 181, 181, 0.5);
-    margin-top: 20px;
-    padding: 15px;
-    border-radius: 5px;
-    font-family: Lato, sans-serif;
-  }
-
-  .item-container-div ul {
-    list-style-type: none;
-    padding: 0;
-  }
-
-  .item-container-div li {
-    border-bottom: 1px solid #979797;
-    padding: 10px 0;
-  }
-
-  .item-list-div p {
-    margin: 0;
-  }
-
-  .combo-item {
-    display: block;
-    margin-left: 5px;
-  }
-
-  /* Responsive adjustments */
-  @media screen and (max-width: 768px) {
-    .main-div {
-      flex-direction: column;
-      align-items: center;
-    }
-    .track-order-div,
-    .order-summary {
-      min-width: 100%;
-    }
-    .order-status-animation {
-      flex-direction: column;
-      gap: 20px;
-    }
-  }
-</style>
+//       html2canvas(orderSection).then(canvas => {
+//           let link = document.createElement("a");
+//           link.href = canvas.toDataURL("image/png");
+//           link.download = "order-summary.png";
+//           link.click();
+//       });
+//   }
+</script>
+<div class="space" style="height:100px;"></div>
 <%- include("../../views/partials/user/footer.ejs") %>
