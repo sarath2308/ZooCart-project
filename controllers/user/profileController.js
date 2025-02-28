@@ -1,5 +1,6 @@
 const Address=require("../../models/addressSchema")
 const User=require("../../models/userSchema")
+const Order=require("../../models/orderSchema.js")
 const mongoose=require("mongoose")
 const express=require("express")
 const app=express()
@@ -486,7 +487,55 @@ const deleteAddress = async (req, res) => {
         res.status(500).json({ success: false, message: "Internal Server Error" });
     }
 };
+ const orderDetails=async(req,res)=>
+ {
+    try {
+        console.log("req arrived at order Details");
+        
+        const userId= req.session.user || (req.user && req.user._id);
+        const userData=await User.findById({_id:userId})
+        const orderId=req.query.orderId;
+        const orderData=await Order.findById({_id:orderId}).populate("orderedItems.product")
+        const addressId=orderData.address;
+        const addressData=await Address.findOne({userId:userId})
+        let deliveryAddress;
+     
+        if (!addressData) {
+            console.log("No address found for this user.");
+        } else {
+            deliveryAddress = addressData.address.find(addr => addr._id.toString() === addressId.toString());
+            console.log("Delivery Address:", deliveryAddress);
+        }
+        
+        
+        console.log(orderData);
+        if(!orderData)
+        {
+            return res.status(401).json({success:false,message:"error occured"
+            })
+        }
+        let readableOrderId ;
+        if (orderData && orderData.orderId) {  // Ensure orderData and orderId exist
+            const hexString = orderData.orderId.replace(/-/g, ""); // Remove dashes
+             readableOrderId = BigInt("0x" + hexString).toString(); // Convert to number
+        }
+        
 
+        return res.status(200).render("orderDetails",
+            {
+                orderData,
+                userData,
+                readableId:readableOrderId,
+                deliveryAddress,
+            }
+        )
+        
+    } catch (error) {
+        console.log("error occured while rendering orderDetails"+error);
+        
+        return res.redirect("/page-not-found")
+    }
+ }
 module.exports=
 {
     updateProfile,
@@ -498,5 +547,6 @@ module.exports=
     changeDefault,
     editAddress,
     deleteAddress,
-    updateEmail
+    updateEmail,
+    orderDetails
 };

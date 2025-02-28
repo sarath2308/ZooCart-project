@@ -192,7 +192,8 @@ const placeOrder = async (req, res) => {
         totalQuantity:totalQuantity,
         invoiceDate: new Date(),
         status: 'processing',
-        couponApplied:coupon?true:false
+        couponApplied:coupon?true:false,
+        userId:userId,
       });
     } else {
       // For single product order:

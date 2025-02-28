@@ -1,0 +1,474 @@
+<%-include("../../views/partials/user/header.ejs")%>
+
+    <div class="container-fluid mb-5">
+        <div class="row vh-100">
+
+            <!-- Left Section: Order Details -->
+            <div class="col-md-7 p-4 order-details-section">
+                
+        
+
+                <!-- Scrollable Order Details -->
+                <div class="order-content">
+
+                    <!-- Order Status -->
+                    <div class="tracking-container">
+                        <h6 class="tracking-title">Order Tracking: <span class="order-number">#<%= readableId %></span></h6>
+                    
+                        <% if (orderData.status === 'cancelled') { %>
+                            <div class="status-message cancelled">
+                                <p>Your order has been <strong>Cancelled</strong>.</p>
+                                <p><%=orderData.cancelReason%></p>
+                            </div>
+                        <% } else if (orderData.status === 'Return Requested') { %>
+                            <div class="status-message return-request">
+                                <p>Your return request has been <strong>Submitted</strong>. We will process it soon.</p>
+                            </div>
+                        <% } else if (orderData.status === 'Return') { %>
+                            <div class="status-message returned">
+                                <p>Your order has been <strong>Returned</strong>. Refund will be processed soon.</p>
+                            </div>
+                        <% } else { %>
+                            <div class="tracking-progress">
+                                <div class="step" data-status="pending">
+                                    <div class="icon">✔</div>
+                                    <p>Order Placed</p>
+                                </div>
+                                <div class="step" data-status="processing">
+                                    <div class="icon">✔</div>
+                                    <p>Processing</p>
+                                </div>
+                                <div class="step" data-status="shipped">
+                                    <div class="icon">✔</div>
+                                    <p>Shipped</p>
+                                </div>
+                                <div class="step" data-status="delivered">
+                                    <div class="icon">✔</div>
+                                    <p>Delivered</p>
+                                </div>
+                            </div>
+                        <% } %>
+                    </div>
+                    
+                    <script>
+                        document.addEventListener("DOMContentLoaded", function() {
+                            const orderStatus = "<%= orderData.status %>"; 
+                            const statusSteps = ["pending", "processing", "shipped", "delivered"];
+                            let statusIndex = statusSteps.indexOf(orderStatus); // Find the index of the current status
+                    
+                            document.querySelectorAll(".tracking-progress .step").forEach((step, index) => {
+                                if (index <= statusIndex) {
+                                    step.classList.add("active-step"); // Highlight steps up to the current one
+                                }
+                            });
+                        });
+                    </script>
+                    
+                    <style>
+                        .tracking-container {
+                            background: #f8f8f8;
+                            padding: 15px;
+                            border-radius: 8px;
+                            text-align: center;
+                            margin: 20px 0;
+                        }
+                    
+                        .tracking-title {
+                            font-size: 15px;
+                            font-weight: bold;
+                            margin-bottom: 10px;
+                        }
+                    
+                        .order-number {
+                            color: #4CAF50;
+                        }
+                    
+                        .tracking-progress {
+                            display: flex;
+                            justify-content: space-between;
+                            align-items: center;
+                            position: relative;
+                            margin: 20px auto;
+                            width: 90%;
+                            max-width: 600px;
+                        }
+                    
+                        .tracking-progress::before {
+                            content: "";
+                            position: absolute;
+                            width: 100%;
+                            height: 4px;
+                            background: #ccc;
+                            top: 50%;
+                            left: 0;
+                            transform: translateY(-50%);
+                            z-index: 0;
+                        }
+                    
+                        .step {
+                            position: relative;
+                            z-index: 1;
+                            text-align: center;
+                            width: 25%;
+                        }
+                    
+                        .icon {
+                            width: 35px;
+                            height: 35px;
+                            line-height: 35px;
+                            border-radius: 50%;
+                            background: #ccc;
+                            color: white;
+                            display: inline-block;
+                            font-size: 14px;
+                            font-weight: bold;
+                        }
+                    
+                        .step p {
+                            margin-top: 5px;
+                            font-size: 14px;
+                        }
+                    
+                        /* ✅ Highlight active steps */
+                        .active-step .icon {
+                            background: #4CAF50; /* Green color */
+                        }
+                    
+                        .active-step p {
+                            color: #4CAF50;
+                            font-weight: bold;
+                        }
+                    
+                        /* Active Line */
+                        .tracking-progress .step.active-step::before {
+                            content: "";
+                            position: absolute;
+                            height: 4px;
+                            background: #4CAF50;
+                            left: 0;
+                            top: 50%;
+                            width: 100%;
+                            transform: translateY(-50%);
+                            z-index: -1;
+                        }
+                    
+                        /* Different status messages */
+                        .status-message {
+                            padding: 10px;
+                            border-radius: 5px;
+                            font-size: 14px;
+                            font-weight: bold;
+                            color: white;
+                            text-align: center;
+                        }
+                    
+                        .status-message.cancelled {
+                            background-color: #d9534f; /* Red */
+                        }
+                    
+                        .status-message.return-request {
+                            background-color: #f0ad4e; /* Orange */
+                        }
+                    
+                        .status-message.returned {
+                            background-color: #5bc0de; /* Blue */
+                        }
+                    </style>
+                    
+                    <!-- Products Ordered -->
+                    <h6>Products Ordered</h6>
+                    <div class="ordered-items">
+                        <%orderData.orderedItems.forEach((order)=>{%>
+                        <div class="product-item">
+                            <img src="/uploads/re-image/<%=order.product.productImage[0]%>" class="product-image" alt="<%=order.product.productName%>">
+                            <div>
+                                <p class="product-title"><%=order.product.productName%></p>
+                                <small class="text-muted">₹<%=order.product.salePrice%>| Qty:<%=order.quantity%></small>
+                            </div>
+                        </div>
+                      <%})%>
+                    </div>
+
+                </div>
+
+              <!-- Order Actions -->
+
+<!-- Order Actions -->
+<div class="mt-3 d-flex flex-column gap-2">
+    <% if (orderData.status !== 'cancelled') { %>
+        <button class="btn cancel-btn" id="cancel-order">Cancel Order</button>
+    <% } %>
+   
+    
+    <!-- Dropdown for cancellation reason (Hidden by default) -->
+    <div id="cancel-reason-section" class="mt-2 d-none">
+        <select class="form-select" id="cancel-reason">
+            <option value="">Select Reason</option>
+            <option value="Changed my mind">Changed my mind</option>
+            <option value="Found a better deal">Found a better deal</option>
+            <option value="Ordered by mistake">Ordered by mistake</option>
+            <option value="Other">Other (Specify below)</option>
+        </select>
+
+        <!-- Textbox for other reason (Hidden initially) -->
+        <input type="text" id="other-reason" class="form-control mt-2 d-none" placeholder="Enter your reason">
+        
+        <button class="btn btn-danger mt-2" id="confirm-cancel">Submit Cancellation</button>
+    </div>
+</div>
+
+<script>
+document.addEventListener("DOMContentLoaded", function () {
+    const cancelOrderBtn = document.getElementById("cancel-order");
+    const cancelReasonSection = document.getElementById("cancel-reason-section");
+    const cancelReasonDropdown = document.getElementById("cancel-reason");
+    const otherReasonInput = document.getElementById("other-reason");
+    const confirmCancelBtn = document.getElementById("confirm-cancel");
+
+    // Show dropdown when cancel is clicked
+    cancelOrderBtn.addEventListener("click", function () {
+        cancelReasonSection.classList.toggle("d-none");
+    });
+
+    // Show/hide textbox based on selected reason
+    cancelReasonDropdown.addEventListener("change", function () {
+        if (this.value === "Other") {
+            otherReasonInput.classList.remove("d-none");
+        } else {
+            otherReasonInput.classList.add("d-none");
+        }
+    });
+
+    // Handle cancellation submission
+    confirmCancelBtn.addEventListener("click", function () {
+        const selectedReason = cancelReasonDropdown.value;
+        const otherReason = otherReasonInput.value.trim();
+        
+        if (!selectedReason) {
+            alert("Please select a reason for cancellation.");
+            return;
+        }
+
+        if (selectedReason === "Other" && !otherReason) {
+            alert("Please specify your reason.");
+            return;
+        }
+
+        // Send cancellation request (Modify as needed)
+        console.log("Cancellation Reason:", selectedReason === "Other" ? otherReason : selectedReason);
+        alert("Your order has been cancelled.");
+    });
+});
+</script>
+
+
+            </div>
+
+            <!-- Right Section: Order Summary -->
+            <div class="col-md-5 p-4 order-summary-section">
+                
+                <div>
+                    <h3>Order Summary</h3>
+                    <div class="order-summary">
+                        <p><span>Total products:</span> <span><%=orderData.totalQuantity%></span></p>
+                        <p><span>Subtotal:</span> <span>₹<%=orderData.totalPrice%></span></p>
+                        <p><span>Total Discount:</span> <span style="color:green">-₹<%=orderData.discount%></span></p>
+                        <p><span>Handling fee:</span> <span>₹<%=orderData.handlingFee%></span></p>
+                        <p><span>Packaging Fee:</span> <span>₹<%=orderData.packagingFee%></span></p>
+                        <p><span>Delievery Charge</span> <span style="color:green">Free</span></p>
+                        <p><span style="color:blue">Inclusive of all taxes</span></p>
+                        <hr>
+                        <p class="total-amount"><span>Total Amount:</span> <span>₹<%=orderData.finalAmount%></span></p>
+                    
+                    </div>
+
+                    <!-- Shipping Address -->
+                    <h6>Shipping Address</h6>
+                    <p class="small"><%=deliveryAddress.name%>,<%=deliveryAddress.city%>,<%=deliveryAddress.landMark%>,<%=deliveryAddress.state%>,<%=deliveryAddress.pincode%>,<%=deliveryAddress.phone%>,<%=deliveryAddress.altphone%></p>
+                   
+                    <!-- Payment Details -->
+                    <h6>Payment Method</h6>
+                    <p class="small"><%=orderData.paymentMethod%></p>
+                </div>
+
+                <!-- Download Invoice -->
+                <button class="btn invoice-btn w-100 mt-4" id="invoice-download">📄 Download Invoice</button>
+
+            </div>
+
+        </div>
+    </div>
+
+    <!-- JavaScript -->
+    <script>
+
+        document.getElementById('add-review').addEventListener('click', function() {
+            alert("Redirecting to review section...");
+        });
+
+        document.getElementById('invoice-download').addEventListener('click', function() {
+            alert("Downloading Invoice...");
+        });
+
+    </script>
+
+    <style>
+
+        /* Order Details Section */
+        .order-details-section {
+            background: #f4f4f4;
+            display: flex;
+            flex-direction: column;
+            height: 100%;
+        }
+
+        /* Scrollable Content */
+        .order-content {
+            flex-grow: 1;
+            overflow-y: auto;
+            padding-right: 10px;
+            max-height: 70vh; /* Limits height before scrolling */
+        }
+
+        /* Custom Scrollbar */
+        .order-content::-webkit-scrollbar {
+            width: 8px;
+        }
+
+        .order-content::-webkit-scrollbar-track {
+            background: #ddd;
+            border-radius: 5px;
+        }
+
+        .order-content::-webkit-scrollbar-thumb {
+            background: #888;
+            border-radius: 5px;
+        }
+
+        .order-content::-webkit-scrollbar-thumb:hover {
+            background: #555;
+        }
+
+        /* Ordered Products */
+        .ordered-items {
+            margin-top: 10px;
+        }
+
+        .product-item {
+            display: flex;
+            align-items: center;
+            padding: 10px;
+            background: white;
+            border-radius: 8px;
+            box-shadow: 0px 2px 4px rgba(0, 0, 0, 0.1);
+            margin-bottom: 10px;
+        }
+
+        .product-image {
+            width: 70px;
+            height: 70px;
+            border-radius: 6px;
+            margin-right: 15px;
+        }
+
+        .product-title {
+            font-weight: 600;
+            margin-bottom: 5px;
+        }
+
+        /* Order Summary Section */
+        .order-summary-section {
+            background: white;
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between;
+        }
+
+        .order-summary p {
+            display: flex;
+            justify-content: space-between;
+            padding: 6px 0;
+            font-size: 14px;
+        }
+
+        .total-amount {
+            font-size: 16px;
+            font-weight: bold;
+        }
+
+        /* Buttons */
+        /* .btn {
+            padding: 10px;
+            border-radius: 6px;
+            font-size: 14px;
+            transition: 0.3s ease-in-out;
+        } */
+
+        .cancel-btn {
+            background-color: #d9534f;
+            color: white;
+        }
+
+        .review-btn {
+            background-color: #f0ad4e;
+            color: white;
+        }
+
+        .invoice-btn {
+            background: #5cb85c;
+            color: white;
+        }
+
+        .btn:hover {
+            opacity: 0.8;
+        }
+
+        /* Responsive Design */
+        @media (max-width: 768px) {
+            .order-details-section {
+                height: auto;
+                overflow: visible;
+            }
+
+            .order-content {
+                max-height: none;
+                overflow: visible;
+            }
+
+            .btn {
+                width: 100%;
+                margin-bottom: 8px;
+            }
+        }
+
+        .order-status li {
+            padding: 10px;
+            border-left: 4px solid #ccc;
+            margin-bottom: 6px;
+            background: #fff;
+            font-size: 14px;
+            border-radius: 5px;
+        }
+        .order-status {
+    list-style: none;
+    padding: 0;
+    display: flex;
+    gap: 10px;
+}
+
+.status {
+    padding: 5px 10px;
+    border-radius: 5px;
+    background: #ccc;
+    color: black;
+}
+
+/* ✅ Highlighted statuses */
+.status.active {
+    background: #4CAF50;
+    color: white;
+}
+
+    </style>
+
+<%-include("../../views/partials/user/footer.ejs")%>

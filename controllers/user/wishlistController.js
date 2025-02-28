@@ -61,7 +61,7 @@ const addToWishlist = async (req, res) => {
         console.log("Request arrived at remove from Wishlist");
 
         const { pid } = req.body;
-        const userId = req.session.user;
+        const userId = req.session.user || (req.user && req.user._id);
 
         // Check if pid and userId are provided
         if (!pid || !userId) {

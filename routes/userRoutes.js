@@ -47,6 +47,7 @@ router.get('/fetchProducts',userAuth,userController.fetchProducts)
 router.post('/api/users/:otpType/otp/verify',userAuth,profileController.verifyOtp)
 router.put("/api/users/password",userAuth,profileController.newPassword)
 router.put("/api/users/email",userAuth,profileController.updateEmail)
+router.get("/orderDetails",userAuth,profileController.orderDetails)
 // router.post("/user-resend-otp",userAuth,profileController.)
 
 // address management 

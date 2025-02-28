@@ -3,153 +3,146 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Order Summary</title>
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+    <title>Admin Order Details</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
     <style>
         body {
-            font-family: Arial, sans-serif;
-            margin: 0;
-            padding: 20px;
-            background-color: #f5f5f5;
-            color: #333;
+            background-color: #f8f9fa;
         }
         .container {
-            max-width: 700px;
-            margin: auto;
+            max-width: 800px;
             background: #fff;
             padding: 20px;
             border-radius: 10px;
             box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+            margin-top: 40px;
         }
-        .header {
-            text-align: center;
-            margin-bottom: 20px;
-        }
-        .order-info, .shipping-info, .product-list, .payment-summary {
-            margin-bottom: 20px;
-            padding-bottom: 10px;
-            border-bottom: 1px solid #ddd;
-        }
-        h3 {
-            margin-bottom: 10px;
-            color: #444;
-        }
-        .order-detail, .shipping-detail, .payment-detail {
-            display: flex;
-            justify-content: space-between;
-            font-size: 14px;
-            margin-bottom: 5px;
-        }
-        .product-item {
-            display: flex;
-            align-items: center;
-            justify-content: space-between;
-            padding: 10px 0;
-            border-bottom: 1px solid #eee;
-        }
-        .product-item img {
-            width: 60px;
-            height: 60px;
-            border-radius: 5px;
-            object-fit: cover;
-        }
-        .product-details {
-            flex: 1;
-            margin-left: 10px;
-        }
-        .buttons {
-            display: flex;
-            justify-content: center;
-            gap: 10px;
-            margin-top: 20px;
-        }
-        button {
-            background: #007bff;
-            color: #fff;
-            border: none;
-            padding: 10px 15px;
-            cursor: pointer;
+        .order-status {
+            font-weight: bold;
+            padding: 5px 10px;
             border-radius: 5px;
         }
-        button:hover {
-            background: #0056b3;
-        }
-
-        /* Print Styling */
-        @media print {
-            body * {
-                visibility: hidden;
-            }
-            .container, .container * {
-                visibility: visible;
-            }
-            .container {
-                position: absolute;
-                left: 0;
-                top: 0;
-                width: 100%;
-            }
-        }
+        .status-pending { background-color: #ffc107; color: black; }
+        .status-processing { background-color: #17a2b8; color: white; }
+        .status-shipped { background-color: #007bff; color: white; }
+        .status-delivered { background-color: #28a745; color: white; }
+        .status-cancelled { background-color: #dc3545; color: white; }
     </style>
 </head>
 <body>
-  <p>Hellooooo</p>
-    <div class="container" id="orderSummary">
-        <div class="header">
-            <h2>Order Summary</h2>
-        </div>
-        
-        <div class="order-info">
-            <h3>Order Details</h3>
-            <div class="order-detail"><span>Order ID:</span> <span>#123456</span></div>
-            <div class="order-detail"><span>Date:</span> <span>Feb 25, 2025</span></div>
-            <div class="order-detail"><span>Status:</span> <span>Shipped</span></div>
-        </div>
-        
-        <div class="shipping-info">
-            <h3>Shipping Information</h3>
-            <div class="shipping-detail"><span>Expected Delivery:</span> <span>Feb 28, 2025</span></div>
-            <div class="shipping-detail"><span>Shipping Address:</span> <span>123 Street, City, Country</span></div>
-        </div>
-        
-        <div class="product-list">
-            <h3>Products Ordered</h3>
-            <div class="product-item">
-                <img src="https://via.placeholder.com/60" alt="Product Image">
-                <div class="product-details">
-                    <div>Product Name</div>
-                    <div>Qty: 2</div>
-                </div>
-                <div>$50</div>
-            </div>
-        </div>
-        
-        <div class="payment-summary">
-            <h3>Payment Details</h3>
-            <div class="payment-detail"><span>Subtotal:</span> <span>$100</span></div>
-            <div class="payment-detail"><span>Discount:</span> <span>-$10</span></div>
-            <div class="payment-detail"><span>Total:</span> <span>$90</span></div>
-            <div class="payment-detail"><span>Payment Method:</span> <span>Credit Card</span></div>
-        </div>
-        
-        <div class="buttons">
-            <button onclick="window.print()">Download Invoice (PDF)</button>
-            <button onclick="captureOrderSummary()">Save as Image</button>
-        </div>
+
+<div class="container">
+    <h3 class="text-center mb-4">Order Details</h3>
+
+    <!-- Order ID & Customer -->
+    <div class="mb-3">
+        <strong>Order ID:</strong> <span id="orderId">12345XYZ</span>
+    </div>
+    <div class="mb-3">
+        <strong>Customer Name:</strong> <span id="customerName">John Doe</span>
+    </div>
+    
+    <!-- Order Items -->
+    <div class="mb-3">
+        <strong>Ordered Items:</strong>
+        <ul id="orderItems" class="list-group">
+            <li class="list-group-item">iPhone 14 - 1 qty</li>
+            <li class="list-group-item">Samsung Galaxy S23 - 2 qty</li>
+        </ul>
     </div>
 
-    <script>
-        function captureOrderSummary() {
-            let orderSection = document.getElementById("orderSummary");
+    <!-- Current Status -->
+    <div class="mb-3">
+        <strong>Order Status:</strong> 
+        <span id="currentStatus" class="order-status status-pending">Pending</span>
+    </div>
 
-            html2canvas(orderSection).then(canvas => {
-                let link = document.createElement("a");
-                link.href = canvas.toDataURL("image/png");
-                link.download = "order-summary.png";
-                link.click();
-            });
-        }
-    </script>
+    <!-- Change Order Status -->
+    <div class="mb-3">
+        <label for="changeStatus" class="form-label"><strong>Update Status:</strong></label>
+        <select id="changeStatus" class="form-select">
+            <option value="pending">Pending</option>
+            <option value="processing">Processing</option>
+            <option value="shipped">Shipped</option>
+            <option value="delivered">Delivered</option>
+            <option value="cancelled">Cancelled</option>
+        </select>
+    </div>
+
+    <!-- Cancel Order Reason (Only shows when Cancelled is selected) -->
+    <div id="cancelReasonDiv" class="mb-3" style="display: none;">
+        <label for="cancelReason" class="form-label"><strong>Reason for Cancellation:</strong></label>
+        <select id="cancelReason" class="form-select">
+            <option value="">Select Reason</option>
+            <option value="Out of stock">Out of Stock</option>
+            <option value="Customer requested">Customer Requested</option>
+            <option value="Payment issue">Payment Issue</option>
+            <option value="Other">Other</option>
+        </select>
+        <input type="text" id="otherReason" class="form-control mt-2" placeholder="Specify reason" style="display: none;">
+    </div>
+
+    <!-- Action Buttons -->
+    <div class="d-flex justify-content-between">
+        <button class="btn btn-danger" id="cancelOrder">Cancel Order</button>
+        <button class="btn btn-success" id="updateStatus">Save Changes</button>
+    </div>
+</div>
+
+<script>
+    document.addEventListener("DOMContentLoaded", function () {
+        const changeStatus = document.getElementById("changeStatus");
+        const cancelReasonDiv = document.getElementById("cancelReasonDiv");
+        const cancelReason = document.getElementById("cancelReason");
+        const otherReason = document.getElementById("otherReason");
+        const currentStatus = document.getElementById("currentStatus");
+        const updateStatusBtn = document.getElementById("updateStatus");
+        const cancelOrderBtn = document.getElementById("cancelOrder");
+
+        // Show cancel reason when "Cancelled" is selected
+        changeStatus.addEventListener("change", function () {
+            if (this.value === "cancelled") {
+                cancelReasonDiv.style.display = "block";
+            } else {
+                cancelReasonDiv.style.display = "none";
+            }
+        });
+
+        // Show text input when "Other" reason is selected
+        cancelReason.addEventListener("change", function () {
+            if (this.value === "Other") {
+                otherReason.style.display = "block";
+            } else {
+                otherReason.style.display = "none";
+            }
+        });
+
+        // Update Status Button Click
+        updateStatusBtn.addEventListener("click", function () {
+            const selectedStatus = changeStatus.value;
+            const selectedReason = cancelReason.value;
+            const customReason = otherReason.value.trim();
+
+            if (selectedStatus === "cancelled" && !selectedReason && !customReason) {
+                alert("Please provide a reason for cancellation.");
+                return;
+            }
+
+            // Update status label with new status and style
+            currentStatus.className = `order-status status-${selectedStatus}`;
+            currentStatus.textContent = selectedStatus.charAt(0).toUpperCase() + selectedStatus.slice(1);
+
+            alert("Order status updated successfully.");
+        });
+
+        // Cancel Order Button Click
+        cancelOrderBtn.addEventListener("click", function () {
+            changeStatus.value = "cancelled";
+            cancelReasonDiv.style.display = "block";
+        });
+    });
+</script>
+
 </body>
 </html>

@@ -1,0 +1,206 @@
+<%-include("../../views/partials/admin/header.ejs")%>
+<style>
+    body {
+        background-color: #f8f9fa;
+    }
+    .container {
+        max-width: 800px;
+        background: #fff;
+        padding: 20px;
+        border-radius: 10px;
+        box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+        margin-top: 40px;
+    }
+    .order-status {
+        font-weight: bold;
+        padding: 5px 10px;
+        border-radius: 5px;
+    }
+    .status-pending { background-color: #ffc107; color: black; }
+    .status-processing { background-color: #17a2b8; color: white; }
+    .status-shipped { background-color: #007bff; color: white; }
+    .status-delivered { background-color: #28a745; color: white; }
+    .status-cancelled { background-color: #dc3545; color: white; }
+</style>
+
+<div class="container">
+<h3 class="text-center mb-4">Order Details</h3>
+
+<!-- Order ID & Customer -->
+<div class="mb-3">
+    <strong>Order ID:</strong> <span id="orderId"><%=readableId%></span>
+</div>
+<div class="mb-3">
+    <strong>Customer Name:</strong> <span id="customerName"><%=data.userId.name%>(<%=data.userId.email%>)</span>
+</div>
+<div class="mb-3">
+    <strong>ordered Date:</strong> <span id="customerName">   <%= new Date(data.createdOn).toDateString() %></span>
+</div>
+<div class="mb-3">
+    <strong>deliveryDate:</strong> <span id="customerName"><%= new Date(new Date(data.createdOn).setDate(new Date(data.createdOn).getDate() + 4)).toDateString() %>
+    </span>
+</div>
+<div class="mb-3">
+    <strong>Total items:</strong> <span id="customerName"><%=data.totalQuantity%></span>
+</div>
+<div class="mb-3">
+    <strong>Total Price:</strong> <span id="customerName">₹<%=data.finalAmount%></span>
+</div>
+<h4 style="color:rgb(146, 10, 10)">Shipping Address</h4>
+<p class="small"><%=deliveryAddress.name%>,<%=deliveryAddress.city%>,<%=deliveryAddress.landMark%>,<%=deliveryAddress.state%>
+    ,<%=deliveryAddress.pincode%>,<%=deliveryAddress.phone%>,<%=deliveryAddress.altphone%></p>
+<!-- Order Items -->
+<div class="mb-3">
+    <strong>Ordered Items:</strong>
+    <ul id="orderItems" class="list-group">
+        <%data.orderedItems.forEach((pr)=>{%>
+        <li class="list-group-item"><%=pr.product.productName%> (Qty:<%=pr.quantity%>)</li>
+    <%})%>
+    </ul>
+</div>
+
+<!-- Current Status -->
+<div class="mb-3">
+    <strong>Order Status:</strong> 
+    <span id="currentStatus" class="order-status status-pending"><%=data.status%></span>
+</div>
+<% if (data.status !== 'cancelled') { %>
+<!-- Change Order Status -->
+<div class="mb-3">
+    <label for="changeStatus" class="form-label"><strong>Update Status:</strong></label>
+    <select id="changeStatus" class="form-select">
+        <option value="processing">processing</option>
+        <option value="pending">Pending</option>
+        <option value="shipped">Shipped</option>
+        <option value="delivered">Delivered</option>
+        <option value="cancelled">Cancelled</option>
+    </select>
+</div>
+
+<!-- Cancel Order Reason (Only shows when Cancelled is selected) -->
+<div id="cancelReasonDiv" class="mb-3" style="display: none;">
+    <label for="cancelReason" class="form-label"><strong>Reason for Cancellation:</strong></label>
+    <select id="cancelReason" class="form-select">
+        <option value="">Select Reason</option>
+        <option value="Out of stock">Out of Stock</option>
+        <option value="Customer requested">Customer Requested</option>
+        <option value="Payment issue">Payment Issue</option>
+        <option value="Other">Other</option>
+    </select>
+    <input type="text" id="otherReason" class="form-control mt-2" placeholder="Specify reason" style="display: none;">
+</div>
+
+<!-- Action Buttons -->
+<div class="d-flex justify-content-between">
+    <% if (data.status !== 'cancelled') { %>
+        <button class="btn btn-danger" id="cancelOrder">Cancel Order</button>
+    <% } %>
+    
+    <button class="btn btn-success" id="updateStatus">Save Changes</button>
+</div>
+<%}%>
+</div>
+
+<script>
+document.addEventListener("DOMContentLoaded", function () {
+    const orderId = "<%=data._id%>"; // Assuming order ID from the database
+    const changeStatus = document.getElementById("changeStatus");
+    const cancelReasonDiv = document.getElementById("cancelReasonDiv");
+    const cancelReason = document.getElementById("cancelReason");
+    const otherReason = document.getElementById("otherReason");
+    const currentStatus = document.getElementById("currentStatus");
+    const updateStatusBtn = document.getElementById("updateStatus");
+    const cancelOrderBtn = document.getElementById("cancelOrder");
+
+    // Show/hide cancellation reason based on status selection
+    changeStatus.addEventListener("change", function () {
+        cancelReasonDiv.style.display = this.value === "cancelled" ? "block" : "none";
+    });
+
+    // Show "Other" text input if selected
+    cancelReason.addEventListener("change", function () {
+        otherReason.style.display = this.value === "Other" ? "block" : "none";
+    });
+
+    // Update Order Status via AJAX
+    updateStatusBtn.addEventListener("click", function () {
+        const selectedStatus = changeStatus.value;
+        const selectedReason = cancelReason.value;
+        const customReason = otherReason.value.trim();
+
+        if (selectedStatus === "cancelled" && !selectedReason && !customReason) {
+            Swal.fire({
+            title:'please provide reason for canceling the order',
+            icon: 'warning',
+            toast: true,
+            position: 'top-end',
+            showConfirmButton: false,
+            timer: 3000
+        });
+            return;
+        }
+
+        // Prepare Data
+        const requestData = {
+            orderId: orderId,
+            status: selectedStatus,
+            cancelReason: selectedStatus === "cancelled" ? (selectedReason === "Other" ? customReason : selectedReason) : null
+        };
+
+        // Send AJAX Request
+        $.ajax({
+            url: "/admin/orders/orderDetails/status",
+            type: "PATCH",
+            contentType: "application/json",
+            data: JSON.stringify(requestData),
+            success: function (response) {
+                if (response.success) {
+                    // Update Status on Page (Without Reload)
+                    currentStatus.className = `order-status status-${selectedStatus}`;
+                    currentStatus.textContent = selectedStatus.charAt(0).toUpperCase() + selectedStatus.slice(1);
+
+                    Swal.fire({
+            title:'status updated',
+            icon: 'success',
+            toast: true,
+            position: 'top-end',
+            showConfirmButton: false,
+            timer: 3000
+        }).then(()=>
+    {
+        window.location.href = "/admin/orders"; // Redirect to Orders Page
+    })
+            
+                } else {
+                    Swal.fire({
+            title:'somthing went wrong try after sometimes',
+            icon: 'error',
+            toast: true,
+            position: 'top-end',
+            showConfirmButton: false,
+            timer: 3000
+        });
+                }
+            },
+            error: function (xhr, status, error) {
+                console.error("Error updating order status:", error);
+                Swal.fire({
+            title:'server error occured',
+            icon: 'error',
+            toast: true,
+            position: 'top-end',
+            showConfirmButton: false,
+            timer: 3000
+        });
+            }
+        });
+    });
+
+    // Cancel Order Button Click (Triggers Cancellation Process)
+    cancelOrderBtn.addEventListener("click", function () {
+        changeStatus.value = "cancelled";
+        cancelReasonDiv.style.display = "block";
+    });
+});
+</script>
+<%-include("../../views/partials/admin/footer.ejs")%>

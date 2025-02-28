@@ -174,8 +174,39 @@
 }
 
 .order-status {
-    color: #ff6600;
+    font-weight: bold;
+    padding: 4px 8px;
+    border-radius: 4px;
 }
+
+.status-pending {
+    color: #d97706;  /* Amber */
+}
+
+.status-processing {
+    color: #2563eb;  /* Blue */
+}
+
+.status-shipped {
+    color: #9333ea;  /* Purple */
+}
+
+.status-delivered {
+    color: #15803d;  /* Green */
+}
+
+.status-cancelled {
+    color: #dc2626;  /* Red */
+}
+
+.status-return-request {
+    color: #f97316;  /* Orange */
+}
+
+.status-returned {
+    color: #14b8a6;  /* Teal */
+}
+
 
 /* Main Order Layout */
 .order-content {
@@ -750,10 +781,24 @@
             <h2>Your Orders</h2>
             <% if (orders && orders.length > 0) { %>
                 <% orders.forEach(function(order) { %>
-                    <div class="order-container"onclick="orderDetails('<%=order._id%>')">
+                    <div class="order-container">
                         <div class="order-header">
                             <span><strong>Order ID:</strong> <%= order.readableOrderId %></span>
-                            <span class="order-status"><strong>Status:</strong> <%= order.status %></span>
+                            <% let statusClass = ''; %>
+                            <% switch(order.status) { 
+                                case 'pending': statusClass = 'status-pending'; break;
+                                case 'processing': statusClass = 'status-processing'; break;
+                                case 'shipped': statusClass = 'status-shipped'; break;
+                                case 'delivered': statusClass = 'status-delivered'; break;
+                                case 'cancelled': statusClass = 'status-cancelled'; break;
+                                case 'Return Request': statusClass = 'status-return-request'; break;
+                                case 'Returned': statusClass = 'status-returned'; break;
+                            } %>
+                            
+                            <span class="order-status <%= statusClass %>">
+                                <strong>Status:</strong> <%= order.status %>
+                            </span>
+                            
                         </div>
         
                         <div class="order-content">
@@ -786,6 +831,7 @@
                                     invoiceDate.setDate(invoiceDate.getDate() + 4);
                                 %>
                                 <p style="font-weight: bolder;"><strong style="color:green">Expected Delivery:</strong> <%= invoiceDate.toLocaleDateString() %></p>
+                              <a class="btn btn-warning" href="/orderDetails?orderId=<%=order._id%>">order details</a>
                             </div>
                         </div>
                     </div>
@@ -804,20 +850,6 @@
     
 
   <script>
-
-  function orderDetails(orderId)
-  {
-    console.log(orderId);
-    
-    Swal.fire({
-            title: 'order details called',
-            icon: 'success',
-            toast: true,
-            position: 'top-end',
-            showConfirmButton: false,
-            timer: 3000
-        });
-  }
 
 function populateModel(addressId,name,city,landmark,state,pincode,phone,altPhone)
 {

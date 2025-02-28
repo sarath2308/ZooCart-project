@@ -11,6 +11,7 @@ const brandController=require("../controllers/admin/brandController")
 const productController=require("../controllers/admin/productController")
 const bannerController=require("../controllers/admin/bannerController")
 const couponController=require("../controllers/admin/couponController")
+const orderController=require("../controllers/admin/orderController")
 
 
 router.get('/pageerror',adminController.pageerror)
@@ -61,6 +62,11 @@ router.post("/add-coupon",adminAuth,couponController.addCoupon)
 router.post("/edit-coupon",adminAuth,couponController.editCoupon)
 router.post("/coupon-list",adminAuth,couponController.listCoupon)
 router.post("/coupon-unlist",adminAuth,couponController.unlistCoupon)
+
+//order management
+router.get("/orders",adminAuth,orderController.loadOrders)
+router.get("/orders/order-details",adminAuth,orderController.orderDetails)
+router.patch("/orders/orderDetails/status",adminAuth,orderController.changeStatus)
 
 
 

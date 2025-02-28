@@ -220,11 +220,16 @@
                       Available Coupon
                     </button>
                     <ul class="dropdown-menu" aria-labelledby="dropdownMenuButton1">
+                      <% let flag=0%>
                         <%couponData.forEach((cou)=>{%>
                             <%if(cou.minimumPrice<=grandTotal){%>
+                              <%flag++%>
                         <li><a class="dropdown-item" href="#" onclick="selectCoupon('<%=cou.code%>'); return false;"><%=cou.code%>(₹<%=cou.offerPrice%> OFF)</a></li>
                         <%}%>
                         <%})%>
+                        <%if(flag===0){%>
+                          <li>No coupons</li>
+                          <%}%>
                     </ul>
                   </div>
               </div>
