@@ -808,7 +808,7 @@
                                     <div class="ordered-item">
                                         <% if (item.product && item.product.productImage) { %>
                                             <a href="/productDetails?id=<%=item.product._id%>" class="btn">
-                                                <img src="uploads/re-image/<%= item.product.productImage %>" 
+                                                <img src="<%= item.product.productImage[0] %>" 
                                                      alt="<%= item.product.productName %>" 
                                                      class="product-image">
                                             </a>
@@ -916,8 +916,9 @@ $(document).ready(function () {
 
 
 
- const timerDisplay = document.getElementById('timer');
+    const timerDisplay = document.getElementById('timer');
     const resendLink = document.querySelector('.resend-link');
+
 
   // 1 minute in seconds
     let timerInterval;
@@ -941,7 +942,7 @@ $(document).ready(function () {
     }, 1000);
 }
 
-const timerDisplay2 = document.getElementById('timer2');
+    const timerDisplay2 = document.getElementById('timer2');
     const resendLink2 = document.querySelector('.resend-link2');
 
   // 1 minute in seconds
@@ -1345,29 +1346,41 @@ const timerDisplay3= document.getElementById('timer3');
                 showConfirmButton: false,
                 timer: 2000
             }).then(() => {
-                // Clear OTP input fields
-                otpDigits.forEach(digit => {
-                    digit.value = '';
-                });
-                otpDigits[0].focus(); // Focus on the first input field
-
-                // Reset the timer
-                timeLeft = 60;
                 startTimer();
                 resendLink.style.display = 'none'; // Hide the resend link
+                 
+                resendOtp('<%=data.email%>');
+            });
+        }
+    });
+
+    resendLink2.addEventListener('click', (e) => {
+        e.preventDefault();
+        if (timeLeft2<= 0) {
+            Swal.fire({
+                title: 'Resending OTP...',
+                icon: 'info',
+                toast: true,
+                position: 'top-end',
+                showConfirmButton: false,
+                timer: 2000
+            }).then(() => {
+            
+                startTimer2();
+                resendLink2.style.display = 'none'; // Hide the resend link
+                let email=document.getElementById('otp-newEmail').value.trim();
 
                 // Add logic to resend OTP (e.g., make an AJAX call)
-                resendOtp();
+                resendOtp(email);
             });
         }
     });
 
 
 
-
    
         // Handle resend OTP link
-        resendLink.addEventListener('click', (e) => {
+        resendLink3.addEventListener('click', (e) => {
         e.preventDefault();
         if (timeLeft <= 0) {
             Swal.fire({
@@ -1378,12 +1391,11 @@ const timerDisplay3= document.getElementById('timer3');
                 showConfirmButton: false,
                 timer: 2000
             }).then(() => {
-                timeLeft = 60;
-                startTimer();
-                resendLink.style.display = 'none'; // Hide the resend link
+                startTimer3();
+                resendLink3.style.display = 'none'; // Hide the resend link
 
                 // Add logic to resend OTP (e.g., make an AJAX call)
-                resendOtp();
+                resendOtp('<%=data.email%>');
             });
         }
     });
@@ -1391,10 +1403,11 @@ const timerDisplay3= document.getElementById('timer3');
 
 
 // Function to resend OTP
-function resendOtp() {
+function resendOtp(email) {
     $.ajax({
         type: "POST",
-        url: "/user-resend-otp",
+        url: "/userProfile/resendOtp",
+        data:{email},
         success: function(response) {
             Swal.fire({
                 title: 'OTP Resent Successfully',
@@ -1405,16 +1418,18 @@ function resendOtp() {
                 timer: 3000
             });
         },
-        error: function() {
-            Swal.fire({
-                title: "Failed to Resend OTP!",
-                icon: 'error',
-                toast: true,
-                position: 'top-end',
-                showConfirmButton: false,
-                timer: 3000
-            });
-        }
+        error: function(response) {
+    console.log("Error response:", response);
+    Swal.fire({
+        title: response.responseJSON?.message || response.statusText || "Server Error",
+        icon: 'error',
+        toast: true,
+        position: 'top-end',
+        showConfirmButton: false,
+        timer: 3000
+    });
+}
+
     });
 }
 

@@ -1,127 +1,68 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Order Tracking</title>
-    <link rel="stylesheet" href="styles.css">
-    <script defer src="script.js"></script>
-</head>
-<body>
-
-    <div class="tracking-container">
-        <h2>SHIPMENT TRACK</h2>
-        <div class="order-header">
-            <p><strong>ORDER TRACKING: </strong>ORDER NO</p>
-            <p><strong>Shipped Via: </strong> Ipsum Dolor</p>
-            <p><strong>Status: </strong> <span id="order-status">Checking Quality</span></p>
-            <p><strong>Expected Date: </strong> 7-NOV-2015</p>
-        </div>
-
-        <div class="progress-bar">
-            <div class="step completed">
-                <div class="circle"><i class="icon">✔</i></div>
-                <p>Confirmed Order</p>
-            </div>
-            <div class="step completed">
-                <div class="circle"><i class="icon">✔</i></div>
-                <p>Processing Order</p>
-            </div>
-            <div class="step active">
-                <div class="circle"><i class="icon">✔</i></div>
-                <p>Quality Check</p>
-            </div>
-            <div class="step">
-                <div class="circle"><i class="icon">✔</i></div>
-                <p>Dispatched Item</p>
-            </div>
-            <div class="step">
-                <div class="circle"><i class="icon">✔</i></div>
-                <p>Product Delivered</p>
-            </div>
+<div class="accordion-item">
+    <h2 class="accordion-header" id="headingOne">
+        <button class="accordion-button" type="button" data-bs-toggle="collapse" data-bs-target="#collapseOne" aria-expanded="true" aria-controls="collapseOne">
+            What is the return period for a product?
+        </button>
+    </h2>
+    <div id="collapseOne" class="accordion-collapse collapse show" aria-labelledby="headingOne" data-bs-parent="#returnCriteriaAccordion">
+        <div class="accordion-body">
+            The return period varies by product category, but generally, items can be returned within 7 to 30 days of purchase.
         </div>
     </div>
-<style>
-  body {
-    font-family: Arial, sans-serif;
-    background-color: #f5f5f5;
-    text-align: center;
-    padding: 20px;
-}
+</div>
 
-.tracking-container {
-    width: 70%;
-    margin: auto;
-    background: white;
-    padding: 20px;
-    border-radius: 8px;
-    box-shadow: 0px 4px 10px rgba(0, 0, 0, 0.1);
-}
+<!-- Question 2 -->
+<div class="accordion-item">
+    <h2 class="accordion-header" id="headingTwo">
+        <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#collapseTwo" aria-expanded="false" aria-controls="collapseTwo">
+            What condition should the product be in for a return?
+        </button>
+    </h2>
+    <div id="collapseTwo" class="accordion-collapse collapse" aria-labelledby="headingTwo" data-bs-parent="#returnCriteriaAccordion">
+        <div class="accordion-body">
+            The product must be in its original packaging, unused, and with all accessories and tags intact.
+        </div>
+    </div>
+</div>
 
-.order-header {
-    background: #4CAF50;
-    color: white;
-    padding: 10px;
-    border-radius: 5px;
-    margin-bottom: 20px;
-}
+<!-- Question 3 -->
+<div class="accordion-item">
+    <h2 class="accordion-header" id="headingThree">
+        <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#collapseThree" aria-expanded="false" aria-controls="collapseThree">
+            Are there any non-returnable items?
+        </button>
+    </h2>
+    <div id="collapseThree" class="accordion-collapse collapse" aria-labelledby="headingThree" data-bs-parent="#returnCriteriaAccordion">
+        <div class="accordion-body">
+            Yes, certain items such as perishable goods, personalized products, and hygiene-related items (e.g., undergarments, beauty products) are non-returnable.
+        </div>
+    </div>
+</div>
 
-.progress-bar {
-    display: flex;
-    justify-content: space-between;
-    margin-top: 30px;
-    position: relative;
-}
+<!-- Question 4 -->
+<div class="accordion-item">
+    <h2 class="accordion-header" id="headingFour">
+        <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#collapseFour" aria-expanded="false" aria-controls="collapseFour">
+            How will I receive my refund?
+        </button>
+    </h2>
+    <div id="collapseFour" class="accordion-collapse collapse" aria-labelledby="headingFour" data-bs-parent="#returnCriteriaAccordion">
+        <div class="accordion-body">
+            Refunds are processed via the original payment method within 5-7 business days after the return is approved.
+        </div>
+    </div>
+</div>
 
-.step {
-    text-align: center;
-    flex: 1;
-    position: relative;
-}
-
-.step .circle {
-    width: 40px;
-    height: 40px;
-    background: #ccc;
-    border-radius: 50%;
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    margin: auto;
-    font-size: 18px;
-    color: white;
-    font-weight: bold;
-}
-
-.step.completed .circle {
-    background: #4CAF50;
-}
-
-.step.active .circle {
-    background: orange;
-}
-
-.step p {
-    margin-top: 10px;
-    font-size: 14px;
-}
-
-/* Connecting line */
-.progress-bar::before {
-    content: "";
-    position: absolute;
-    top: 20px;
-    left: 10%;
-    width: 80%;
-    height: 5px;
-    background: #ccc;
-    z-index: -1;
-}
-
-.step.completed ~ .step .circle {
-    background: #ccc;
-}
-
-</style>
-</body>
-</html>
+<!-- Question 5 -->
+<div class="accordion-item">
+    <h2 class="accordion-header" id="headingFive">
+        <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#collapseFive" aria-expanded="false" aria-controls="collapseFive">
+            Do I have to pay for return shipping?
+        </button>
+    </h2>
+    <div id="collapseFive" class="accordion-collapse collapse" aria-labelledby="headingFive" data-bs-parent="#returnCriteriaAccordion">
+        <div class="accordion-body">
+            Return shipping charges may apply unless the return is due to a defective or wrong product being delivered.
+        </div>
+    </div>
+</div>

@@ -20,7 +20,7 @@
                                 <p>Your order has been <strong>Cancelled</strong>.</p>
                                 <p><%=orderData.cancelReason%></p>
                             </div>
-                        <% } else if (orderData.status === 'Return Requested') { %>
+                        <% } else if (orderData.status === 'Return Request') { %>
                             <div class="status-message return-request">
                                 <p>Your return request has been <strong>Submitted</strong>. We will process it soon.</p>
                             </div>
@@ -180,7 +180,9 @@
                     <div class="ordered-items">
                         <%orderData.orderedItems.forEach((order)=>{%>
                         <div class="product-item">
-                            <img src="/uploads/re-image/<%=order.product.productImage[0]%>" class="product-image" alt="<%=order.product.productName%>">
+                            <a class="btn" href="/productDetails?id=<%= order.product._id %>">
+                            <img src="<%=order.product.productImage[0]%>" class="product-image" alt="<%=order.product.productName%>">
+                            </a>
                             <div>
                                 <p class="product-title"><%=order.product.productName%></p>
                                 <small class="text-muted">₹<%=order.product.salePrice%>| Qty:<%=order.quantity%></small>
@@ -191,74 +193,177 @@
 
                 </div>
 
-              <!-- Order Actions -->
-
-<!-- Order Actions -->
-<div class="mt-3 d-flex flex-column gap-2">
-    <% if (orderData.status !== 'cancelled') { %>
-        <button class="btn cancel-btn" id="cancel-order">Cancel Order</button>
+<!-- Cancel Order Section -->
+<div class="mb-3">
+    <% if (orderData.status !== 'cancelled'&&orderData.status!=='Return Request') { %>
+        <button class="btn btn-danger" id="cancelOrder">Cancel Order</button>
     <% } %>
-   
-    
-    <!-- Dropdown for cancellation reason (Hidden by default) -->
-    <div id="cancel-reason-section" class="mt-2 d-none">
-        <select class="form-select" id="cancel-reason">
-            <option value="">Select Reason</option>
-            <option value="Changed my mind">Changed my mind</option>
-            <option value="Found a better deal">Found a better deal</option>
-            <option value="Ordered by mistake">Ordered by mistake</option>
-            <option value="Other">Other (Specify below)</option>
-        </select>
-
-        <!-- Textbox for other reason (Hidden initially) -->
-        <input type="text" id="other-reason" class="form-control mt-2 d-none" placeholder="Enter your reason">
-        
-        <button class="btn btn-danger mt-2" id="confirm-cancel">Submit Cancellation</button>
-    </div>
 </div>
+<%if(orderData.status==='Return Request'){%>
+    <div class="accordion accordion-flush" id="accordionFlushExample">
+        <div class="accordion-item">
+          <h2 class="accordion-header" id="flush-headingOne">
+            <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#flush-collapseOne" aria-expanded="false" aria-controls="flush-collapseOne">
+                What is the return period for a product?
+            </button>
+          </h2>
+          <div id="flush-collapseOne" class="accordion-collapse collapse" aria-labelledby="flush-headingOne" data-bs-parent="#accordionFlushExample">
+            <div class="accordion-body"> The return period varies by product category, but generally, items can be returned within 7 to 30 days of purchase..</div>
+          </div>
+        </div>
+        <div class="accordion-item">
+          <h2 class="accordion-header" id="flush-headingTwo">
+            <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#flush-collapseTwo" aria-expanded="false" aria-controls="flush-collapseTwo">
+                What condition should the product be in for a return?
+            </button>
+          </h2>
+          <div id="flush-collapseTwo" class="accordion-collapse collapse" aria-labelledby="flush-headingTwo" data-bs-parent="#accordionFlushExample">
+            <div class="accordion-body"> The product must be in its original packaging, unused, and with all accessories and tags intact..</div>
+          </div>
+        </div>
+        <div class="accordion-item">
+          <h2 class="accordion-header" id="flush-headingThree">
+            <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#flush-collapseThree" aria-expanded="false" aria-controls="flush-collapseThree">
+                How will I receive my refund?
+            </button>
+          </h2>
+          <div id="flush-collapseThree" class="accordion-collapse collapse" aria-labelledby="flush-headingThree" data-bs-parent="#accordionFlushExample">
+            <div class="accordion-body">  Refunds are processed via the original payment method within 5-7 business days after the return is approved..</div>
+          </div>
+        </div>
+      </div>
+            <%}%>
+
+<div id="cancelReasonDiv" class="mb-3" style="display: none;">
+    <label for="cancelReason" class="form-label"><strong>Reason for Cancellation:</strong></label><br>
+    <select id="cancelReason" class="form-select">
+        <option value="">Select Reason</option>
+        <option value="changed my mind">changed my mind</option>
+        <option value="got a better deal">got a better deal</option>
+        <option value="delivery">delievry is longer expected</option>
+        <option value="Other">Other</option>
+    </select>
+    <button class="btn btn-danger mt-2" onclick="cancelOrder()"id="confirmCancel">Submit Cancellation</button>
+</div>
+<div class="mb-3">
+<% if (orderData.status === 'delivered') { %>
+    <button class="btn btn-info" id="returnOrder">return my product </button>
+<% } %>
+</div>
+
+<div id="returnReasonDiv" class="mb-3" style="display: none;">
+    <label for="returnReason" class="form-label"><strong>Reason for return:</strong></label><br>
+    <select id="returnReason" class="form-select">
+        <option value="">Select Reason</option>
+        <option value="damaged product">damaged product</option>
+        <option value="wrong color">wrong color</option>
+        <option value="product working issue">product is not working</option>
+        <option value="Other">Other</option>
+    </select>
+    <button class="btn btn-danger mt-2" onclick="returnOrder()"id="confirmReturn">Return</button>
+</div>
+
 
 <script>
 document.addEventListener("DOMContentLoaded", function () {
-    const cancelOrderBtn = document.getElementById("cancel-order");
-    const cancelReasonSection = document.getElementById("cancel-reason-section");
-    const cancelReasonDropdown = document.getElementById("cancel-reason");
-    const otherReasonInput = document.getElementById("other-reason");
-    const confirmCancelBtn = document.getElementById("confirm-cancel");
+    const cancelOrderBtn = document.getElementById("cancelOrder");
+    const cancelReasonDiv = document.getElementById("cancelReasonDiv");
+    const cancelReason = document.getElementById("cancelReason");
+    const confirmCancelBtn = document.getElementById("confirmCancel");
 
-    // Show dropdown when cancel is clicked
-    cancelOrderBtn.addEventListener("click", function () {
-        cancelReasonSection.classList.toggle("d-none");
+    // Show cancellation reason selection when "Cancel Order" is clicked
+    cancelOrderBtn?.addEventListener("click", function () {
+        cancelReasonDiv.style.display = "block";
     });
 
-    // Show/hide textbox based on selected reason
-    cancelReasonDropdown.addEventListener("change", function () {
+    // Show text input if "Other" is selected
+    cancelReason.addEventListener("change", function () {
         if (this.value === "Other") {
-            otherReasonInput.classList.remove("d-none");
+            otherReason.style.display = "block";
         } else {
-            otherReasonInput.classList.add("d-none");
+            otherReason.style.display = "none";
         }
     });
+       
+      const returnOrderBtn = document.getElementById("returnOrder");
+    const returnReasonDiv = document.getElementById("returnReasonDiv");
+    const returnReason = document.getElementById("returnReason");
+    const confirmReturnBtn = document.getElementById("confirmReturn");
 
-    // Handle cancellation submission
-    confirmCancelBtn.addEventListener("click", function () {
-        const selectedReason = cancelReasonDropdown.value;
-        const otherReason = otherReasonInput.value.trim();
-        
-        if (!selectedReason) {
-            alert("Please select a reason for cancellation.");
-            return;
-        }
-
-        if (selectedReason === "Other" && !otherReason) {
-            alert("Please specify your reason.");
-            return;
-        }
-
-        // Send cancellation request (Modify as needed)
-        console.log("Cancellation Reason:", selectedReason === "Other" ? otherReason : selectedReason);
-        alert("Your order has been cancelled.");
+    // Show cancellation reason selection when "Cancel Order" is clicked
+    returnOrderBtn?.addEventListener("click", function () {
+        returnReasonDiv.style.display = "block";
     });
-});
+
+    // Show text input if "Other" is selected
+    returnReason.addEventListener("change", function () {
+        if (this.value === "Other") {
+            otherReason.style.display = "block";
+        } else {
+            otherReason.style.display = "none";
+        }
+    });
+       
+    });
+
+
+    function cancelOrder()
+    {
+
+        $.ajax({
+            url: "/api/userProfile/orders/orderDetails/cancelOrder",
+            type: "PATCH",
+            contentType: "application/json",
+            data: JSON.stringify({ orderId:orderId }),
+            success: function (response) {
+                Swal.fire({
+            title:'Order cancelled',
+            icon: 'success',
+            toast: true,
+            position: 'top-end',
+            showConfirmButton: false,
+            timer: 3000
+        }).then(()=>
+    {
+        location.reload();
+    })
+            
+            },
+            error: function () {
+                alert("Error cancelling the order. Please try again.");
+            }
+        });
+    }
+
+    function returnOrder()
+    {
+        const returnReason = document.getElementById("returnReason").value;
+         console.log(returnReason);
+         let orderId='<%=orderData._id%>'
+        $.ajax({
+            url: "/api/userProfile/orders/orderDetails/returnOrder",
+            type: "PATCH",
+            contentType: "application/json",
+            data: JSON.stringify({ orderId:orderId,reason:returnReason }),
+            success: function (response) {
+                Swal.fire({
+            title:'Order return request send',
+            icon: 'success',
+            toast: true,
+            position: 'top-end',
+            showConfirmButton: false,
+            timer: 3000
+        }).then(()=>
+    {
+        location.reload();
+    })
+            
+            },
+            error: function () {
+                alert("Error in returning the order. Please try again.");
+            }
+        });
+    }
 </script>
 
 

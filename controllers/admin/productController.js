@@ -6,6 +6,8 @@ const User=require("../../models/userSchema")
 const fs=require("fs");
 const path=require("path");
 const sharp=require("sharp");
+const cloudinary =require("../../config/cloudinary");  // Adjust path if needed
+const multer=require("../../helpers/multer")
 
 const loadProduct = async (req, res) => {
     try {
@@ -62,74 +64,100 @@ catch(error)
 }
 
 };
+
+
 const addProducts = async (req, res) => {
     console.log("Request arrived at adding product");
-    const category = await Category.find({ isListed: true });
-    const brands = await Brand.find({ isBlocked: false });
+console.log("Cloudinary Instance:", cloudinary);
+
 
     try {
-        if(!req.session.admin)
-            {
-                return res.redirect("/admin/login")
-            }
-        const products = req.body;
-         console.log(products);
-         
-        // Check if product already exists by its name (case-insensitive)
+        // Check if admin is logged in
+        if (!req.session.admin) {
+            return res.redirect("/admin/login");
+        }
+
+        // Fetch categories and brands
+        const category = await Category.find({ isListed: true });
+        const brands = await Brand.find({ isBlocked: false });
+        const { productName, category: categoryName, brand, quantity, regularPrice, description, salePrice, color } = req.body;
+
+        // Validate input data
+        if (!productName || !categoryName || !brand || !quantity || !regularPrice) {
+            return res.status(400).render("products-add", {
+                success: false,
+                cat: category,
+                brands: brands,
+                message: "All fields are required",
+            });
+        }
+
+        // Check if files are uploaded
+        if (!req.files || req.files.length === 0) {
+            return res.status(400).render("products-add", {
+                success: false,
+                cat: category,
+                brands: brands,
+                message: "No files uploaded",
+            });
+        }
+
+        // Check if product already exists
         const productExists = await Product.findOne({
-            productName: { $regex: new RegExp(`^${products.productName}$`, 'i') }
+            productName: { $regex: new RegExp(`^${productName}$`, "i") },
         });
 
-        if (!productExists) {
-            const images = [];
-
-            // Create the directory for product images if it doesn't exist
-            const targetDir = path.join('public', 'uploads', 'product-images');
-            if (!fs.existsSync(targetDir)) {
-                fs.mkdirSync(targetDir, { recursive: true });
-            }
-
-            if (req.files && req.files.length > 0) {
-                for (let i = 0; i < req.files.length; i++) {
-                    const originalImagePath = req.files[i].path;
-                    const resizedImagePath = path.join(targetDir, req.files[i].filename);
-
-                    // Resize and save the image
-                    await sharp(originalImagePath).resize({ width: 440, height: 440 }).toFile(resizedImagePath);
-                    images.push(req.files[i].filename);
-                }
-            }
-
-            // Get the category _id based on the selected category name
-            const categoryId = await Category.findOne({ name: products.category });
-            const brandId=await Brand.findOne({brandName:products.brand})
-
-            if (!categoryId) {
-                return res.status(400).render("products-add", { success:false,cat: category, brands: brands, message: "Invalid category name" });
-            }
-
-            // Create a new product with the category _id
-            const newProduct = new Product({
-                productName: products.productName,
-                discription: products.description,
-                brand: brandId._id,
-                category: categoryId._id, // Store the category _id instead of name
-                regularPrice: products.regularPrice,
-                salePrice: products.salePrice,
-                createdOn: new Date(),
-                quantity: products.quantity,
-                color: products.color,
-                productImage: images,
-                status: 'Available',
+        if (productExists) {
+            return res.status(400).render("products-add", {
+                success: false,
+                cat: category,
+                brands: brands,
+                message: "Product already exists, please try with another name",
             });
-
-            await newProduct.save();
-            res.status(201).redirect("/admin/products");
-        } else {
-            return res.status(400).render("products-add", { success:false,cat: category, brands: brands, message: "Product already exists, please try with another name" });
         }
+
+        // Upload images to Cloudinary
+        const uploadPromises = req.files.map((file) =>
+            cloudinary.uploader.upload(file.path, { folder: "uploads" })
+        );
+
+        const images = await Promise.all(uploadPromises);
+        const imageUrls = images.map((img) => img.secure_url);
+
+        console.log("Uploaded Image URLs:", imageUrls); // Debugging line
+
+        // Validate category and brand
+        const categoryData = await Category.findOne({ name: categoryName }).select("_id");
+        const brandData = await Brand.findOne({ brandName: brand }).select("_id");
+
+        if (!categoryData || !brandData) {
+            return res.status(400).render("products-add", {
+                success: false,
+                cat: category,
+                brands: brands,
+                message: "Invalid category or brand name",
+            });
+        }
+
+        // Create new product
+        const newProduct = new Product({
+            productName,
+            discription:description,
+            brand: brandData._id,
+            category: categoryData._id,
+            regularPrice,
+            salePrice,
+            createdOn: new Date(),
+            quantity,
+            color,
+            productImage: imageUrls, // Store Cloudinary URLs
+            status: "Available",
+        });
+
+        await newProduct.save();
+        return res.status(201).redirect("/admin/products");
     } catch (error) {
-        console.error("Error occurred while adding products: ", error);
+        console.error("Error occurred while adding products:", error);
         return res.redirect("/admin/pageerror");
     }
 };
@@ -289,13 +317,17 @@ const loadEditProducts = async (req, res) => {
           message: "Product with the same name already exists. Try another name or update that product",
         });
       }
-      
-      const images = [];
-      if (req.files && req.files.length > 0) {
-        for (let i = 0; i < req.files.length; i++) {
-          images.push(req.files[i].filename);
-        }
-      }
+        // Upload images to Cloudinary
+        const uploadPromises = req.files.map((file) =>
+            cloudinary.uploader.upload(file.path, { folder: "uploads" })
+        );
+
+        const images = await Promise.all(uploadPromises);
+        const imageUrls = images.map((img) => img.secure_url);
+
+        console.log("Uploaded Image URLs:", imageUrls); // Debugging line
+
+    
   
       const updateProduct = {
         productName: data.productName,

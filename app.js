@@ -5,7 +5,6 @@ const db=require("./config/db")
 const path=require("path")
 const userRouter=require("./routes/userRoutes")
 const adminRouter=require("./routes/adminRoutes")
-const bcrypt=require('bcrypt')
 const session=require('express-session')
 const passport=require('./config/passport')
 const MongoStore = require("connect-mongo");

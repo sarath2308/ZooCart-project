@@ -64,18 +64,25 @@
     <strong>Order Status:</strong> 
     <span id="currentStatus" class="order-status status-pending"><%=data.status%></span>
 </div>
+<% if (data.status=== 'Return Request') { %>
+   <p style="font-weight: bolder;color:blue">reason :<%=data.returnReason%></p>
+<% } %>
 <% if (data.status !== 'cancelled') { %>
 <!-- Change Order Status -->
 <div class="mb-3">
     <label for="changeStatus" class="form-label"><strong>Update Status:</strong></label>
     <select id="changeStatus" class="form-select">
-        <option value="processing">processing</option>
-        <option value="pending">Pending</option>
-        <option value="shipped">Shipped</option>
-        <option value="delivered">Delivered</option>
-        <option value="cancelled">Cancelled</option>
+        <option value="processing" <%= data.status === 'processing' ? 'selected' : '' %>>Processing</option>
+        <option value="pending" <%= data.status === 'pending' ? 'selected' : '' %>>Pending</option>
+        <option value="shipped" <%= data.status === 'shipped' ? 'selected' : '' %>>Shipped</option>
+        <option value="delivered" <%= data.status === 'delivered' ? 'selected' : '' %>>Delivered</option>
+        <option value="cancelled" <%= data.status === 'cancelled' ? 'selected' : '' %>>Cancelled</option>
+        <% if (data.status === 'Return Request') { %>
+        <option value="returned" <%= data.status === 'returned' ? 'selected' : '' %>>Accept Return</option>
+        <% } %>
     </select>
 </div>
+
 
 <!-- Cancel Order Reason (Only shows when Cancelled is selected) -->
 <div id="cancelReasonDiv" class="mb-3" style="display: none;">

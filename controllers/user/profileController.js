@@ -237,34 +237,38 @@ const verifyOtp=async(req,res)=>
       };
       
       
-    // const resendOtp = async (req, res) => {
-    //     try {
-    //         if (!req.session.user) {
-    //             return res.status(400).json({
-    //                 success: false,
-    //                 message: "User data or email not found in session. Please log in again."
-    //             });
-    //         }
+    const resendOtp = async (req, res) => {
+        console.log("inside resend otp");
+        const {email}=req.body;
+        console.log("email:"+email);
+        try {
 
-    //         const  email= req.session.userData;
-    //         console.log(`Resending OTP to email: ${email}`);
-    
-    //         const newOtp = generateOtp();
-    //         req.session.userOtp = newOtp;
-    
-    //         const resendMail = await forgotEmail(email, newOtp);
+            const userId = req.session.user || (req.user && req.user._id);
+            const userData=await User.findById({_id:userId})
             
-    //         if (resendMail) {
-    //             console.log(`Resend OTP: ${newOtp}`);
-    //             return res.status(200).json({ success: true, message: "OTP resent successfully." });
-    //         } else {
-    //             return res.status(500).json({ success: false, message: "Failed to send OTP." });
-    //         }
-    //     } catch (error) {
-    //         console.error("Error resending OTP:", error);
-    //         return res.status(500).json({ success: false, message: "Internal server error. Please try again." });
-    //     }
-    // };
+                const Otp=generateOtp()
+                
+                        const emailSent=sendVerificationEmail(email,Otp,userData.name)
+                        if(emailSent)
+                        {
+                            console.log("Otp:"+Otp);
+                            console.log(email);
+                            
+                            
+                            req.session.userOtp=Otp;
+                            req.session.otpExpiry= Date.now() + 60 * 1000;
+                            return res.status(200).json({success:true,message:"Otp sent"})
+                        }
+                        else
+                        {
+                            return res.json({success:false,message:"couldn't send Email please try after some time"})
+                        }
+                    }
+               catch (error) {
+            console.error("Error resending OTP:", error);
+            return res.status(500).json({ success: false, message: "Internal server error. Please try again." });
+        }
+    };
 
 
 
@@ -536,6 +540,73 @@ const deleteAddress = async (req, res) => {
         return res.redirect("/page-not-found")
     }
  }
+
+ const cancelOrder=async(req,res)=>
+ {
+
+    try {
+        const { orderId } = req.body;
+
+        console.log("Request received to update order status");
+
+        // Find the order by ID
+        const orderData = await Order.findById(orderId).populate("orderedItems.product");
+
+        if (!orderData) {
+            return res.status(404).json({ success: false, message: "Order not found" });
+        }
+
+        // If the order is being canceled, add the ordered quantity back to the product stock
+
+            for (let item of orderData.orderedItems) {
+                const product = item.product;
+                if (product) {
+                    product.quantity += item.quantity;
+                    await product.save();
+                }
+            }
+
+        // Update order status
+        orderData.status ="cancelled";
+        await orderData.save();
+
+        return res.status(200).json({ success: true, message: "Order cancelled" });
+    } catch (error) {
+        console.error("Error occurred while changing the status:", error);
+        return res.status(500).json({ success: false, message: "Internal server error" });
+    }
+ }
+
+ const returnOrder=async(req,res)=>
+ {
+   
+    try {
+        const { orderId,reason} = req.body;
+
+        console.log("Request received to return Ordrer");
+
+        // Find the order by ID
+        const orderData = await Order.findById(orderId).populate("orderedItems.product");
+
+        if (!orderData) {
+            return res.status(404).json({ success: false, message: "Order not found" });
+        }
+
+        // If the order is being canceled, add the ordered quantity back to the product stock
+
+
+        // Update order status
+        orderData.status ="Return Request";
+        orderData.returnReason=reason;
+        await orderData.save();
+
+        return res.status(200).json({ success: true, message: "Return request accepted" });
+    } catch (error) {
+        console.error("Error occurred while changing the status:", error);
+        return res.status(500).json({ success: false, message: "Internal server error" });
+    }
+
+ }
 module.exports=
 {
     updateProfile,
@@ -548,5 +619,8 @@ module.exports=
     editAddress,
     deleteAddress,
     updateEmail,
-    orderDetails
+    orderDetails,
+    cancelOrder,
+    resendOtp,
+    returnOrder,
 };

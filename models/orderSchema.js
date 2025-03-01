@@ -83,8 +83,11 @@ const orderSchema=new Schema({
    },
    cancelReason:{
     type:String,
-    required:false,
+   },
+   returnReason:{
+    type:String,
    }
+
 })
 const Order=mongoose.model("Order",orderSchema) ;
 module.exports=Order;

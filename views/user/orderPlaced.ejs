@@ -143,7 +143,7 @@
     <% data.orderedItems.forEach((item) => { %>
         <div class="order-summary-product">
             <div class="product-info">
-                <img src="uploads/re-image/<%= item.product.productImage[0] %>" alt="Product Image">
+                <img src="<%= item.product.productImage[0] %>" alt="Product Image">
                 <div class="order-summary-product-details">
                     <div class="product-name"><%= item.product.productName %></div>
                     <div class="quantity" style="color:#007bff">Qty: <%= item.quantity %></div>

@@ -48,7 +48,9 @@ router.post('/api/users/:otpType/otp/verify',userAuth,profileController.verifyOt
 router.put("/api/users/password",userAuth,profileController.newPassword)
 router.put("/api/users/email",userAuth,profileController.updateEmail)
 router.get("/orderDetails",userAuth,profileController.orderDetails)
-// router.post("/user-resend-otp",userAuth,profileController.)
+router.patch("/api/userProfile/orders/orderDetails/cancelOrder",userAuth,profileController.cancelOrder)
+router.post("/userProfile/resendOtp",userAuth,profileController.resendOtp)
+router.patch("/api/userProfile/orders/orderDetails/returnOrder",userAuth,profileController.returnOrder)
 
 // address management 
 
