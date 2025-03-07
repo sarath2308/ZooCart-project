@@ -5,11 +5,7 @@
 </head>
 
 <a href="/admin/products" class="btn btn-warning logout">Back</a>
-<div class="profile">
-  <h2>Edit Product</h2>
-  <a href="/admin/logout" class="btn btn-danger logout">Logout</a>
-</div>
-<br>
+
 
 <% if (message) { %>
   <script>
@@ -116,7 +112,7 @@
                   <div class="position-relative card-body align-items-center mb-4">
                     <!-- Show existing image if available -->
                     <% if (data.productImage[i]) { %>
-                      <img id="imgView<%= i %>" src="/uploads/re-image/<%= data.productImage[i] %>" alt="Preview" style="max-width: 300px; display: block;">
+                      <img id="imgView<%= i %>" src="<%= data.productImage[i] %>" alt="Preview" style="max-width: 300px; display: block;">
                       <!-- X mark for deleting the image -->
                       <button type="button" class="btn-close position-absolute" style="top: 5px; right: 250px;" 
                               onclick="deleteImage('<%=data.productImage[i]%>', '<%=data._id %>')" aria-label="Close"></button>

@@ -10,6 +10,7 @@ const Product=require("../../models/productSchema.js")
 const Brand=require("../../models/BrandSchema.js")
 const env=require("dotenv").config();
 const bcrypt=require("bcrypt")
+const Wallet=require("../../models/walletSchema.js")
 
 
 
@@ -546,6 +547,8 @@ const deleteAddress = async (req, res) => {
 
     try {
         const { orderId } = req.body;
+        const userId= req.session.user || (req.user && req.user._id);
+        const wallet=await Wallet.findOne({userId:userId})
 
         console.log("Request received to update order status");
 
@@ -565,6 +568,36 @@ const deleteAddress = async (req, res) => {
                     await product.save();
                 }
             }
+                if(wallet)
+                    {
+                        const payment={
+                            amount:orderData.finalAmount,
+                            paymentFlow:true,
+                            description:"order refund",
+                            status:'credited',
+                            orderId:orderData._id,
+                        }
+                        wallet.balance+=orderData.finalAmount;
+                        wallet.paymentHistory.push(payment)
+                        await wallet.save()
+                    }
+                    else
+                    {
+                    const payment={
+                        amount:orderData.finalAmount,
+                        paymentFlow:true,
+                        description:"order refund",
+                        status:'credited',
+                        orderId:orderData._id,
+                    }
+                    const newWallet=new Wallet({
+                        userId:userId,
+                        balance:orderData.finalAmount,
+                        paymentHistory:payment,
+                    })
+
+                    const walletCreated=await newWallet.save()
+                }
 
         // Update order status
         orderData.status ="cancelled";

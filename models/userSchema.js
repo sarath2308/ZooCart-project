@@ -40,8 +40,8 @@ cart:[{
     ref:"cart",
 }],
 wallet:{
-    type:Number,
-    default:0
+    type:Schema.Types.ObjectId,
+    ref:"Wallet"
 },
 wishlist:[{
 type:Schema.Types.ObjectId,

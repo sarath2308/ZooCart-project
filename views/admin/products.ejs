@@ -1,10 +1,5 @@
 <%-include("../../views/partials/admin/header.ejs")%>
 
-<div class="profile container">
-    <h2>All Products</h2>
-    <a href="/admin/logout" class="btn btn-danger logout">Logout</a>
-  </div>
-  <br>
   <div class="d-flex mb-3 justify-content-end">
 <a href="/admin/products/addproducts" class="btn btn-success">+ Add products</a>
 </div>
@@ -87,12 +82,12 @@
   border-spacing: 0 15px;
   font-family: 'Poppins', sans-serif;
   font-size: 14px;
-  background-color: #fff;
+  background-color:#2a2b3d;
 }
 
 .table thead th {
-  background:#2575fc ;
-  color: white;
+  background:#111827 ;
+  color: #ffffff;
   padding: 12px;
   border: none;
   text-transform: uppercase;
@@ -100,19 +95,17 @@
 }
 
 .table tbody tr {
-  background: #f4f6f9;
+  background: #2a2b3d;
   transition: all 0.3s ease-in-out;
   box-shadow: 0px 4px 8px rgba(0, 0, 0, 0.1);
 }
 
-.table tbody tr:hover {
-  transform: translateY(-5px);
-  box-shadow: 0px 6px 16px rgba(0, 0, 0, 0.15);
-}
 
 .table td {
   padding: 10px;
   border: none;
+  background-color:#111827;
+  color:white;
 }
 
 .btn {

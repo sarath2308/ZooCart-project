@@ -9,6 +9,7 @@ const Address=require("../../models/addressSchema.js")
 const Order=require("../../models/orderSchema.js")
 const env=require("dotenv").config();
 const bcrypt=require("bcrypt")
+const Wallet=require("../../models/walletSchema.js")
 
 const loadHomePage=async(req,res)=>
 {
@@ -555,6 +556,21 @@ const loadUserProfile = async (req, res) => {
       
   
       const addressDoc = await Address.findOne({ userId: userId });
+      const userWallet = await Wallet.findOne({ userId: userId }).lean();
+
+if (userWallet && userWallet.paymentHistory) {
+    userWallet.paymentHistory.sort((a, b) => new Date(b.date) - new Date(a.date));
+}
+
+console.log(userWallet);
+
+      
+      console.log("wallet data");
+      console.log(userWallet);
+      
+      
+      
+      
     console.log("address Data");
     console.log(addressDoc);
     
@@ -581,6 +597,7 @@ const loadUserProfile = async (req, res) => {
         data,
         addressData: addressDoc ? addressDoc.address : null,
         orders: ordersWithReadableId ?  ordersWithReadableId :null,
+        wallet:userWallet,
       });
     } catch (error) {
       console.error("Error loading user profile:", error);

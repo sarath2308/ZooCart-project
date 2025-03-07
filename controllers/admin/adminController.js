@@ -1,6 +1,7 @@
 const express=require("express")
 const app=express()
 const User=require("../../models/userSchema")
+const Order=require("../../models/orderSchema")
 const mongoose=require('mongoose')
 const bcrypt=require("bcrypt")
 
@@ -57,19 +58,101 @@ const login = async (req, res) => {
 };
 const loadDashboard=async(req,res)=>
 {
+    try {
     console.log("inside dashboard");
-      if(req.session.admin)
+      const orderData=await Order.find()
+      const Users=await User.countDocuments();
+        const totalOrders = await Order.countDocuments();
+        const cancelledOrders = await Order.countDocuments({ status: "cancelled" });
+        const returnedOrders = await Order.countDocuments({ status: "Returned" });
+        const totalReturns = await Order.countDocuments({ status: { $in: ["Return Request", "Returned"] } });
+    
+        const totalRefund = await Order.aggregate([
+            { $match: { status: "Returned" } },
+            { $group: { _id: null, totalRefund: { $sum: "$finalAmount" } } }
+        ]);
+        console.log(totalRefund);
+        
+        const totalRevenue = await Order.aggregate([
+            { 
+                $match: { 
+                    status: { $nin: ["cancelled", "Returned"] } // Exclude cancelled and returned orders
+                } 
+            },
+            { 
+                $group: { 
+                    _id: null, 
+                    totalRevenue: { $sum: "$finalAmount" } // Sum finalAmount for valid orders
+                } 
+            }
+        ]);
+        
+        console.log("Total Revenue:", totalRevenue[0]?.totalRevenue || 0);
+        const formattedRevenue = (totalRevenue[0]?.totalRevenue || 0).toLocaleString("en-IN");
+console.log("Total Revenue:", formattedRevenue);
+
+const totalOnlineRevenue = await Order.aggregate([
+    { 
+        $match: { 
+            status: { $nin: ["cancelled", "Returned"] }, // Exclude cancelled and returned orders
+            paymentMethod: { $in: ["wallet", "online"] } // Only wallet or online payments
+        } 
+    },
+    { 
+        $group: { 
+            _id: null, 
+            totalAmount: { $sum: "$finalAmount" } // Sum up finalAmount for matching orders
+        } 
+    }
+]);
+console.log(totalOnlineRevenue);
+
+const salesData = await Order.aggregate([
     {
-        try {
-            res.render("dashboard")
-        } catch (error) {
-            res.redirect("/pageerror");
+        $match: {
+            status: { $nin: ["cancelled", "Returned"] } // Exclude cancelled/returned orders
         }
+    },
+    {
+        $group: {
+            _id: { $month: "$createdOn" }, // Group by month (1 = Jan, 2 = Feb, etc.)
+            totalSales: { $sum: "$finalAmount" } // Sum finalAmount for each month
+        }
+    },
+    { $sort: { "_id": 1 } } // Sort by month order
+]);
+
+// Convert data to array with missing months filled as 0
+const monthlySales = new Array(12).fill(0); // Initialize with 0 for all months
+salesData.forEach(({ _id, totalSales }) => {
+    monthlySales[_id - 1] = totalSales; // Assign sales to corresponding month index
+});
+console.log(monthlySales);
+
+
+    
+    
+    
+            res.render("dashboard",
+                {
+                  orderData,
+                  userCount:Users,
+                  totalOrders,
+                  cancelledOrders,
+                  returnedOrders,
+                  totalRevenue:formattedRevenue,
+                  totalRefund:totalRefund[0].totalRefund,
+                  onlineRevenue:totalOnlineRevenue[0].totalAmount,
+                  monthlySales,
+
+
+                }
+            )
 
     }
-    else{
-        return res.redirect('/admin/login')
-    }
+    catch (error) {
+    res.redirect("/pageerror");
+}
 }
 const logout=async(req,res)=>
 {

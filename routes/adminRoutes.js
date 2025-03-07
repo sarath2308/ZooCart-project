@@ -12,14 +12,19 @@ const productController=require("../controllers/admin/productController")
 const bannerController=require("../controllers/admin/bannerController")
 const couponController=require("../controllers/admin/couponController")
 const orderController=require("../controllers/admin/orderController")
+const dashboardController=require("../controllers/admin/dashboardController")
 
 
 router.get('/pageerror',adminController.pageerror)
 router.get('/login',adminController.loginPage)
 router.post('/login',adminController.login)
-router.get("/",adminAuth,adminController.loadDashboard)
 router.get("/logout",adminController.logout)
 router.get("/demoAdmin",adminController.demoAdmin)
+
+//dashboard management
+router.get("/",adminAuth,adminController.loadDashboard)
+
+
 
 
 //User Management

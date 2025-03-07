@@ -53,7 +53,9 @@
                                     <span style="color:rgb(168, 36, 10)">Return request</span>
                                     <%}else if(order.status==='Returned'){%>
                                         <span style="color:rgb(155, 35, 8)">Returned</span>
-                                        <%}%>
+                                        <%}else if(order.status==='Return Rejected'){%>
+                                          <span style="color:rgb(155, 35, 8)">Return Rejected</span>
+                                          <%}%>
                             </td>
                             <td><a href="/admin/orders/order-details?orderId=<%=order._id%>"class="btn btn-warning">details & actions</a> </td>
                         </tr>

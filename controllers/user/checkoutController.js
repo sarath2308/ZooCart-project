@@ -3,12 +3,13 @@ const User=require("../../models/userSchema")
 const Product=require("../../models/productSchema")
 const Coupon=require("../../models/couponSchema")
 const mongoose=require("mongoose")
-const mongodb=require("mongodb")
-const Category = require("../../models/CategorySchema")
 const Address=require("../../models/addressSchema")
 const Order=require("../../models/orderSchema")
-const {v4:uuidv4}=require('uuid')
-const { loginPage } = require("./userController")
+const razorpay=require("../../config/razorpay")
+require('dotenv').config()
+const crypto=require('crypto')
+const Wallet=require("../../models/walletSchema")
+
 
 
 const loadCheckOut = async (req, res) => {
@@ -24,6 +25,7 @@ const loadCheckOut = async (req, res) => {
       const userData = await User.findById({ _id: userId });
       const oid = new mongoose.Types.ObjectId(userId);
       const addressData = await Address.findOne({ userId: userId });
+      const userWallet=await Wallet.findOne({userId:userId})
       
          if (cart) {
         const cartData = await Cart.aggregate([
@@ -89,7 +91,8 @@ const loadCheckOut = async (req, res) => {
           couponData:CouponData,
           couponApplied:'',
           packagingFee,
-          handlingFee
+          handlingFee,
+          wallet:userWallet
         });
       } else {
         console.log("cart is false");
@@ -154,22 +157,25 @@ const placeOrder = async (req, res) => {
     console.log("req arrived at place order");
     
     const userId = req.session.user || (req.user && req.user._id);
+    const userData=await User.findById({_id:userId})
     const cart=req.query.cart;
       const orderData=req.body;
       let newOrder;
       let items;
+      let paymentMethod;
+      let grandTotal;
+      const userWallet=await Wallet.findOne({userId:userId})
       if (cart) {
        items=req.session.cartProducts;
       const addressId=orderData.addressId;
-      const paymentMethod=orderData.paymentMethod;
+       paymentMethod=orderData.paymentMethod;
       const totalQuantity=orderData.totalQuantity;
       const grandRegularTotal=orderData.grandRegularTotal;
       const discountAmount=orderData.discountAmount;
       const coupon=orderData.coupon;
       const handlingFee=orderData.handlingFee;
       const packagingFee=orderData.packagingFee;
-      const grandTotal=orderData.grandTotal;
-  
+       grandTotal=orderData.grandTotal;
       console.log("all items"+items);
       
 
@@ -230,7 +236,42 @@ const placeOrder = async (req, res) => {
 
     // Save the new order
     const savedOrder = await newOrder.save();
-
+    if(paymentMethod==='wallet')
+    {
+            const payment={
+              amount:grandTotal,
+              paymentFlow:false,
+              description:"ordered",
+              status:'debited',
+              orderId:savedOrder._id,
+            }
+            userWallet.balance-=grandTotal;
+            userWallet.paymentHistory.push(payment),
+            await userWallet.save()
+    }
+if(paymentMethod==='online payment')
+{
+  console.log("confirming data");
+  console.log(grandTotal);
+  console.log(savedOrder.orderId);
+  
+  
+  
+  const razorpayOrder = await razorpay.orders.create({
+    amount:  grandTotal* 100, // Amount in paise
+    currency: 'INR',
+    receipt: `order_${savedOrder._id}`,
+  });
+  
+razorpayOrder.user_key=process.env.RAZORPAY_KEY_ID;
+  // Return the Razorpay order details to the frontend
+  console.log(razorpayOrder);
+ return  res.status(201).json({
+    payment_method: 'online',
+    order: razorpayOrder,
+    savedOrder,
+  });
+} else {
     // Update the user document with this order
     await User.findByIdAndUpdate(userId, {
       $push: { orderHistory: savedOrder._id }
@@ -252,15 +293,21 @@ const placeOrder = async (req, res) => {
     // Clean up session data for order
     req.session.order = savedOrder;  
     delete req.session.grandRegularTotal;
+    savedOrder.name=userData.name;
+    savedOrder.email=userData.email;
+    savedOrder.phone=userData.phone?userData.phone:'99999999999';
 
     return res.status(201).json({
       success: true,
+      payment_method: 'cod',
+      savedOrder,
       message: items && items.length > 0 
         ? "Order placed successfully from cart" 
         : "Order placed successfully for single product.",
-      order: savedOrder
     });
-
+  
+}
+ 
   } catch (error) {
     console.error("Error placing order:", error);
     return res.status(500).json({
@@ -275,7 +322,7 @@ const placeOrder = async (req, res) => {
 
 
 
-const orderPlaced=async(req,res)=>
+const invoiceData=async(req,res)=>
 {
   console.log("inside order placed ........................................");
   try {
@@ -333,12 +380,84 @@ const deliveryDateFormatted = deliveryDate.toLocaleDateString('en-US', options);
 }
 
 
+const orderPlaced=async(req,res)=>
+{
+  try {
+    return res.render("orderSuccess")
+  } catch (error) {
+    console.log("error occured while showing order");
+    console.log(error);
+    
+    
+  }
+}
+
+const orderNotPlaced=async(req,res)=>
+  {
+  
+try {
+  return res.render('orderFailure')
+} catch (error) {
+
+  console.log("error occured while ");
+  console.log(error);
+  
+}
+  }
 
 
+  const verifyPayment=async(req,res)=>
+  {
+    try {
+      const userId= req.session.user || (req.user && req.user._id);
+      const { razorpay_payment_id, razorpay_order_id, razorpay_signature,orderId} = req.body;
+
+      const savedOrder=await Order.findById({_id:orderId})
+
+      // Generate the expected signature
+      const generatedSignature = crypto
+        .createHmac('sha256', process.env.RAZORPAY_KEY_SECRET) // Use your Razorpay key_secret
+        .update(razorpay_order_id + '|' + razorpay_payment_id)
+        .digest('hex');
+    
+      if (generatedSignature === razorpay_signature) {
+        console.log("saved Order----------------------------------");
+        
+     console.log(savedOrder);
+     
+          // Update the user document with this order
+    await User.findByIdAndUpdate(userId, {
+      $push: { orderHistory: savedOrder._id }
+    });
+
+    // Loop over each ordered item and decrement its stock by the ordered quantity
+    for (let item of savedOrder.orderedItems) {
+      // Use findByIdAndUpdate to decrement stock using MongoDB's $inc operator
+      await Product.findByIdAndUpdate(
+        item.product,
+        { $inc: { quantity: -item.quantity } },
+        { new: true }
+      );
+    }
+  console.log("save order");
+        res.json({ success:true });
+      } else {
+        // Payment is invalid
+        res.json({ success:false });
+      }
+    } catch (error) {
+      console.log("error occured while verifying payment");
+      console.log(error);
+   
+    }
+  }
 module.exports=
 {
     loadCheckOut,
     applyCoupon,
     placeOrder,
+    invoiceData,
     orderPlaced,
+    orderNotPlaced,
+    verifyPayment,
 }

@@ -59,54 +59,56 @@
     </ul>
 </div>
 
-<!-- Current Status -->
 <div class="mb-3">
     <strong>Order Status:</strong> 
-    <span id="currentStatus" class="order-status status-pending"><%=data.status%></span>
+    <span id="currentStatus" class="order-status status-pending"><%= data.status %></span>
 </div>
-<% if (data.status=== 'Return Request') { %>
-   <p style="font-weight: bolder;color:blue">reason :<%=data.returnReason%></p>
+
+<% if (data.status === 'Return Request') { %>
+   <p style="font-weight: bolder; color: blue;">Reason: <%= data.returnReason %></p>
 <% } %>
-<% if (data.status !== 'cancelled') { %>
-<!-- Change Order Status -->
-<div class="mb-3">
-    <label for="changeStatus" class="form-label"><strong>Update Status:</strong></label>
-    <select id="changeStatus" class="form-select">
-        <option value="processing" <%= data.status === 'processing' ? 'selected' : '' %>>Processing</option>
-        <option value="pending" <%= data.status === 'pending' ? 'selected' : '' %>>Pending</option>
-        <option value="shipped" <%= data.status === 'shipped' ? 'selected' : '' %>>Shipped</option>
-        <option value="delivered" <%= data.status === 'delivered' ? 'selected' : '' %>>Delivered</option>
-        <option value="cancelled" <%= data.status === 'cancelled' ? 'selected' : '' %>>Cancelled</option>
-        <% if (data.status === 'Return Request') { %>
-        <option value="returned" <%= data.status === 'returned' ? 'selected' : '' %>>Accept Return</option>
-        <% } %>
-    </select>
-</div>
 
+<% if (data.status !== 'cancelled' && data.status !== 'Returned') { %>
+    <!-- Change Order Status -->
+    <div class="mb-3">
+        <label for="changeStatus" class="form-label"><strong>Update Status:</strong></label>
+        <select id="changeStatus" class="form-select">
+            <% if (data.status === 'Return Request'||data.status==='Return Rejected') { %>
+                <option value="Returned" <%= data.status === 'Returned' ? 'selected' : '' %>>Accept Return</option>
+                <option value="Return Rejected" <%= data.status === 'Return Rejected' ? 'selected' : '' %>>Reject Return</option>
+            <% } else { %>
+                <option value="processing" <%= data.status === 'processing' ? 'selected' : '' %>>Processing</option>
+                <option value="pending" <%= data.status === 'pending' ? 'selected' : '' %>>Pending</option>
+                <option value="shipped" <%= data.status === 'shipped' ? 'selected' : '' %>>Shipped</option>
+                <option value="delivered" <%= data.status === 'delivered' ? 'selected' : '' %>>Delivered</option>
+                <option value="cancelled" <%= data.status === 'cancelled' ? 'selected' : '' %>>Cancelled</option>
+            <% } %>
+        </select>
+    </div>
 
-<!-- Cancel Order Reason (Only shows when Cancelled is selected) -->
-<div id="cancelReasonDiv" class="mb-3" style="display: none;">
-    <label for="cancelReason" class="form-label"><strong>Reason for Cancellation:</strong></label>
-    <select id="cancelReason" class="form-select">
-        <option value="">Select Reason</option>
-        <option value="Out of stock">Out of Stock</option>
-        <option value="Customer requested">Customer Requested</option>
-        <option value="Payment issue">Payment Issue</option>
-        <option value="Other">Other</option>
-    </select>
-    <input type="text" id="otherReason" class="form-control mt-2" placeholder="Specify reason" style="display: none;">
-</div>
+    <!-- Cancel Order Reason (Only shows when Cancelled is selected) -->
+    <div id="cancelReasonDiv" class="mb-3" style="display: none;">
+        <label for="cancelReason" class="form-label"><strong>Reason for Cancellation:</strong></label>
+        <select id="cancelReason" class="form-select">
+            <option value="">Select Reason</option>
+            <option value="Out of stock">Out of Stock</option>
+            <option value="Customer requested">Customer Requested</option>
+            <option value="Payment issue">Payment Issue</option>
+            <option value="Other">Other</option>
+        </select>
+        <input type="text" id="otherReason" class="form-control mt-2" placeholder="Specify reason" style="display: none;">
+    </div>
 
-<!-- Action Buttons -->
-<div class="d-flex justify-content-between">
-    <% if (data.status !== 'cancelled') { %>
+    <!-- Action Buttons -->
+    <div class="d-flex justify-content-between">
+        <% if (data.status !== 'Return Request'&& data.status!=='Return Rejected') { %>
         <button class="btn btn-danger" id="cancelOrder">Cancel Order</button>
-    <% } %>
-    
-    <button class="btn btn-success" id="updateStatus">Save Changes</button>
-</div>
-<%}%>
-</div>
+        <%}%>
+        <button class="btn btn-success" id="updateStatus">Save Changes</button>
+    </div>
+<% }else{ %>
+    <a href="/admin/orders" class="btn btn-primary">Back</a>
+    <%}%>
 
 <script>
 document.addEventListener("DOMContentLoaded", function () {

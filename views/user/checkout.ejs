@@ -1,5 +1,5 @@
 <%- include("../../views/partials/user/header.ejs") %>
-
+<script src="https://checkout.razorpay.com/v1/checkout.js"></script>
 <!-- Breadcrumb Section Begin -->
 <section class="breadcrumb-option">
   <div class="container">
@@ -123,12 +123,25 @@
               <div class="accordion-body">
                 <p>Select your payment method:</p>
                 <div class="form-check">
-                  <input class="form-check-input" type="radio" name="paymentOption" id="pay1" value="RazorPay">
-                  <label class="form-check-label" for="pay1">RazorPay</label>
+                  <input class="form-check-input" type="radio" name="paymentOption" id="pay1" value="online payment">
+                  <label class="form-check-label" for="pay1">Online Payment</label>
                 </div>
                 <div class="form-check">
-                  <input class="form-check-input" type="radio" name="paymentOption" id="pay2" value="Cash on Delivery">
+                  <%if(grandTotal>50000){%>
+                  <input class="form-check-input" type="radio" name="paymentOption" id="pay2" value="Cash on Delivery" disabled>
+                  <%}else{%>
+                    <input class="form-check-input" type="radio" name="paymentOption" id="pay2" value="Cash on Delivery">
+                    <%}%>
                   <label class="form-check-label" for="pay2">Cash on Delivery</label>
+                </div>
+                <div class="form-check">
+                  <%if(grandTotal>wallet.balance ||!wallet.balance){%>
+                    <input class="form-check-input" type="radio" name="paymentOption" id="pay3" value="wallet" disabled>
+                    <label class="form-check-label" for="pay1">Wallet <span style="color: red;">(₹<%=wallet.balance?wallet.balance:0%>)</span></label>
+                    <%}else{%>
+                      <input class="form-check-input" type="radio" name="paymentOption" id="pay3" value="wallet">
+                      <label class="form-check-label" for="pay1">Wallet</label>
+                      <%}%>
                 </div>
                 <!-- Mark as Complete Button for Payment -->
                 <button type="button" class="btn btn-success mt-3" onclick="markComplete('section-payment', 'payment-completed')">confirm payment option</button>
@@ -198,8 +211,41 @@
                 </div>
              
                 <!-- Mark as Complete Button for Order Summary -->
-                <a type="button" href="#placeOrder"class="btn btn-success mt-3" onclick="markComplete('section-summary', 'summary-completed')">Confirm Order</a>
+                <a type="button" class="btn btn-success mt-3" style="color:white" onclick="markComplete('section-summary', 'summary-completed')">Confirm Order</a>
               </div>
+            </div>
+          </div>
+        </div>
+  <br><br>
+        <div class="accordion accordion-flush" id="accordionFlushExample">
+          <div class="accordion-item">
+            <h2 class="accordion-header" id="flush-headingOne">
+              <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#flush-collapseOne" aria-expanded="false" aria-controls="flush-collapseOne">
+                What payment methods do you accept?
+              </button>
+            </h2>
+            <div id="flush-collapseOne" class="accordion-collapse collapse" aria-labelledby="flush-headingOne" data-bs-parent="#accordionFlushExample">
+              <div class="accordion-body"> We accept credit/debit cards, net banking, UPI, and cash on delivery (COD) for eligible orders..</div>
+            </div>
+          </div>
+          <div class="accordion-item">
+            <h2 class="accordion-header" id="flush-headingTwo">
+              <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#flush-collapseTwo" aria-expanded="false" aria-controls="flush-collapseTwo">
+                Is cash on delivery available for all orders?
+              </button>
+            </h2>
+            <div id="flush-collapseTwo" class="accordion-collapse collapse" aria-labelledby="flush-headingTwo" data-bs-parent="#accordionFlushExample">
+              <div class="accordion-body"> Cash on delivery is available for most orders, but it is not available for purchases exceeding ₹50,000. For such orders, prepayment is required..</div>
+            </div>
+          </div>
+          <div class="accordion-item">
+            <h2 class="accordion-header" id="flush-headingThree">
+              <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#flush-collapseThree" aria-expanded="false" aria-controls="flush-collapseThree">
+                Why is cash on delivery not allowed for orders over ₹50,000?
+              </button>
+            </h2>
+            <div id="flush-collapseThree" class="accordion-collapse collapse" aria-labelledby="flush-headingThree" data-bs-parent="#accordionFlushExample">
+              <div class="accordion-body"> To minimize risks associated with high-value transactions, we require prepayment for orders over ₹50,000. You can use any of our online payment options to complete your purchase..</div>
             </div>
           </div>
         </div>
@@ -260,6 +306,44 @@
 <button onclick="placeOrder()" id="placeOrder" class="site-btn">PLACE ORDER</button>
 
 <script>
+
+
+function openRazorpayModal(order,data) {
+  Swal.fire({
+        title: 'Razor pay called',
+        text: '',
+        icon: 'warning',
+        toast: true,
+        position: 'top-end',
+        timer: 3000,
+        showConfirmButton: false
+      });
+  const options = {
+    key: order.user_key, // Replace with your Razorpay key_id
+    amount: order.amount,
+    currency:'INR',
+    order_id: order.id, // Use the order ID from the server
+    name: 'ZooCart',
+    description: 'Order Payment',
+    handler: function (response) {
+      // Handle successful payment
+      verifyPayment(response);
+    },
+    prefill: {
+      name: data.name,
+      email: data.email,
+      contact: data.phone,
+    },
+    theme: {
+      color: '#091db1',
+    },
+  };
+
+  const rzp = new Razorpay(options);
+  rzp.open();
+}
+
+
   function placeOrder() {
     // Define the required accordion section IDs
     const requiredSections = ['section-address', 'section-payment', 'section-summary'];
@@ -345,36 +429,89 @@
     
     // 5. Use AJAX to send orderData to your REST API endpoint.
     $.ajax({
-      url: '/api/orders/placeOrder?cart=1',
-      type: 'POST',
-      data: JSON.stringify(orderData),
-      contentType: 'application/json',
-      success: function(response) {
-        Swal.fire({
-          title: 'Order Placed Successfully!',
-          icon: 'success',
-          toast: true,
-          position: 'top-end',
-          timer: 3000,
-          showConfirmButton: false
-        }).then(() => {
-          window.location.href = `/orderInvoice`; // Or your confirmation page URL
-        });
-      },
-      error: function(err) {
-        console.error("Error placing order:", err);
-        Swal.fire({
-          title: 'Error',
-          text: 'There was an error placing your order. Please try again.',
-          icon: 'error',
-          toast: true,
-          position: 'top-end',
-          timer: 3000,
-          showConfirmButton: false
-        });
-      }
+  url: '/api/orders/placeOrder?cart=1',
+  type: 'POST',
+  data: JSON.stringify(orderData),
+  contentType: 'application/json',
+  success: function (response) {
+    if (response.payment_method === 'online') {
+      const options = {
+        key: response.order.user_key, // Use the key from the response
+        amount: response.order.amount,
+        currency: response.order.currency,
+        order_id: response.order.id,
+        name: 'ZooCart',
+        description: 'Order Payment',
+        handler: function (res) {
+          console.log('Payment ID:', response.razorpay_payment_id);
+
+          // Send payment details to the server for verification
+          verifyPayment(res,response.savedOrder._id);
+        },
+        modal: {
+          ondismiss: function () {
+            // Redirect to the failure page
+            window.location.href = '/order-unsuccess';
+          },
+        },
+        prefill: {
+          name: response.savedOrder.name,
+          email: response.savedOrder.email,
+          contact:response.savedOrder.phone,
+        },
+      };
+
+      const rzp = new Razorpay(options);
+      rzp.open();
+    } else {
+      // For non-online payments (e.g., COD), redirect to the success page
+      window.location.href = '/order-placed';
+    }
+  },
+  error: function (err) {
+    console.error('Error placing order:', err);
+    Swal.fire({
+      title: 'Error',
+      text: 'There was an error placing your order. Please try again.',
+      icon: 'error',
+      toast: true,
+      position: 'top-end',
+      timer: 3000,
+      showConfirmButton: false,
     });
+  },
+});
   }
+
+// Function to verify payment
+function verifyPayment(response,orderId) {
+  $.ajax({
+    url: '/api/orders/verifyPayment',
+    type: 'POST',
+    contentType: 'application/json',
+    data: JSON.stringify({
+      orderId:orderId,
+      razorpay_payment_id: response.razorpay_payment_id,
+      razorpay_order_id: response.razorpay_order_id,
+      razorpay_signature: response.razorpay_signature,
+    }),
+    success: function (verificationResult) {
+      if (verificationResult.success) {
+        // Payment verified successfully
+        window.location.href = '/order-placed'; // Redirect to success page
+      } else {
+        // Payment verification failed
+        window.location.href = '/order-unsuccess'; // Redirect to failure page
+      }
+    },
+    error: function (xhr, status, error) {
+      console.error('Error verifying payment:', error);
+      window.location.href = '/order-unsuccess'; // Redirect to failure page
+    },
+  });
+}
+
+ 
 
 </script>
 

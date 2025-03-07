@@ -24,11 +24,15 @@
                             <div class="status-message return-request">
                                 <p>Your return request has been <strong>Submitted</strong>. We will process it soon.</p>
                             </div>
-                        <% } else if (orderData.status === 'Return') { %>
+                        <% } else if (orderData.status === 'Returned') { %>
                             <div class="status-message returned">
-                                <p>Your order has been <strong>Returned</strong>. Refund will be processed soon.</p>
+                                <p>Your order has been <strong>Returned</strong>. Refund added to your wallet.</p>
                             </div>
-                        <% } else { %>
+                            <% } else if (orderData.status === 'Return Rejected') { %>
+                                <div class="status-message rejected">
+                                    <p>Your return request has been <strong>Rejected</strong>.contact our Customer Care.</p>
+                                </div>
+                            <% } else { %>
                             <div class="tracking-progress">
                                 <div class="step" data-status="pending">
                                     <div class="icon">✔</div>
@@ -173,6 +177,9 @@
                         .status-message.returned {
                             background-color: #5bc0de; /* Blue */
                         }
+                        .status-message.rejected {
+                            background-color: #d23a0f; /* Blue */
+                        }
                     </style>
                     
                     <!-- Products Ordered -->
@@ -195,7 +202,7 @@
 
 <!-- Cancel Order Section -->
 <div class="mb-3">
-    <% if (orderData.status !== 'cancelled'&&orderData.status!=='Return Request') { %>
+    <% if (orderData.status !== 'cancelled'&&orderData.status!=='Return Request' &&orderData.status!=='delivered'&&orderData.status!=='Returned'&&orderData.status!=='Return Rejected') { %>
         <button class="btn btn-danger" id="cancelOrder">Cancel Order</button>
     <% } %>
 </div>
@@ -243,7 +250,7 @@
         <option value="delivery">delievry is longer expected</option>
         <option value="Other">Other</option>
     </select>
-    <button class="btn btn-danger mt-2" onclick="cancelOrder()"id="confirmCancel">Submit Cancellation</button>
+    <button class="btn btn-danger mt-2" onclick="cancelOrder()" id="confirmCancel">Submit Cancellation</button>
 </div>
 <div class="mb-3">
 <% if (orderData.status === 'delivered') { %>
@@ -309,6 +316,7 @@ document.addEventListener("DOMContentLoaded", function () {
 
     function cancelOrder()
     {
+         let orderId='<%=orderData._id%>'
 
         $.ajax({
             url: "/api/userProfile/orders/orderDetails/cancelOrder",

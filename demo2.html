@@ -1,148 +1,238 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Admin Order Details</title>
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
-    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
-    <style>
-        body {
-            background-color: #f8f9fa;
-        }
-        .container {
-            max-width: 800px;
-            background: #fff;
-            padding: 20px;
-            border-radius: 10px;
-            box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
-            margin-top: 40px;
-        }
-        .order-status {
-            font-weight: bold;
-            padding: 5px 10px;
-            border-radius: 5px;
-        }
-        .status-pending { background-color: #ffc107; color: black; }
-        .status-processing { background-color: #17a2b8; color: white; }
-        .status-shipped { background-color: #007bff; color: white; }
-        .status-delivered { background-color: #28a745; color: white; }
-        .status-cancelled { background-color: #dc3545; color: white; }
-    </style>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Wallet Page</title>
+  <!-- Bootstrap CSS -->
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+  <!-- Font Awesome -->
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+  <style>
+    body {
+      background-color: #f8f9fa;
+      font-family: 'Arial', sans-serif;
+      display: flex;
+    }
+    /* Sidebar Styles */
+    .sidebar {
+      width: 250px;
+      height: 100vh;
+      background: #111827;
+      color: white;
+      padding: 20px;
+      position: fixed;
+    }
+    .sidebar h3 {
+      margin-bottom: 20px;
+      text-transform: uppercase;
+    }
+    .sidebar ul {
+      list-style: none;
+      padding: 0;
+    }
+    .sidebar ul li {
+      padding: 10px 0;
+    }
+    .sidebar ul li a {
+      color: white;
+      text-decoration: none;
+      display: block;
+    }
+    .sidebar ul li a:hover {
+      background: #2575fc;
+      padding-left: 10px;
+    }
+    /* Main Content Styles */
+    .content {
+      margin-left: 250px; /* Align with sidebar width */
+      width: calc(100% - 250px);
+      padding: 20px;
+    }
+    /* Wallet Card Styles */
+    .wallet-card {
+      background: linear-gradient(135deg, #6a11cb, #2575fc);
+      color: white;
+      border-radius: 15px;
+      padding: 25px;
+      box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+    }
+    .wallet-card h2 {
+      font-size: 1.5rem;
+      font-weight: bold;
+    }
+    .wallet-card .balance {
+      font-size: 3rem;
+      font-weight: bold;
+      text-shadow: 0 0 10px rgba(255, 255, 255, 0.8);
+      margin: 20px 0;
+    }
+    .wallet-card p {
+      margin: 5px 0;
+    }
+    /* Form Styles */
+    .add-money-form, .withdraw-money-form {
+      background: white;
+      border-radius: 15px;
+      padding: 20px;
+      box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+      margin-bottom: 20px;
+    }
+    /* Wallet Statistics Styles */
+    .wallet-stats .stat-box {
+      background: #f8f9fa;
+      border-radius: 10px;
+      padding: 15px;
+      text-align: center;
+    }
+    .wallet-stats .stat-box h5 {
+      font-size: 1.2rem;
+      font-weight: bold;
+    }
+    .wallet-stats .stat-box p {
+      font-size: 1.5rem;
+      font-weight: bold;
+      margin: 0;
+    }
+    /* Transaction History Styles */
+    .transaction-history {
+      background: white;
+      border-radius: 15px;
+      padding: 20px;
+      box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+    }
+    .transaction-history th {
+      background: #f8f9fa;
+    }
+    .badge-success {
+      background: #28a745;
+    }
+    .badge-danger {
+      background: #dc3545;
+    }
+    .badge-warning {
+      background: #ffc107;
+    }
+    .filter-buttons .btn {
+      margin-right: 10px;
+      margin-bottom: 10px;
+    }
+  </style>
 </head>
 <body>
+  <!-- Sidebar -->
+  <div class="sidebar">
+    <h3>Dashboard</h3>
+    <ul>
+      <li><a href="#">Home</a></li>
+      <li><a href="#" class="active">Wallet</a></li>
+      <li><a href="#">Transactions</a></li>
+      <li><a href="#">Settings</a></li>
+    </ul>
+  </div>
 
-<div class="container">
-    <h3 class="text-center mb-4">Order Details</h3>
-
-    <!-- Order ID & Customer -->
-    <div class="mb-3">
-        <strong>Order ID:</strong> <span id="orderId">12345XYZ</span>
-    </div>
-    <div class="mb-3">
-        <strong>Customer Name:</strong> <span id="customerName">John Doe</span>
-    </div>
-    
-    <!-- Order Items -->
-    <div class="mb-3">
-        <strong>Ordered Items:</strong>
-        <ul id="orderItems" class="list-group">
-            <li class="list-group-item">iPhone 14 - 1 qty</li>
-            <li class="list-group-item">Samsung Galaxy S23 - 2 qty</li>
-        </ul>
-    </div>
-
-    <!-- Current Status -->
-    <div class="mb-3">
-        <strong>Order Status:</strong> 
-        <span id="currentStatus" class="order-status status-pending">Pending</span>
+  <!-- Main Content -->
+  <div class="content">
+    <!-- Wallet Balance -->
+    <div class="wallet-card">
+      <h2>Wallet Balance</h2>
+      <div class="balance">₹5,000</div>
+      <p><strong>Name:</strong> John Doe</p>
+      <p><strong>Email:</strong> john.doe@example.com</p>
+      <p><strong>Phone:</strong> +91 9876543210</p>
     </div>
 
-    <!-- Change Order Status -->
-    <div class="mb-3">
-        <label for="changeStatus" class="form-label"><strong>Update Status:</strong></label>
-        <select id="changeStatus" class="form-select">
-            <option value="pending">Pending</option>
-            <option value="processing">Processing</option>
-            <option value="shipped">Shipped</option>
-            <option value="delivered">Delivered</option>
-            <option value="cancelled">Cancelled</option>
-        </select>
+    <!-- Wallet Statistics -->
+    <div class="row wallet-stats mt-4">
+      <div class="col-md-4">
+        <div class="stat-box">
+          <h5>Total Credits</h5>
+          <p>₹10,000</p>
+        </div>
+      </div>
+      <div class="col-md-4">
+        <div class="stat-box">
+          <h5>Total Debits</h5>
+          <p>₹5,000</p>
+        </div>
+      </div>
+      <div class="col-md-4">
+        <div class="stat-box">
+          <h5>Pending Transactions</h5>
+          <p>₹1,500</p>
+        </div>
+      </div>
     </div>
 
-    <!-- Cancel Order Reason (Only shows when Cancelled is selected) -->
-    <div id="cancelReasonDiv" class="mb-3" style="display: none;">
-        <label for="cancelReason" class="form-label"><strong>Reason for Cancellation:</strong></label>
-        <select id="cancelReason" class="form-select">
-            <option value="">Select Reason</option>
-            <option value="Out of stock">Out of Stock</option>
-            <option value="Customer requested">Customer Requested</option>
-            <option value="Payment issue">Payment Issue</option>
-            <option value="Other">Other</option>
-        </select>
-        <input type="text" id="otherReason" class="form-control mt-2" placeholder="Specify reason" style="display: none;">
+    <!-- Add Money & Withdraw Money Forms -->
+    <div class="row mt-4">
+      <div class="col-md-6">
+        <div class="add-money-form">
+          <h3>Add Money</h3>
+          <input type="number" class="form-control" placeholder="Enter amount" required>
+          <button class="btn btn-primary w-100 mt-2"><i class="fas fa-plus-circle"></i> Add Money</button>
+        </div>
+      </div>
+      <div class="col-md-6">
+        <div class="withdraw-money-form">
+          <h3>Withdraw Money</h3>
+          <input type="number" class="form-control" placeholder="Enter amount" required>
+          <button class="btn btn-danger w-100 mt-2"><i class="fas fa-minus-circle"></i> Withdraw Money</button>
+        </div>
+      </div>
     </div>
 
-    <!-- Action Buttons -->
-    <div class="d-flex justify-content-between">
-        <button class="btn btn-danger" id="cancelOrder">Cancel Order</button>
-        <button class="btn btn-success" id="updateStatus">Save Changes</button>
+    <!-- Transaction History -->
+    <div class="transaction-history mt-4">
+      <h3>Transaction History</h3>
+      <!-- Filter Buttons -->
+      <div class="filter-buttons">
+        <button class="btn btn-outline-primary active">All</button>
+        <button class="btn btn-outline-success">Completed</button>
+        <button class="btn btn-outline-danger">Failed</button>
+        <button class="btn btn-outline-warning">Pending</button>
+      </div>
+      <!-- Transaction Table -->
+      <table class="table mt-3">
+        <thead>
+          <tr>
+            <th>Date</th>
+            <th>Description</th>
+            <th>Amount</th>
+            <th>Status</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td>2023-10-01</td>
+            <td>Added to Wallet</td>
+            <td>+₹1,000</td>
+            <td><span class="badge badge-success">Completed</span></td>
+          </tr>
+          <tr>
+            <td>2023-09-28</td>
+            <td>Paid for Order #1234</td>
+            <td>-₹500</td>
+            <td><span class="badge badge-success">Completed</span></td>
+          </tr>
+          <tr>
+            <td>2023-09-20</td>
+            <td>Failed Transaction</td>
+            <td>-₹1,000</td>
+            <td><span class="badge badge-danger">Failed</span></td>
+          </tr>
+          <tr>
+            <td>2023-09-15</td>
+            <td>Pending Transaction</td>
+            <td>+₹1,500</td>
+            <td><span class="badge badge-warning">Pending</span></td>
+          </tr>
+        </tbody>
+      </table>
     </div>
-</div>
+  </div>
 
-<script>
-    document.addEventListener("DOMContentLoaded", function () {
-        const changeStatus = document.getElementById("changeStatus");
-        const cancelReasonDiv = document.getElementById("cancelReasonDiv");
-        const cancelReason = document.getElementById("cancelReason");
-        const otherReason = document.getElementById("otherReason");
-        const currentStatus = document.getElementById("currentStatus");
-        const updateStatusBtn = document.getElementById("updateStatus");
-        const cancelOrderBtn = document.getElementById("cancelOrder");
-
-        // Show cancel reason when "Cancelled" is selected
-        changeStatus.addEventListener("change", function () {
-            if (this.value === "cancelled") {
-                cancelReasonDiv.style.display = "block";
-            } else {
-                cancelReasonDiv.style.display = "none";
-            }
-        });
-
-        // Show text input when "Other" reason is selected
-        cancelReason.addEventListener("change", function () {
-            if (this.value === "Other") {
-                otherReason.style.display = "block";
-            } else {
-                otherReason.style.display = "none";
-            }
-        });
-
-        // Update Status Button Click
-        updateStatusBtn.addEventListener("click", function () {
-            const selectedStatus = changeStatus.value;
-            const selectedReason = cancelReason.value;
-            const customReason = otherReason.value.trim();
-
-            if (selectedStatus === "cancelled" && !selectedReason && !customReason) {
-                alert("Please provide a reason for cancellation.");
-                return;
-            }
-
-            // Update status label with new status and style
-            currentStatus.className = `order-status status-${selectedStatus}`;
-            currentStatus.textContent = selectedStatus.charAt(0).toUpperCase() + selectedStatus.slice(1);
-
-            alert("Order status updated successfully.");
-        });
-
-        // Cancel Order Button Click
-        cancelOrderBtn.addEventListener("click", function () {
-            changeStatus.value = "cancelled";
-            cancelReasonDiv.style.display = "block";
-        });
-    });
-</script>
-
+  <!-- Bootstrap JS -->
+  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
 </body>
 </html>

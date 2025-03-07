@@ -76,7 +76,10 @@ router.get("/checkout",userAuth,checkoutController.loadCheckOut);
 router.post("/api/coupons/apply",userAuth,checkoutController.applyCoupon)
 router.post("/api/addresses",userAuth,profileController.addAddress)
 router.post("/api/orders/placeOrder",userAuth,checkoutController.placeOrder)
-router.get("/orderInvoice",userAuth,checkoutController.orderPlaced)
+router.get("/order-placed",userAuth,checkoutController.orderPlaced)
+router.get("/order-unsuccess",userAuth,checkoutController.orderNotPlaced)
+router.get("/orderInvoice",userAuth,checkoutController.invoiceData)
+router.post("/api/orders/verifyPayment",userAuth,checkoutController.verifyPayment)
 
 
 router.get('/demoUser',userController.demoUser)
