@@ -161,18 +161,7 @@ const ShowCategory=async(req,res)=>
       
           const allproducts = await Products.find({ category: categoryfind._id });
       
-          // Check if any product in this category already has a higher offer
-          const hasProductOffer = await Products.exists({
-            category: categoryfind._id,
-            productOffer: { $gt: amount },
-          });
-      
-          if (hasProductOffer) {
-            return res.json({
-              success: false,
-              message: "Products in this Category already have higher offers",
-            });
-          }
+          
       
           // Update the Category Offer
           await category.updateOne({ _id: id }, { $set: { CategoryOffer: amount } });
@@ -182,7 +171,7 @@ const ShowCategory=async(req,res)=>
             // Only reset product offer if it is lower than the category offer
             if (product.productOffer <= amount) {
               product.productOffer = 0;
-              product.salePrice = product.regularPrice;
+              product.salePrice = product.salePrice-Math.floor(product.regularPrice*(amount/100));
             }
       
             await product.save();
@@ -203,16 +192,16 @@ const ShowCategory=async(req,res)=>
           if (!categoryfind) {
             return res.status(401).json({ success: false, message: "Category not Found" });
           }
-      
+
           const allproducts = await Products.find({ category: categoryfind._id });
       
           // Reset category offer
           await category.updateOne({ _id: id }, { $set: { CategoryOffer: 0 } });
       
-          // Leave the individual product offers intact
+          
           for (const product of allproducts) {
             // Only reset the sale price if the category offer was applied
-            if (product.productOffer === categoryfind.CategoryOffer) {
+            if (product.productOffer === 0) {
               product.salePrice = product.regularPrice;
             }
             await product.save();

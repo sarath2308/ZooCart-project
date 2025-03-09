@@ -165,24 +165,21 @@ console.log("Cloudinary Instance:", cloudinary);
 const addOffer=async(req,res)=>
 {
     try {
-        if(!req.session.admin)
-            {
-                return res.redirect("/admin/login")
-            }
+       
         const{productId,percentage}=req.body;
         const findProduct=await Product.findOne({_id:productId})
         const findCategory=await Category.findOne({_id:findProduct.category})
         if(findCategory.CategoryOffer>percentage)
         {
-            return res.status(401).json({success:false,message:"This product already have higher category offer"})
+            return res.status(401).json({success:false,message:`This product already have ${findCategory.CategoryOffer}% category offer `})
         }
-       findProduct.salePrice=findProduct.salePrice-Math.floor(findProduct.regularPrice*(percentage/100));
+       findProduct.salePrice=findProduct.regularPrice-Math.floor(findProduct.regularPrice*(percentage/100));
         findProduct.productOffer=parseInt(percentage);
         await findProduct.save();
-        findCategory.CategoryOffer=0;
-        await findCategory.save();
         res.status(200).json({success:true,message:"offer successfully addedd"})
     } catch (error) {
+        console.log(error);
+        
         res.status(500).redirect("/admin/pageerror")
         console.log("error occured at adding offer to product");
         
@@ -193,12 +190,13 @@ const removeOffer=async(req,res)=>
     try {
         const {productId}=req.body;
         const findProduct=await Product.findOne({_id:productId})
+        const category= await Category.findOne({_id:findProduct.category})
         if(!findProduct)
             {
                 res.status(400).json({success:false,message:"Product Not found"})
             }
-        const percentage=findProduct.productOffer;
-        findProduct.salePrice=findProduct.salePrice+Math.floor(findProduct.regularPrice*(percentage/100));
+        const percentage=category.CategoryOffer;
+        findProduct.salePrice=findProduct.regularPrice-Math.floor(findProduct.regularPrice*(percentage/100));
         findProduct.productOffer=0;
         await findProduct.save();
         res.status(200).json({success:true,message:"offer removed"})

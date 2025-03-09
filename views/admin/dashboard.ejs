@@ -55,7 +55,7 @@
         </div>
         <div class="col-lg-6">
           <div class="chart-container rounded-2 p-3">
-            <h3 class="fs-6 mb-3">Yearly Sales</h3>
+            <h3 class="fs-6 mb-3">Monthly orders <%= new Date().getFullYear() %></h3>
             <canvas id="myChart2"></canvas>
           </div>
         </div>
@@ -106,10 +106,182 @@
 
     <section class="charts mt-4">
       <div class="chart-container p-3">
-        <h3 class="fs-6 mb-3">Chart title number three</h3>
-        <div style="height: 300px">
+        <h3 class="fs-6 mb-3">Sales Report</h3>
+        <div class="container mt-4">
+          <div class="row mb-3">
+              <div class="col-md-3">
+                  <label style="color:#9ca3af">Start Date:</label>
+                  <input type="date" id="startDate" class="form-control">
+              </div>
+              <div class="col-md-3">
+                  <label style="color:#9ca3af">End Date:</label>
+                  <input type="date" id="endDate" class="form-control">
+              </div>
+              <div class="col-md-3">
+                  <label style="color:#9ca3af">Search:</label>
+                  <input type="text" id="searchBox" oninput="filterOrders()" class="form-control" placeholder="Search orders...">
+              </div>
+              <div class="col-md-3 d-flex align-items-end">
+                  <button class="btn btn-primary" onclick="filterOrders()">Filter</button>
+                  <button class="btn btn-success ms-2" onclick="downloadExcel()">Export Excel</button>
+                  <button class="btn btn-danger ms-2" onclick="downloadPDF()">Export PDF</button>
+              </div>
+          </div>
           
+          <div class="card shadow-sm my-3" style="background-color: #9ca3af; color: white;">
+            <div class="card-body p-0 ">
+              <table style="background-color: #9ca3af; color: white;" class="table table-bordered table-striped table-hover mb-0" id="orderTable">
+                <thead class="table-light">
+                  <tr>
+                    <th>No</th>
+                    <th>Order ID</th>
+                    <th>Date</th>
+                    <th>Customer</th>
+                    <th>Status</th>
+                    <th>Total Amount</th>
+                    <th>Payment Method</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  <% orders.forEach((order, i) => { %>
+                    <tr>
+                      <td><%= i + 1 %></td>
+                      <td><%= order.orderId %></td>
+                      <td><%= new Date(order.createdOn).toLocaleDateString() %></td>
+                      <td><%= order.userId.name %></td>
+                      <td><%= order.status %></td>
+                      <td>₹<%= order.finalAmount.toLocaleString() %></td>
+                      <td><%= order.paymentMethod %></td>
+                    </tr>
+                  <% }) %>
+                </tbody>
+              </table>
+            </div>
+          </div>
+          
+          
+          <div class="product-pagination">
+            <% if (currentPage > 1) { %>
+              <a class="btn btn-primary" onclick="changePage('<%= currentPage - 1 %>')">Prev</a>
+            <% } %>
+            <% for (let i = 1; i <= totalPages; i++) { %>
+              <a class="btn btn-primary <%= currentPage === i ? 'active' : '' %>" onclick="changePage('<%= i %>')">
+                <%= i %>
+              </a>
+            <% } %>
+            <% if (currentPage < totalPages) { %>
+              <a class="btn btn-primary" onclick="changePage('<%= currentPage + 1 %>')">Next</a>
+            <% } %>
+          </div>
+      </div>
+      <div class="toast-container">
+        <div id="successToast" class="toast hide align-items-center text-white toast-success" role="alert" aria-live="assertive" aria-atomic="true">
+            <div class="toast-header">
+                <strong class="me-auto">✔ Success</strong>
+                <small>Just now</small>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="toast" aria-label="Close"></button>
+            </div>
+            <div class="toast-body">
+                Excel file downloaded successfully!
+            </div>
         </div>
+    </div>
+      <script>
+   let currentPage = '<%= currentPage %>';  // current page (from server)
+   const limit = 10; 
+
+          function filterOrders() {
+    let startDate = $("#startDate").val();
+    let endDate = $("#endDate").val();
+    let search = $("#searchBox").val();
+    
+
+    $.ajax({
+        url: "/admin/filter",
+        method: "GET",
+        data: { startDate, endDate, search,currentPage,limit },
+        success: function (response) {
+            let tableBody = $("#orderTable tbody");
+            tableBody.empty(); // Clear existing rows
+
+            if (response.length === 0) {
+                tableBody.append("<tr><td colspan='6' class='text-center'>No records found</td></tr>");
+                return;
+            }
+            
+            renderTable(response.orders);
+            renderPagination( response.currentPage,response.totalPages);
+        },
+        error: function (xhr, status, error) {
+            console.error("Error fetching filtered data:", error);
+        }
+    });
+}
+
+function renderTable(orders) {
+    let tableBody = $("#orderTable tbody");
+    tableBody.empty(); // Clear old data
+
+    orders.forEach((order,i)=> {
+        tableBody.append(`
+            <tr>
+              <td>${i+1}</td>
+                <td>${order.orderId}</td>
+                <td>${new Date(order.createdOn).toLocaleDateString("en-GB")}</td>
+                <td>${order.userId.name}</td>
+                <td>${order.status}</td>
+                <td>₹${order.finalAmount}</td>
+                 <td>${order.paymentMethod}</td>
+            </tr>
+        `);
+    });
+}
+
+window.changePage = function (pageNumber) {
+      console.log('Changing to page:', pageNumber);
+      console.log('Current page:', currentPage);
+      currentPage = pageNumber;
+      filterOrders();
+    };
+
+    // Render pagination links
+    function renderPagination(currentPage, totalPages) {
+      const paginationContainer = $('.product-pagination');
+      paginationContainer.empty();
+
+      if (currentPage > 1) {
+        paginationContainer.append(`<a class="btn btn-info" href="javascript:void(0);" onclick="changePage(${currentPage - 1})">Prev</a>`);
+      }
+      for (let i = 1; i <= totalPages; i++) {
+        paginationContainer.append(`
+          <a class="btn btn-primary p-1 ${currentPage === i ? 'active' : ''}" href="javascript:void(0);" onclick="changePage(${i})">${i}</a>
+        `);
+      }
+      if (currentPage < totalPages) {
+        paginationContainer.append(`<a class="btn btn-info" href="javascript:void(0);" onclick="changePage(${currentPage + 1})">Next</a>`);
+      }
+    }
+
+
+          function downloadExcel() {
+            let startDate = $("#startDate").val();
+           let endDate = $("#endDate").val();
+           let search = $("#searchBox").val();
+
+           window.location.href=`/admin/downloadExcel?startDate=${startDate}&endDate=${endDate}&search=${search}`
+          }
+  
+          function downloadPDF() {
+             
+            let startDate = $("#startDate").val();
+           let endDate = $("#endDate").val();
+           let search = $("#searchBox").val();
+
+           window.location.href=`/admin/downloadPdf?startDate=${startDate}&endDate=${endDate}&search=${search}`
+          }
+      </script>
+
+        
       </div>
     </section>
   </div>
@@ -389,17 +561,6 @@ border-radius: 50%;
 color: #ffc107
 }
 
-/** --------------------------------
--- Please don't do that in real-world projects!
--- overwrite Bootstrap variables instead.
--------------------------------- */
-
-
-
-
-/* Start media query */
-
-
   </style>
 
 <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
@@ -461,7 +622,7 @@ Chart.defaults.font.color = '#71748c';
 // // The bar chart
 try {
             // Get sales data from EJS and convert to a number array
-            const sales = <%= JSON.stringify(monthlySales) %>; // Ensure it's an array
+            const sales = <%= JSON.stringify(monthlySales) %> // Ensure it's an array
             console.log("✅ Sales Data:", sales, "Type:", typeof sales);
 
     // Now safely convert elements to numbers
@@ -510,18 +671,28 @@ try {
         } catch (error) {
             console.error(" Error in Chart Rendering:", error);
         }
-    });
 
+ // Get sales data from EJS and convert to a number array
+ const orders = <%= JSON.stringify(ordersArray) %> // Ensure it's an array
+            console.log("✅ Sales Data:", orders, "Type:", typeof sales);
 
-// The line chart
+    // Now safely convert elements to numbers
+    const orderNumbers = orders.map(Number);
+    console.log("✅ Processed Sales Data:", orderNumbers);
+            console.log("✅ Final Processed Sales Data:", orders);
+
+            // Get current month (0 = Jan, 1 = Feb, ...)
+            const currentMonth = new Date().getMonth();
+            const filteredOrders = orders.slice(0, currentMonth + 1);
+
 const ctx2 = document.getElementById('myChart2').getContext('2d');
 const myChart2 = new Chart(ctx2, {
 type: 'line',
 data: {
-  labels: ['2025', '2026', '2027', '2028', '2029', '2030'],
+  labels: ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"].slice(0, currentMonth + 1),
   datasets: [{
-    label: 'Sales',
-    data: [205,10],
+    label: 'Orders',
+    data: filteredOrders,
     backgroundColor: 'rgba(255, 99, 132, 0.2)',
     borderColor: 'rgba(255, 99, 132, 1)',
     borderWidth: 1
@@ -535,6 +706,7 @@ options: {
   }
 }
 });
+})
 
 </script>
     <%-include("../../views/partials/admin/footer.ejs")%>

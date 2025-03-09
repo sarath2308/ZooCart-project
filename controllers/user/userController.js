@@ -123,7 +123,8 @@ async function sendVerificationEmail(email, otp,name) {
 
 const signup=async(req,res)=>
 {
-    if(req.session.user)
+  const userId = req.session.user || req.user._id;
+    if(userId)
     {
         res.redirect("/");
     }
@@ -610,19 +611,16 @@ console.log(userWallet);
 
   const loadShoppingPage = async (req, res) => {
     try {
-      const user = req.session.user;
-      const userData = await User.findById(user);
+      const userId = req.session.user || req.user._id;
+      const userData = await User.findById(userId);
       const categories = await Category.find({ isListed: true });
       const categoryIds = categories.map(category => category._id.toString());
       const brands = await Brand.find({ isBlocked: false });
   
       // Extract and validate query parameters
-      let { query, priceRanges, categories: selectedCategories, brands: selectedBrands, page } = req.query;
-      page = parseInt(page) || 1;
-      if (page < 1) page = 1;
-  
+      let page =  1;
       const limit = 9;
-      const skip = (page - 1) * limit;
+    
   
       // Build the filter object
       const filter = {
@@ -631,35 +629,9 @@ console.log(userWallet);
         quantity: { $gt: 0 }
       };
   
-      if (query) {
-        filter.productName = { $regex: query, $options: 'i' };
-      }
-  
-      if (priceRanges) {
-        const parsedPriceRanges = JSON.parse(priceRanges);
-        if (parsedPriceRanges.length > 0) {
-          filter.$or = parsedPriceRanges.map(range => ({
-            salePrice: { $gt: range.gt, $lt: range.lt }
-          }));
-        }
-      }
-  
-      if (selectedCategories) {
-        const categoryArray = selectedCategories.split(',');
-        if (categoryArray.length > 0) {
-          filter.category = { $in: categoryArray };
-        }
-      }
-  
-      if (selectedBrands) {
-        const brandArray = selectedBrands.split(',');
-        if (brandArray.length > 0) {
-          filter.brand = { $in: brandArray };
-        }
-      }
   
       // Fetch products with filters, sorting, and pagination
-      const products = await Product.find(filter).skip(skip).limit(limit);
+      const products = await Product.find(filter).limit(limit);
       const totalProducts = await Product.countDocuments(filter);
       const totalPages = Math.ceil(totalProducts / limit);
   
@@ -686,10 +658,6 @@ console.log(userWallet);
           totalProducts: totalProducts,
           currentPage: page,
           totalPages: totalPages,
-          query: query || '',
-          priceRanges: priceRanges ? JSON.parse(priceRanges) : [],
-          categories: selectedCategories ? selectedCategories.split(',') : [],
-          brands: selectedBrands ? selectedBrands.split(',') : []
         });
       }
     } catch (error) {

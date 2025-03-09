@@ -33,6 +33,7 @@ router.get('/google/callback',passport.authenticate('google',{failureRedirect:'/
 });
 //products page-all products 
 router.get("/shop",userAuth,userController.loadShoppingPage)
+router.get('/fetchProducts',userAuth,userController.fetchProducts)
 
 //product details
 router.get("/productDetails",userAuth,productController.productDetails)
@@ -43,7 +44,6 @@ router.get("/userProfile",userAuth,userController.loadUserProfile)
 router.post("/update-profile",userAuth,profileController.updateProfile)
 router.post("/add-phone",userAuth,profileController.addPhone)
 router.post("/api/users/:otpType/otp",userAuth,profileController.sendOtp)
-router.get('/fetchProducts',userAuth,userController.fetchProducts)
 router.post('/api/users/:otpType/otp/verify',userAuth,profileController.verifyOtp)
 router.put("/api/users/password",userAuth,profileController.newPassword)
 router.put("/api/users/email",userAuth,profileController.updateEmail)

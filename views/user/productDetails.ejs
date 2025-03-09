@@ -397,12 +397,13 @@ function addToWishlist(pid)
                             <i class="fa fa-star-o"></i>
                             <span> - 5 Reviews</span>
                         </div>
+                        <%const offer=productOffer || categoryOffer%>
                         <%if (product.status === "Available") {%>
                             <h3>₹<%=product.salePrice%><span><%=product.regularPrice%></span> 
-                            <%if(!totalOffer){%>
+                            <%if(!productOffer && !categoryOffer){%>
                                <em style="font-size: 16px;color:red;"> no offers</em>
                                 <%}else{%>
-                                   <em style="font-size:16px;color:rgb(12, 120, 12)"><%=product.productOffer%>%off</em>
+                                   <em style="font-size:16px;color:rgb(12, 120, 12)"><%=offer%>%off</em>
                                     <%}%>
                             </h3>
                             <%}else{%>

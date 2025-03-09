@@ -150,42 +150,44 @@ $(document).ready(function () {
         {
             if(response.success)
         {
-            location.reload()
-            Swal.fire({
+          Swal.fire({
       title: 'Offer Added',
       text: response.message,
       icon: 'success',
       toast: true,
       position: 'top-end',
       timer: 3000,
-    });
-        }
-        else
-        {
-            Swal.fire({
-      title: 'error',
-      text: response.message,
-      icon: 'error',
-      toast: true,
-      position: 'top-end',
-      timer: 3000,
-    });
-        }
-        },
-    error:(response)=>
-    {
-        Swal.fire({
-      title: 'error',
-      text: response.message,
-      icon: 'error',
-      toast: true,
-      position: 'top-end',
-      timer: 3000,
-    })
-    }
-  })}
+    }).then(()=>
+  {
+    location.reload()
+  })
+        }},
+    error: (response) => {
+  // Log the full response for debugging
+  console.log("Error Response:", response);
 
+  // Extract the error message
+  let errorMessage = "An error occurred"; // Default fallback message
 
+  if (response.responseJSON && response.responseJSON.message) {
+    // If the server sends a JSON response with a "message" key
+    errorMessage = response.responseJSON.message;
+  } else if (response.statusText) {
+    // Use the HTTP status text (e.g., "Not Found", "Internal Server Error")
+    errorMessage = response.statusText;
+  }
+
+  // Display the error message using SweetAlert
+  Swal.fire({
+    title: 'Error',
+    text: errorMessage,
+    icon: 'warning',
+    toast: true,
+    position: 'top-end',
+    timer: 3000,
+  });
+}
+    })}
   async function removeOffer(id) {
 try {
     const swalWithBootstrapButtons = Swal.mixin({

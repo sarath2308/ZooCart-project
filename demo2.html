@@ -1,238 +1,68 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Wallet Page</title>
-  <!-- Bootstrap CSS -->
-  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
-  <!-- Font Awesome -->
-  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
-  <style>
-    body {
-      background-color: #f8f9fa;
-      font-family: 'Arial', sans-serif;
-      display: flex;
-    }
-    /* Sidebar Styles */
-    .sidebar {
-      width: 250px;
-      height: 100vh;
-      background: #111827;
-      color: white;
-      padding: 20px;
-      position: fixed;
-    }
-    .sidebar h3 {
-      margin-bottom: 20px;
-      text-transform: uppercase;
-    }
-    .sidebar ul {
-      list-style: none;
-      padding: 0;
-    }
-    .sidebar ul li {
-      padding: 10px 0;
-    }
-    .sidebar ul li a {
-      color: white;
-      text-decoration: none;
-      display: block;
-    }
-    .sidebar ul li a:hover {
-      background: #2575fc;
-      padding-left: 10px;
-    }
-    /* Main Content Styles */
-    .content {
-      margin-left: 250px; /* Align with sidebar width */
-      width: calc(100% - 250px);
-      padding: 20px;
-    }
-    /* Wallet Card Styles */
-    .wallet-card {
-      background: linear-gradient(135deg, #6a11cb, #2575fc);
-      color: white;
-      border-radius: 15px;
-      padding: 25px;
-      box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
-    }
-    .wallet-card h2 {
-      font-size: 1.5rem;
-      font-weight: bold;
-    }
-    .wallet-card .balance {
-      font-size: 3rem;
-      font-weight: bold;
-      text-shadow: 0 0 10px rgba(255, 255, 255, 0.8);
-      margin: 20px 0;
-    }
-    .wallet-card p {
-      margin: 5px 0;
-    }
-    /* Form Styles */
-    .add-money-form, .withdraw-money-form {
-      background: white;
-      border-radius: 15px;
-      padding: 20px;
-      box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
-      margin-bottom: 20px;
-    }
-    /* Wallet Statistics Styles */
-    .wallet-stats .stat-box {
-      background: #f8f9fa;
-      border-radius: 10px;
-      padding: 15px;
-      text-align: center;
-    }
-    .wallet-stats .stat-box h5 {
-      font-size: 1.2rem;
-      font-weight: bold;
-    }
-    .wallet-stats .stat-box p {
-      font-size: 1.5rem;
-      font-weight: bold;
-      margin: 0;
-    }
-    /* Transaction History Styles */
-    .transaction-history {
-      background: white;
-      border-radius: 15px;
-      padding: 20px;
-      box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
-    }
-    .transaction-history th {
-      background: #f8f9fa;
-    }
-    .badge-success {
-      background: #28a745;
-    }
-    .badge-danger {
-      background: #dc3545;
-    }
-    .badge-warning {
-      background: #ffc107;
-    }
-    .filter-buttons .btn {
-      margin-right: 10px;
-      margin-bottom: 10px;
-    }
-  </style>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Success Toast</title>
+    <!-- Bootstrap CSS -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <style>
+        .toast-container {
+            position: fixed;
+            bottom: 20px;
+            right: 20px;
+            z-index: 1050;
+        }
+        .toast-success {
+            background-color: #28a745; /* Bootstrap success green */
+            color: white;
+            border-radius: 8px;
+        }
+        .toast-header {
+            background-color: rgba(255, 255, 255, 0.2);
+            color: white;
+            font-weight: bold;
+        }
+        .toast-body {
+            font-size: 14px;
+        }
+    </style>
 </head>
 <body>
-  <!-- Sidebar -->
-  <div class="sidebar">
-    <h3>Dashboard</h3>
-    <ul>
-      <li><a href="#">Home</a></li>
-      <li><a href="#" class="active">Wallet</a></li>
-      <li><a href="#">Transactions</a></li>
-      <li><a href="#">Settings</a></li>
-    </ul>
-  </div>
 
-  <!-- Main Content -->
-  <div class="content">
-    <!-- Wallet Balance -->
-    <div class="wallet-card">
-      <h2>Wallet Balance</h2>
-      <div class="balance">₹5,000</div>
-      <p><strong>Name:</strong> John Doe</p>
-      <p><strong>Email:</strong> john.doe@example.com</p>
-      <p><strong>Phone:</strong> +91 9876543210</p>
+    <!-- Button to Trigger Toast -->
+    <button type="button" class="btn btn-success" id="downloadBtn">Download Excel</button>
+
+    <!-- Toast Container -->
+    <div class="toast-container">
+        <div id="successToast" class="toast hide align-items-center text-white toast-success" role="alert" aria-live="assertive" aria-atomic="true">
+            <div class="toast-header">
+                <strong class="me-auto">✔ Success</strong>
+                <small>Just now</small>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="toast" aria-label="Close"></button>
+            </div>
+            <div class="toast-body">
+                Excel file downloaded successfully!
+            </div>
+        </div>
     </div>
 
-    <!-- Wallet Statistics -->
-    <div class="row wallet-stats mt-4">
-      <div class="col-md-4">
-        <div class="stat-box">
-          <h5>Total Credits</h5>
-          <p>₹10,000</p>
-        </div>
-      </div>
-      <div class="col-md-4">
-        <div class="stat-box">
-          <h5>Total Debits</h5>
-          <p>₹5,000</p>
-        </div>
-      </div>
-      <div class="col-md-4">
-        <div class="stat-box">
-          <h5>Pending Transactions</h5>
-          <p>₹1,500</p>
-        </div>
-      </div>
-    </div>
+    <!-- Bootstrap JS -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
 
-    <!-- Add Money & Withdraw Money Forms -->
-    <div class="row mt-4">
-      <div class="col-md-6">
-        <div class="add-money-form">
-          <h3>Add Money</h3>
-          <input type="number" class="form-control" placeholder="Enter amount" required>
-          <button class="btn btn-primary w-100 mt-2"><i class="fas fa-plus-circle"></i> Add Money</button>
-        </div>
-      </div>
-      <div class="col-md-6">
-        <div class="withdraw-money-form">
-          <h3>Withdraw Money</h3>
-          <input type="number" class="form-control" placeholder="Enter amount" required>
-          <button class="btn btn-danger w-100 mt-2"><i class="fas fa-minus-circle"></i> Withdraw Money</button>
-        </div>
-      </div>
-    </div>
+    <script>
+        document.addEventListener("DOMContentLoaded", function () {
+            const downloadBtn = document.getElementById("downloadBtn");
+            const successToast = document.getElementById("successToast");
 
-    <!-- Transaction History -->
-    <div class="transaction-history mt-4">
-      <h3>Transaction History</h3>
-      <!-- Filter Buttons -->
-      <div class="filter-buttons">
-        <button class="btn btn-outline-primary active">All</button>
-        <button class="btn btn-outline-success">Completed</button>
-        <button class="btn btn-outline-danger">Failed</button>
-        <button class="btn btn-outline-warning">Pending</button>
-      </div>
-      <!-- Transaction Table -->
-      <table class="table mt-3">
-        <thead>
-          <tr>
-            <th>Date</th>
-            <th>Description</th>
-            <th>Amount</th>
-            <th>Status</th>
-          </tr>
-        </thead>
-        <tbody>
-          <tr>
-            <td>2023-10-01</td>
-            <td>Added to Wallet</td>
-            <td>+₹1,000</td>
-            <td><span class="badge badge-success">Completed</span></td>
-          </tr>
-          <tr>
-            <td>2023-09-28</td>
-            <td>Paid for Order #1234</td>
-            <td>-₹500</td>
-            <td><span class="badge badge-success">Completed</span></td>
-          </tr>
-          <tr>
-            <td>2023-09-20</td>
-            <td>Failed Transaction</td>
-            <td>-₹1,000</td>
-            <td><span class="badge badge-danger">Failed</span></td>
-          </tr>
-          <tr>
-            <td>2023-09-15</td>
-            <td>Pending Transaction</td>
-            <td>+₹1,500</td>
-            <td><span class="badge badge-warning">Pending</span></td>
-          </tr>
-        </tbody>
-      </table>
-    </div>
-  </div>
+            if (downloadBtn) {
+                downloadBtn.addEventListener("click", function () {
+                    const toast = new bootstrap.Toast(successToast);
+                    toast.show();
+                });
+            }
+        });
+    </script>
 
-  <!-- Bootstrap JS -->
-  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
 </body>
 </html>

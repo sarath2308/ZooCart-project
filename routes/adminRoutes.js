@@ -22,7 +22,12 @@ router.get("/logout",adminController.logout)
 router.get("/demoAdmin",adminController.demoAdmin)
 
 //dashboard management
-router.get("/",adminAuth,adminController.loadDashboard)
+router
+  .get("/", adminAuth, adminController.loadDashboard) // Load dashboard
+  .get("/filter", adminAuth,dashboardController.filterOrder) 
+  .get("/downloadExcel",adminAuth,dashboardController.downloadExcel)
+  .get("/downloadPdf",adminAuth,dashboardController.downloadPdf)
+     
 
 
 

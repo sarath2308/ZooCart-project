@@ -10,12 +10,15 @@ const productDetails=async(req,res)=>
         const userData=await User.findById({_id:userId})
         const productId=req.query.id;
         const productData=await Product.findById({_id:productId}).populate('category').populate('brand')
-        const category=productData.category;
+        const category=await Category.findById({_id:productData.category._id})
         const relatedProduct=await Product.find({category:category})
-        const categoryOffer=category ?.categoryOffer || 0;
+        const categoryOffer=category.CategoryOffer || 0;
         const productOffer=productData.productOffer ||0;
         const totalOffer=categoryOffer + productOffer;
-
+        console.log("productOffer:"+productOffer);
+        console.log("categoryOffer:"+category);
+        
+        
         return res.render("productDetails",{
             user:userData,
             product:productData,
@@ -23,7 +26,9 @@ const productDetails=async(req,res)=>
             category:category,
             status:productData.status,
             totalOffer:totalOffer,
-            relatedProduct:relatedProduct
+            relatedProduct:relatedProduct,
+            categoryOffer,
+            productOffer
         })
     } catch (error) {
         console.log("error occured while showing product Details"+error);

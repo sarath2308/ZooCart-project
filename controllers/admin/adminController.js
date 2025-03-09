@@ -42,7 +42,7 @@ const login = async (req, res) => {
             if (passwordCheck) {
                 console.log("password check true");
                 
-                req.session.admin = findAdmin.email;
+                req.session.admin = findAdmin._id;
                 return res.redirect('/admin');
             } else {
                 return res.status(401).render("adminlogin", { message: "Incorrect Password" });
@@ -56,17 +56,24 @@ const login = async (req, res) => {
         return res.status(500).render("adminlogin", { message: "An error occurred, please try again later." });
     }
 };
+
 const loadDashboard=async(req,res)=>
 {
     try {
     console.log("inside dashboard");
-      const orderData=await Order.find()
+      const orderData=await Order.find().populate("userId").sort({createdOn:-1}).limit(10)
       const Users=await User.countDocuments();
         const totalOrders = await Order.countDocuments();
         const cancelledOrders = await Order.countDocuments({ status: "cancelled" });
         const returnedOrders = await Order.countDocuments({ status: "Returned" });
         const totalReturns = await Order.countDocuments({ status: { $in: ["Return Request", "Returned"] } });
-    
+        //pagination setup
+        let page =  1;
+        const limit = 10;
+        const totalPages = Math.ceil(totalOrders / limit);
+
+
+
         const totalRefund = await Order.aggregate([
             { $match: { status: "Returned" } },
             { $group: { _id: null, totalRefund: { $sum: "$finalAmount" } } }
@@ -95,7 +102,7 @@ const totalOnlineRevenue = await Order.aggregate([
     { 
         $match: { 
             status: { $nin: ["cancelled", "Returned"] }, // Exclude cancelled and returned orders
-            paymentMethod: { $in: ["wallet", "online"] } // Only wallet or online payments
+            paymentMethod: { $in: ["wallet", "online payment"] } // Only wallet or online payments
         } 
     },
     { 
@@ -122,6 +129,26 @@ const salesData = await Order.aggregate([
     { $sort: { "_id": 1 } } // Sort by month order
 ]);
 
+const monthlyOrderCount = await Order.aggregate([
+    {
+        $group: {
+            _id: { $month: "$createdOn" }, // Group by month (1 = Jan, 2 = Feb, etc.)
+            totalOrders: { $count: {} } // Count orders per month
+        }
+    },
+    { $sort: { "_id": 1 } } // Sort by month order
+]);
+
+// Initialize an array with 12 months, defaulting to 0 orders
+const ordersArray = Array(12).fill(0);
+
+// Populate the array with actual data from MongoDB
+monthlyOrderCount.forEach(({ _id, totalOrders }) => {
+    ordersArray[_id - 1] = totalOrders; // _id is month (1 = Jan), so adjust index
+});
+
+console.log(ordersArray);
+
 // Convert data to array with missing months filled as 0
 const monthlySales = new Array(12).fill(0); // Initialize with 0 for all months
 salesData.forEach(({ _id, totalSales }) => {
@@ -135,7 +162,7 @@ console.log(monthlySales);
     
             res.render("dashboard",
                 {
-                  orderData,
+                  orders:orderData,
                   userCount:Users,
                   totalOrders,
                   cancelledOrders,
@@ -144,6 +171,9 @@ console.log(monthlySales);
                   totalRefund:totalRefund[0].totalRefund,
                   onlineRevenue:totalOnlineRevenue[0].totalAmount,
                   monthlySales,
+                  ordersArray,
+                  currentPage:page,
+                  totalPages
 
 
                 }
