@@ -79,7 +79,7 @@
                                     
                                                     <!-- Action Buttons -->
                                                     <div class="d-flex">
-                                                        <a href="#" class="btn btn-info btn-sm mr-2">Add to Cart</a>
+                                                        <a onclick="addToCart('<%=wish._id%>')" class="btn btn-info btn-sm mr-2">Add to Cart</a>
                                                         <button class="btn btn-sm text-danger" onclick="removeFromWishlist('<%=wish._id%>')">
                                                             <i class="fa-solid fa-trash" style="color: rgb(234, 36, 36);"></i> Remove
                                                         </button>
@@ -104,7 +104,7 @@
         </div>
     </div>
     </section>
-
+<div style="height:400px"></div>
 </main>
 <script>
     function removeFromWishlist(pid)
@@ -165,6 +165,42 @@ swalWithBootstrapButtons.fire({
   }
 });
     }
+    function addToCart(pid) {
+    $.ajax({
+        url: `/addToCart`,
+        method: 'POST',
+        data: JSON.stringify({ pid: pid }), // Ensure proper data format
+        contentType: "application/json", // Specify content type
+        dataType: "json", // Expect JSON response
+        success: function (response) {
+            Swal.fire({
+                title: response.message,
+                icon: 'success',
+                toast: true,
+                position: 'top-end',
+                showConfirmButton: false,
+                timer: 2000
+            }).then(()=>
+        {
+            location.reload()
+        })
+        },
+        error: function (xhr) {
+            let errorMessage = "Something went wrong!";
+            if (xhr.responseJSON && xhr.responseJSON.message) {
+                errorMessage = xhr.responseJSON.message;
+            }
+            Swal.fire({
+                title: errorMessage,
+                icon: 'error',
+                toast: true,
+                position: 'top-end',
+                showConfirmButton: false,
+                timer: 2000
+            });
+        }
+    });
+}
 </script>
 <!-- Wishlist Section End -->
 <%-include("../../views/partials/user/footer.ejs")%>

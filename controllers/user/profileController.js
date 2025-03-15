@@ -500,7 +500,7 @@ const deleteAddress = async (req, res) => {
         const userId= req.session.user || (req.user && req.user._id);
         const userData=await User.findById({_id:userId})
         const orderId=req.query.orderId;
-        const orderData=await Order.findById({_id:orderId}).populate("orderedItems.product")
+        const orderData=await Order.findById({_id:orderId}).populate("orderedItem")
         const addressId=orderData.address;
         const addressData=await Address.findOne({userId:userId})
         let deliveryAddress;
@@ -553,7 +553,7 @@ const deleteAddress = async (req, res) => {
         console.log("Request received to update order status");
 
         // Find the order by ID
-        const orderData = await Order.findById(orderId).populate("orderedItems.product");
+        const orderData = await Order.findById(orderId).populate("orderedItem");
 
         if (!orderData) {
             return res.status(404).json({ success: false, message: "Order not found" });
@@ -561,13 +561,13 @@ const deleteAddress = async (req, res) => {
 
         // If the order is being canceled, add the ordered quantity back to the product stock
 
-            for (let item of orderData.orderedItems) {
-                const product = item.product;
+           
+                const product =await Product.findById({_id:orderData.orderedItem._id})
                 if (product) {
-                    product.quantity += item.quantity;
+                    product.quantity += orderData.totalQuantity;
                     await product.save();
                 }
-            }
+
                 if(wallet)
                     {
                         const payment={
@@ -619,7 +619,7 @@ const deleteAddress = async (req, res) => {
         console.log("Request received to return Ordrer");
 
         // Find the order by ID
-        const orderData = await Order.findById(orderId).populate("orderedItems.product");
+        const orderData = await Order.findById(orderId).populate("orderedItem");
 
         if (!orderData) {
             return res.status(404).json({ success: false, message: "Order not found" });

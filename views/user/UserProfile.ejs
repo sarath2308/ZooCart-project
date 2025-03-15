@@ -268,7 +268,6 @@
 
     /* Section styling */
     .wallet-section {
-      display: block; /* Hidden by default */
       padding: 20px;
       max-width: 800px;
       margin: 0 auto;
@@ -853,25 +852,23 @@
         
                         <div class="order-content">
                             <!-- Ordered Items (Dynamically Layout) -->
-                            <div class="ordered-items <%= order.orderedItems.length <=2 ? 'horizontal' : 'vertical' %>">
-                                <% order.orderedItems.forEach(function(item) { %>
+                            <div class="ordered-items">
                                     <div class="ordered-item">
-                                        <% if (item.product && item.product.productImage) { %>
-                                            <a href="/productDetails?id=<%=item.product._id%>" class="btn">
-                                                <img src="<%= item.product.productImage[0] %>" 
-                                                     alt="<%= item.product.productName %>" 
+                                        <% if (order.orderedItem && order.orderedItem.productImage) { %>
+                                            <a href="/productDetails?id=<%=order.orderedItem._id%>" class="btn">
+                                                <img src="<%= order.orderedItem.productImage[0] %>" 
+                                                     alt="<%= order.orderedItem.productName %>" 
                                                      class="product-image">
                                             </a>
                                         <% } else { %>
                                             <img src="/images/default-product.png" alt="No image" class="product-image">
                                         <% } %>
                                         <div class="product-details">
-                                            <p><strong>Product:</strong> <%= item.product ? item.product.productName : 'Unknown Product' %></p>
-                                            <p><strong>Price:</strong> ₹<%= item.price %></p>
-                                            <p><strong>Quantity:</strong> <%= item.quantity %></p>
+                                            <p><strong>Product:</strong> <%= order.orderedItem ? order.orderedItem.productName : 'Unknown Product' %></p>
+                                            <p><strong>Price:</strong> ₹<%= order.finalAmount %></p>
+                                            <p><strong>Quantity:</strong> <%= order.totalQuantity%></p>
                                         </div>
                                     </div>
-                                <% }); %>
                             </div>
         
                             <!-- Order Info (Status & Delivery Date) -->
@@ -893,7 +890,7 @@
             <% } %>
         </section>
 
-        <section id="wallet" class="wallet-section hidden">
+        <section id="wallet" class="wallet-section tab-content hidden">
           <!-- User Details -->
           <div class="card">
             <h2 style="margin-top: 0; color: #6200ea;">User Details</h2>

@@ -7,6 +7,7 @@ const Product=require("../../models/productSchema.js")
 const Brand=require("../../models/BrandSchema.js")
 const Address=require("../../models/addressSchema.js")
 const Order=require("../../models/orderSchema.js")
+const Cart=require("../../models/cartSchema.js")
 const env=require("dotenv").config();
 const bcrypt=require("bcrypt")
 const Wallet=require("../../models/walletSchema.js")
@@ -123,7 +124,7 @@ async function sendVerificationEmail(email, otp,name) {
 
 const signup=async(req,res)=>
 {
-  const userId = req.session.user || req.user._id;
+    const userId = req.session.user || (req.user && req.user._id);
     if(userId)
     {
         res.redirect("/");
@@ -578,7 +579,7 @@ console.log(userWallet);
       const orders = await Order.find({ _id: { $in: data.orderHistory } })
         .populate("address") 
         .populate({
-          path: "orderedItems.product", 
+          path: "orderedItem", 
           model: "Product",
         }).sort({createdOn:-1})
         let ordersWithReadableId =[]
@@ -616,6 +617,15 @@ console.log(userWallet);
       const categories = await Category.find({ isListed: true });
       const categoryIds = categories.map(category => category._id.toString());
       const brands = await Brand.find({ isBlocked: false });
+      const cartData=await Cart.findOne({userId:userId})
+      let cartItems=[];
+      if(cartData)
+      {
+       cartItems=cartData.items;
+      console.log("cart itemss");
+      }
+      
+  console.log(cartItems);
   
       // Extract and validate query parameters
       let page =  1;
@@ -658,6 +668,7 @@ console.log(userWallet);
           totalProducts: totalProducts,
           currentPage: page,
           totalPages: totalPages,
+          cartItems
         });
       }
     } catch (error) {
@@ -746,28 +757,6 @@ const productDetails=async(req,res)=>
           
       }
     }
-const demoUser = async (req, res) => {
-    try {
-        const email = "rickyia.burritt@easymailer.live";
-        const user = await User.findOne({ email: email }); // Use findOne instead of find
-
-        if (user) {
-            req.session.user = user._id; // Store user ID in session
-            req.session.userData = user; // Store user data in session
-
-            console.log("User session:", req.session.user);
-            return res.redirect("/");
-        } else {
-            console.log("Error: User not found for demo login.");
-            res.status(404).send("User not found");
-        }
-    } catch (error) {
-        console.log("Error occurred while using demo user:", error);
-        res.status(500).send("Internal Server Error");
-    }
-};
-
-
 
 module.exports={
     loadHomePage,
@@ -788,5 +777,4 @@ module.exports={
     productDetails,
     fetchProducts,
     forgotResendOtp,
-    demoUser,
 }

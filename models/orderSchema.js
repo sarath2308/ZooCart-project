@@ -12,21 +12,11 @@ const orderSchema=new Schema({
    ref:'User',
    required:true,
    },
-   orderedItems:[{
-    product:{
+   orderedItem:{
         type:Schema.Types.ObjectId,
         ref:"Product",
         required:true,
     },
-    quantity:{
-        type:Number,
-        required:true
-    },
-    price:{
-        type:Number,
-        default:0
-    }
-   }],
    totalPrice:{
     type:Number,
     required:true
@@ -78,14 +68,29 @@ const orderSchema=new Schema({
     required:true,
    },
    couponApplied:{
+    type:Number,
+    default:0,  
+   },
+   paymentStatus:
+   {
     type:Boolean,
-    default:false,  
+    default:false,
    },
    cancelReason:{
     type:String,
    },
    returnReason:{
     type:String,
+   },
+   cartId:{
+    type:Number,
+   },
+   paymentId:{
+    type:String,
+   },
+   uniqueId:{
+    type:Number,
+    unique:true,
    }
 
 })

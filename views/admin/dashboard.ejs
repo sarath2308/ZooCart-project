@@ -26,7 +26,7 @@
             <i class="uil-file fs-2 text-center bg-danger rounded-circle"></i>
             <div class="ms-3">
               <div class="d-flex align-items-center">
-                <h3 class="mb-0"><%=totalOrders%></h3> <span class="d-block ms-2"> Sales</span>
+                <h3 class="mb-0"><%=totalSales%></h3> <span class="d-block ms-2"> Sales</span>
               </div>
             </div>
           </div>
@@ -65,8 +65,39 @@
     <section class="admins mt-4">
       <div class="row">
         <div class="col-md-6">
+          <div class="box">
+            <!-- <h4>Admins:</h4> -->
+            <div class="admin d-flex align-items-center p-3 mb-4">
+              <div class="img">
+                <img class="img-fluid "
+                     width="75" height="75"
+                     src="<%= topTwo[0].productImage[0]%>"
+                     alt="admin">
+              </div>
+              <div class="ms-3">
+                <h3 class="fs-5 mb-1">Top Selling #1</h3>
+                <p class="mb-0"><%=topTwo[0].productName%></p>
+              </div>
+            </div>
+          </div>
         </div>
         <div class="col-md-6">
+          <div class="box">
+            <!-- <h4>Moderators:</h4> -->
+            <div class="admin d-flex align-items-center rounded-2 p-3 mb-4">
+              <div class="img">
+                <img class="img-fluid"
+                     width="75" height="75"
+                     src="<%= topTwo[1].productImage[0]%>"
+                     alt="admin">
+              </div>
+              <div class="ms-3">
+                <h3 class="fs-5 mb-1">Top Selling #2</h3>
+                <p class="mb-0"><%= topTwo[1].productName%></p>
+              </div>
+            </div>
+            
+          </div>
         </div>
       </div>
     </section>
@@ -117,9 +148,17 @@
                   <label style="color:#9ca3af">End Date:</label>
                   <input type="date" id="endDate" class="form-control">
               </div>
-              <div class="col-md-3">
-                  <label style="color:#9ca3af">Search:</label>
-                  <input type="text" id="searchBox" oninput="filterOrders()" class="form-control" placeholder="Search orders...">
+              <div class="col-md-3 mt-4 ">
+                <div class="dropdown">
+                  <button class="btn btn-secondary dropdown-toggle" type="button" id="reportDropdown" data-bs-toggle="dropdown" aria-expanded="false">
+                      Select Report Type
+                  </button>
+                  <ul class="dropdown-menu" aria-labelledby="reportDropdown">
+                      <li><a class="dropdown-item" onclick="handleReportSelection('weekly')">Weekly</a></li>
+                      <li><a class="dropdown-item"  onclick="handleReportSelection('monthly')">Monthly</a></li>
+                      <li><a class="dropdown-item"  onclick="handleReportSelection('yearly')">Yearly </a></li>
+                  </ul>
+              </div>
               </div>
               <div class="col-md-3 d-flex align-items-end">
                   <button class="btn btn-primary" onclick="filterOrders()">Filter</button>
@@ -138,8 +177,11 @@
                     <th>Date</th>
                     <th>Customer</th>
                     <th>Status</th>
+                    <th>Discount</th>
+                    <th>Coupon Discount</th>
                     <th>Total Amount</th>
                     <th>Payment Method</th>
+                    <th>Payment status</th>
                   </tr>
                 </thead>
                 <tbody>
@@ -149,9 +191,38 @@
                       <td><%= order.orderId %></td>
                       <td><%= new Date(order.createdOn).toLocaleDateString() %></td>
                       <td><%= order.userId.name %></td>
-                      <td><%= order.status %></td>
+                      <td>
+                        <%if(order.status==='processing'){%>
+                          <span style="color:orange">Processing</span>
+                          <%}else if(order.status==='pending'){%>
+                           <span style="color:rgb(230, 96, 7)">Pending</span>
+                           <%}else if(order.status==='shipped'){%>
+                               <span style="color:rgb(9, 58, 220)">shipped</span>
+                           <%}else if(order.status==='delivered'){%>
+                               <span style="color:rgb(9, 130, 17)">delivered</span>
+                            <%}else if(order.status==='cancelled'){%>
+                               <span style="color:rgb(245, 7, 7)">cancelled</span>
+                               <%}else if(order.status==='Return Request'){%>
+                                   <span style="color:rgb(168, 36, 10)">Return request</span>
+                                   <%}else if(order.status==='Returned'){%>
+                                       <span style="color:rgb(155, 35, 8)">Returned</span>
+                                       <%}else if(order.status==='Return Rejected'){%>
+                                         <span style="color:rgb(155, 35, 8)">Return Rejected</span>
+                                         <%}%>
+                      </td>
+                      <td>₹<%=order.discount%></td>
+                      <td>₹<%=order.couponApplied%></td>
                       <td>₹<%= order.finalAmount.toLocaleString() %></td>
                       <td><%= order.paymentMethod %></td>
+                      <td>
+                        <%if(order.paymentStatus){%>
+                         <span style="color:green">Paid</span>
+                         <%}else if(order.paymentMethod ==='online payment' && order.paymentStatus===false){%>
+                          <span style="color:rgb(235, 67, 11)">payment unsuccess</span>
+                          <%}else{%>
+                          <span style="color:rgb(157, 85, 8)">pending</span>
+                          <%}%>
+                      </td>
                     </tr>
                   <% }) %>
                 </tbody>
@@ -189,17 +260,16 @@
       <script>
    let currentPage = '<%= currentPage %>';  // current page (from server)
    const limit = 10; 
-
+  
           function filterOrders() {
     let startDate = $("#startDate").val();
     let endDate = $("#endDate").val();
-    let search = $("#searchBox").val();
     
 
     $.ajax({
         url: "/admin/filter",
         method: "GET",
-        data: { startDate, endDate, search,currentPage,limit },
+        data: { startDate, endDate,currentPage,limit },
         success: function (response) {
             let tableBody = $("#orderTable tbody");
             tableBody.empty(); // Clear existing rows
@@ -221,8 +291,20 @@
 function renderTable(orders) {
     let tableBody = $("#orderTable tbody");
     tableBody.empty(); // Clear old data
-
+    let paymentStatus;
     orders.forEach((order,i)=> {
+      if(order.paymentStatus)
+    {
+       paymentStatus='paid'
+    }
+    else if(order.paymentStatus===false && order.paymentMethod==='online payment')
+    {
+       paymentStatus='payment unsuccess'
+    }
+    else
+    {
+      paymentStatus='pending'
+    }
         tableBody.append(`
             <tr>
               <td>${i+1}</td>
@@ -230,11 +312,45 @@ function renderTable(orders) {
                 <td>${new Date(order.createdOn).toLocaleDateString("en-GB")}</td>
                 <td>${order.userId.name}</td>
                 <td>${order.status}</td>
+                 <td>₹${order.discount}</td>
+                  <td>₹${order.couponApplied}</td>
                 <td>₹${order.finalAmount}</td>
                  <td>${order.paymentMethod}</td>
+                  <td>${paymentStatus}</td>
             </tr>
         `);
     });
+}
+
+function handleReportSelection(reportType) {
+    // Set the date range based on the report type
+    const today = new Date();
+    let startDate, endDate;
+
+    switch (reportType) {
+        case 'weekly':
+            startDate = new Date(today.setDate(today.getDate() - 7)).toISOString().split('T')[0];
+            endDate = new Date().toISOString().split('T')[0];
+            break;
+        case 'monthly':
+            startDate = new Date(today.setMonth(today.getMonth() - 1)).toISOString().split('T')[0];
+            endDate = new Date().toISOString().split('T')[0];
+            break;
+        case 'yearly':
+            startDate = new Date(today.setFullYear(today.getFullYear() - 1)).toISOString().split('T')[0];
+            endDate = new Date().toISOString().split('T')[0];
+            break;
+        default:
+            startDate = '';
+            endDate = '';
+    }
+
+    // Set the date inputs correctly
+    $("#startDate").val(startDate);
+    $("#endDate").val(endDate);
+
+    // Trigger filtering
+    filterOrders();
 }
 
 window.changePage = function (pageNumber) {

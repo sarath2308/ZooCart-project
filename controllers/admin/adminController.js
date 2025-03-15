@@ -59,11 +59,19 @@ const login = async (req, res) => {
 
 const loadDashboard=async(req,res)=>
 {
+ 
     try {
     console.log("inside dashboard");
-      const orderData=await Order.find().populate("userId").sort({createdOn:-1}).limit(10)
+    const orderData = await Order.find({
+      status: { $in: ["delivered"] }, // Filter by status
+      paymentStatus: true // Filter by paymentStatus
+  })
+  .populate("userId") // Populate userId
+  .sort({ createdOn: -1 }) // Sort by createdOn in descending order
+  .limit(10); // Limit to 10 orders
       const Users=await User.countDocuments();
-        const totalOrders = await Order.countDocuments();
+        const totalOrders =await Order.countDocuments();
+        const totalSales=await Order.find({status:{$in:['delivered']}}).countDocuments()
         const cancelledOrders = await Order.countDocuments({ status: "cancelled" });
         const returnedOrders = await Order.countDocuments({ status: "Returned" });
         const totalReturns = await Order.countDocuments({ status: { $in: ["Return Request", "Returned"] } });
@@ -71,28 +79,53 @@ const loadDashboard=async(req,res)=>
         let page =  1;
         const limit = 10;
         const totalPages = Math.ceil(totalOrders / limit);
-
-
+      
 
         const totalRefund = await Order.aggregate([
-            { $match: { status: "Returned" } },
-            { $group: { _id: null, totalRefund: { $sum: "$finalAmount" } } }
-        ]);
+            {
+              $match: {
+                status: { $in: ["Returned", "Cancelled"] } // Match documents with status "Returned" or "Cancelled"
+              }
+            },
+            {
+              $group: {
+                _id: null, // Group all documents into a single group
+                totalRefund: { $sum: "$finalAmount" } // Sum the `finalAmount` field
+              }
+            }
+          ]);
+          
+          // Access the result
+          if (totalRefund.length > 0) {
+            console.log("Total Refund Amount:", totalRefund[0].totalRefund);
+          } else {
+            console.log("No refunds found.");
+          }
         console.log(totalRefund);
         
         const totalRevenue = await Order.aggregate([
-            { 
-                $match: { 
-                    status: { $nin: ["cancelled", "Returned"] } // Exclude cancelled and returned orders
-                } 
+            {
+              $match: {
+                // Exclude cancelled and returned orders
+                status: { $in: ["delivered"] },
+                // Ensure paymentStatus is true
+                paymentStatus: true,
+              }
             },
-            { 
-                $group: { 
-                    _id: null, 
-                    totalRevenue: { $sum: "$finalAmount" } // Sum finalAmount for valid orders
-                } 
+            {
+              $group: {
+                _id: null, // Group all documents into a single group
+                totalRevenue: { $sum: { $ifNull: ["$finalAmount", 0] } } // Sum `finalAmount`, treating missing fields as 0
+              }
             }
-        ]);
+          ]);
+          
+          // Access the result
+          if (totalRevenue.length > 0) {
+            console.log("Total Revenue:", totalRevenue[0].totalRevenue);
+          } else {
+            console.log("No revenue found.");
+          }
         
         console.log("Total Revenue:", totalRevenue[0]?.totalRevenue || 0);
         const formattedRevenue = (totalRevenue[0]?.totalRevenue || 0).toLocaleString("en-IN");
@@ -101,8 +134,9 @@ console.log("Total Revenue:", formattedRevenue);
 const totalOnlineRevenue = await Order.aggregate([
     { 
         $match: { 
-            status: { $nin: ["cancelled", "Returned"] }, // Exclude cancelled and returned orders
-            paymentMethod: { $in: ["wallet", "online payment"] } // Only wallet or online payments
+            status: { $in: ["delivered"] }, // Exclude cancelled and returned orders
+            paymentMethod: { $in: ["wallet", "online payment"] },
+            paymentStatus:true,
         } 
     },
     { 
@@ -117,7 +151,7 @@ console.log(totalOnlineRevenue);
 const salesData = await Order.aggregate([
     {
         $match: {
-            status: { $nin: ["cancelled", "Returned"] } // Exclude cancelled/returned orders
+            status: { $in: ["delivered","Returned","Return Request"] } // Exclude cancelled/returned orders
         }
     },
     {
@@ -139,7 +173,6 @@ const monthlyOrderCount = await Order.aggregate([
     { $sort: { "_id": 1 } } // Sort by month order
 ]);
 
-// Initialize an array with 12 months, defaulting to 0 orders
 const ordersArray = Array(12).fill(0);
 
 // Populate the array with actual data from MongoDB
@@ -156,6 +189,42 @@ salesData.forEach(({ _id, totalSales }) => {
 });
 console.log(monthlySales);
 
+//most ordred product 
+const getTopTwoOrderedProducts = async () => {
+  try {
+      
+    const result = await Order.aggregate([
+      { $group: { _id: "$orderedItem", count: { $sum: 1 } } }, // Group by orderedItem and count
+      { $sort: { count: -1 } }, // Sort in descending order
+      { $limit: 2 }, // Get top 2 products
+      {
+          $lookup: {
+              from: "products", // Collection name for products
+              localField: "_id",
+              foreignField: "_id",
+              as: "productDetails"
+          }
+      },
+      { $unwind: "$productDetails" }, // Extract product details object
+      {
+          $project: {
+              _id: "$productDetails._id",
+              productName: "$productDetails.productName",
+              price: "$productDetails.salePrice",
+              category: "$productDetails.category",
+              productImage: "$productDetails.productImage", // Include product image
+              count: 1 // Include order count
+          }
+      }
+  ]);
+
+
+      console.log("Top Two Ordered Products:", result);
+      return result;
+  } catch (error) {
+      console.error("Error finding top two ordered products:", error);
+  }
+};
 
     
     
@@ -168,20 +237,22 @@ console.log(monthlySales);
                   cancelledOrders,
                   returnedOrders,
                   totalRevenue:formattedRevenue,
-                  totalRefund:totalRefund[0].totalRefund,
-                  onlineRevenue:totalOnlineRevenue[0].totalAmount,
+                  totalRefund:totalRefund.length>0?totalRefund[0].totalRefund:0,
+                  onlineRevenue:totalOnlineRevenue.length>0?totalOnlineRevenue[0].totalAmount:0,
                   monthlySales,
                   ordersArray,
                   currentPage:page,
-                  totalPages
-
+                  totalPages,
+                  totalSales,
+                  topTwo: await getTopTwoOrderedProducts(),
 
                 }
             )
 
-    }
-    catch (error) {
-    res.redirect("/pageerror");
+    }catch (error) {
+        console.log(error);
+        
+    res.redirect("/admin/pageerror");
 }
 }
 const logout=async(req,res)=>

@@ -39,10 +39,6 @@ cart:[{
     type:Schema.Types.ObjectId,
     ref:"cart",
 }],
-wallet:{
-    type:Schema.Types.ObjectId,
-    ref:"Wallet"
-},
 wishlist:[{
 type:Schema.Types.ObjectId,
 ref:"Wishlist"
@@ -79,6 +75,10 @@ searchHistory:[{
         default:Date.now
     }
 
+}],
+usedCoupons:[{
+    type:Schema.Types.ObjectId,
+    ref:"coupon"
 }]
 })
 const User=mongoose.model("User",userSchema);

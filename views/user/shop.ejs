@@ -258,55 +258,69 @@
 
     // Render product list into .product-details-ajax
     function renderProducts(products) {
-      const productContainer = $('.product-details-ajax');
-      productContainer.empty();
-      if (products.length === 0) {
-        productContainer.html('<p>No products found.</p>');
+      let cartProducts = '<%= JSON.stringify(cartItems) %>'// Parse cartItems as an array
+      
+  const productContainer = $('.product-details-ajax');
+  productContainer.empty();
+
+  if (products.length === 0) {
+    productContainer.html('<p>No products found.</p>');
+  } else {
+    products.forEach(product => {
+      let priceHTML = '';
+      if (product.status === "Available") {
+        priceHTML = `<h6>
+                       <s style="font-size: 13px; color: grey;">₹${product.regularPrice}</s>
+                       ₹${product.salePrice}.0
+                     </h6>`;
       } else {
-        products.forEach(product => {
-          let priceHTML = '';
-          if (product.status === "Available") {
-            priceHTML = `<h6>
-                           <s style="font-size: 13px; color: grey;">₹${product.regularPrice}</s>
-                           ₹${product.salePrice}.0
-                         </h6>`;
-          } else {
-            priceHTML = `<h5 style="color: rgb(222, 23, 23);">${product.status}</h5>`;
-          }
-
-          let cartHTML = '';
-          if (product.status === "Available") {
-            cartHTML = `<a class="btn add-cart" onclick="addToCart('${product._id}')">+ Add To Cart</a>`;
-          }
-
-          const productHTML = `
-            <div class="col-lg-4 col-md-6 col-sm-6">
-              <div class="product__item">
-                <div class="product__item__pic set-bg" style="background-image: url('${product.productImage[0]}');"> 
-                  <ul class="product__hover">
-                    <li><a onclick="addToWishlist('${product._id}')"><img src="img/icon/heart.png" alt="wishlist"></a></li>
-                    <li><a href="/productDetails?id=${product._id}"><img src="img/icon/search.png" alt=""></a></li>
-                  </ul>
-                </div>
-                <div class="product__item__text">
-                  <h6>${product.productName}</h6>
-                  ${cartHTML}
-                  <div class="rating">
-                    <i class="fa fa-star-o"></i>
-                    <i class="fa fa-star-o"></i>
-                    <i class="fa fa-star-o"></i>
-                    <i class="fa fa-star-o"></i>
-                    <i class="fa fa-star-o"></i>
-                  </div>
-                  ${priceHTML}
-                </div>
-              </div>
-            </div>
-          `;
-          productContainer.append(productHTML);
-        });
+        priceHTML = `<h5 style="color: rgb(222, 23, 23);">${product.status}</h5>`;
       }
-    }
+
+      // Check if the product is in the cart
+      const isProductInCart = cartProducts.includes(product._id.toString());
+
+      let cartHTML = '';
+      if (product.status === "Available") {
+        if (isProductInCart) {
+          // Product is already in the cart
+          cartHTML = `<a class="btn go-to-cart" href="/cart">
+  <i class="fas fa-shopping-cart"></i> Go to Cart
+</a>`;
+        } else {
+          // Product is not in the cart
+          cartHTML = `<a class="btn add-cart" onclick="addToCart('${product._id}')">+ Add To Cart</a>`;
+        }
+      }
+
+      const productHTML = `
+        <div class="col-lg-4 col-md-6 col-sm-6">
+          <div class="product__item">
+            <div class="product__item__pic set-bg" style="background-image: url('${product.productImage[0]}');"> 
+              <ul class="product__hover">
+                <li><a onclick="addToWishlist('${product._id}')"><img src="img/icon/heart.png" alt="wishlist"></a></li>
+                <li><a href="/productDetails?id=${product._id}"><img src="img/icon/search.png" alt=""></a></li>
+              </ul>
+            </div>
+            <div class="product__item__text">
+              <h6>${product.productName}</h6>
+              ${cartHTML}
+              <div class="rating">
+                <i class="fa fa-star-o"></i>
+                <i class="fa fa-star-o"></i>
+                <i class="fa fa-star-o"></i>
+                <i class="fa fa-star-o"></i>
+                <i class="fa fa-star-o"></i>
+              </div>
+              ${priceHTML}
+            </div>
+          </div>
+        </div>
+      `;
+      productContainer.append(productHTML);
+    });
+  }
+}
 
     // Make changePage available globally so inline onclick can access it.
     window.changePage = function (pageNumber) {

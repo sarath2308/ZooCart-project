@@ -66,10 +66,11 @@ const loadCart = async (req, res) => {
     const handlingFee=7*totalQuantity;
      const packagingFee=10*totalQuantity;
      grandTotal+=handlingFee+packagingFee;
+     console.log("items means cart data ");
+     console.log(items);
+     
+     
      req.session.cartProducts=items;
-     req.session.grandTotal=grandTotal;
-     req.session.grandRegularTotal=grandRegularTotal;
-     req.session.totalQuantity=totalQuantity;
 
     res.render("cart", {
       products:items,           // cart items with product details

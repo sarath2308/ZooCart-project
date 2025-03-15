@@ -53,9 +53,7 @@
 <div class="mb-3">
     <strong>Ordered Items:</strong>
     <ul id="orderItems" class="list-group">
-        <%data.orderedItems.forEach((pr)=>{%>
-        <li class="list-group-item"><%=pr.product.productName%> (Qty:<%=pr.quantity%>)</li>
-    <%})%>
+        <li class="list-group-item"><%=data.orderedItem.productName%> (Qty:<%=data.totalQuantity%>)</li>
     </ul>
 </div>
 

@@ -6,66 +6,102 @@ const path = require('path');
 const PDFDocument = require("pdfkit");
 
 
-const filterOrder=async(req,res)=>
-{
-    console.log("req in filter order");
-    
-    try {
-        let { startDate, endDate, search, currentPage, limit } = req.query;
-        let page=currentPage || 1;
-        page=parseInt(page)
-        limit=parseInt(limit)
+const filterOrder = async (req, res) => {
+  console.log("req in filter order");
 
-        const skip=((page-1)*limit)
-        let query = {};
-       console.log("start date"+ startDate);
-       console.log("endDate"+endDate);
-       console.log("search"+search);
-       
-       
-       
-        if (startDate) query.createdOn = { $gte: new Date(startDate) };
-        if (endDate) query.createdOn = { ...query.createdOn, $lte: new Date(endDate) };
-        if (search) {
-            query.$or = [
-                { orderId: { $regex: search, $options: "i" } },
-                { customerName: { $regex: search, $options: "i" }},
-                { status: { $regex: search, $options: "i" }}
-            ];
+  try {
+      let { startDate, endDate, currentPage, limit } = req.query;
+      let page = currentPage || 1;
+      page = parseInt(page);
+      limit = parseInt(limit);
+
+      const skip = (page - 1) * limit;
+      let query = {
+          status: { $in: ['delivered'] }
+      };
+
+      console.log("start date:", startDate);
+      console.log("end date:", endDate);
+
+      // Check if startDate and endDate are the same
+      if (startDate && endDate && startDate === endDate) {
+          const startOfDay = new Date(startDate);
+          startOfDay.setHours(0, 0, 0, 0); // Start of the day (00:00:00.000)
+
+          const endOfDay = new Date(endDate);
+          endOfDay.setHours(23, 59, 59, 999); // End of the day (23:59:59.999)
+
+          query.createdOn = {
+              $gte: startOfDay,
+              $lte: endOfDay
+          };
+      } else {
+          // Handle separate startDate and endDate
+          if (startDate) query.createdOn = { $gte: new Date(startDate) };
+          if (endDate) {
+            
+            const endOfDay = new Date(endDate);
+          
+            endOfDay.setHours(23, 59, 59, 999);
+           
+            query.createdOn = { ...query.createdOn, $lte: endOfDay };
         }
-        const totalOrders = await Order.countDocuments(query);
-        console.log(totalOrders);
-        
-        let filteredOrders = await Order.find(query).populate('userId').sort({createdOn:-1}).skip(skip).limit(limit); // Limit results per page
-        res.status(200).json({
-            totalOrders,
-            totalPages: Math.ceil(totalOrders / limit),
-            currentPage: page,
-            orders: filteredOrders
-        });
-    } catch (error) {
-        console.log(error);
-        
-        res.status(500).json({ message: "Error fetching data", error });
     }
-}
+
+      const totalOrders = await Order.countDocuments(query);
+      console.log("Total Orders:", totalOrders);
+
+      let filteredOrders = await Order.find(query)
+          .populate('userId')
+          .sort({ createdOn: -1 })
+          .skip(skip)
+          .limit(limit); // Limit results per page
+
+      res.status(200).json({
+          totalOrders,
+          totalPages: Math.ceil(totalOrders / limit),
+          currentPage: page,
+          orders: filteredOrders
+      });
+  } catch (error) {
+      console.log("Error:", error);
+      res.status(500).json({ message: "Error fetching data", error });
+  }
+};
 
 const downloadExcel = async (req, res) => {
     try {
-      const { startDate, endDate, search } = req.query;
-  
-      
-      let query = {};
-      if (startDate) query.createdOn = { $gte: new Date(startDate) };
-      if (endDate) query.createdOn = { ...query.createdOn, $lte: new Date(endDate) };
-      if (search) {
-        query.$or = [
-          { orderId: { $regex: search, $options: "i" } },
-          { status: { $regex: search, $options: "i" } },
-        ];
+      const { startDate, endDate} = req.query;
+      let query = {
+        status: { $in: ['delivered'] }
+    };
+
+
+    // Check if startDate and endDate are the same
+    if (startDate && endDate && startDate === endDate) {
+        const startOfDay = new Date(startDate);
+        startOfDay.setHours(0, 0, 0, 0); // Start of the day (00:00:00.000)
+
+        const endOfDay = new Date(endDate);
+        endOfDay.setHours(23, 59, 59, 999); // End of the day (23:59:59.999)
+
+        query.createdOn = {
+            $gte: startOfDay,
+            $lte: endOfDay
+        };
+    } else {
+        // Handle separate startDate and endDate
+        if (startDate) query.createdOn = { $gte: new Date(startDate) };
+        if (endDate) {
+          
+          const endOfDay = new Date(endDate);
+        
+          endOfDay.setHours(23, 59, 59, 999);
+         
+          query.createdOn = { ...query.createdOn, $lte: endOfDay };
       }
-  
-    
+  }
+      
       const orders = await Order.find(query)
         .populate("userId") 
         .sort({ createdOn: -1 });
@@ -75,7 +111,7 @@ const downloadExcel = async (req, res) => {
       const worksheet = workbook.addWorksheet("Sales report");
   
       // Add header row
-      worksheet.addRow(["No", "Order ID", "Date", "Customer", "Status", "Total Amount", "Payment Method"]);
+      worksheet.addRow(["No", "Order ID", "Date", "Customer", "Status","discount","Coupon discount", "Total Amount", "Payment Method","Payment status"]);
   
       // Add data rows
       orders.forEach((order, index) => {
@@ -84,9 +120,12 @@ const downloadExcel = async (req, res) => {
           order.orderId, // Order ID
           new Date(order.createdOn).toLocaleDateString(), // Date (YYYY-MM-DD)
           order.userId?.name || "Guest", // Customer name or "Guest"
-          order.status, // Order status
+          order.status,
+          order.discount,
+          order.couponApplied, // Order status
           order.finalAmount.toFixed(2), // Total amount (formatted to 2 decimal places)
-          order.paymentMethod, // Payment method
+          order.paymentMethod,
+          order.paymentStatus?'paid':'pending', // Payment method
         ]);
       });
   
@@ -128,16 +167,40 @@ const downloadExcel = async (req, res) => {
   const downloadPdf=async(req,res)=>
   {
     try {
-      const { startDate, endDate, search } = req.query;
-      let query = {};
-      if (startDate) query.createdOn = { $gte: new Date(startDate) };
-      if (endDate) query.createdOn = { ...query.createdOn, $lte: new Date(endDate) };
-      if (search) {
-        query.$or = [
-          { orderId: { $regex: search, $options: "i" } },
-          { status: { $regex: search, $options: "i" } },
-        ];
+      const { startDate, endDate } = req.query;
+
+      let query = {
+        status: { $in: ['delivered'] }
+    };
+
+    console.log("start date:", startDate);
+    console.log("end date:", endDate);
+
+    // Check if startDate and endDate are the same
+    if (startDate && endDate && startDate === endDate) {
+        const startOfDay = new Date(startDate);
+        startOfDay.setHours(0, 0, 0, 0); // Start of the day (00:00:00.000)
+
+        const endOfDay = new Date(endDate);
+        endOfDay.setHours(23, 59, 59, 999); // End of the day (23:59:59.999)
+
+        query.createdOn = {
+            $gte: startOfDay,
+            $lte: endOfDay
+        };
+    } else {
+        // Handle separate startDate and endDate
+        if (startDate) query.createdOn = { $gte: new Date(startDate) };
+        if (endDate) {
+          
+          const endOfDay = new Date(endDate);
+        
+          endOfDay.setHours(23, 59, 59, 999);
+         
+          query.createdOn = { ...query.createdOn, $lte: endOfDay };
       }
+  }
+      
   
     
       const orders = await Order.find(query)
@@ -152,15 +215,30 @@ const downloadExcel = async (req, res) => {
 
         doc.fontSize(16).text("Sales Report", { align: "center" });
         doc.moveDown();
-
+        let paymentStatus;
         orders.forEach((order,i) => {
+          if(order.paymentStatus)
+            {
+               paymentStatus='paid'
+            }
+            else if(order.paymentStatus===false && order.paymentMethod==='online payment')
+            {
+               paymentStatus='payment unsuccess'
+            }
+            else
+            {
+              paymentStatus='pending'
+            }
             doc.text(`No: ${i+1}`);
             doc.text(`Order ID: ${order.orderId}`);
             doc.text(`Date: ${order.createdOn.toISOString().split("T")[0]}`);
             doc.text(`Customer : ${order.userId.name}`);
             doc.text(`Status: ${order.status}`);
+            doc.text(`Discount: ${order.discount}`);
+            doc.text(`Coupon discount: ${order.couponApplied}`);
             doc.text(`Total Amount: ₹${order.finalAmount}`);
-            doc.text(`Total Amount: ₹${order.paymentMethod}`);
+            doc.text(`Payment Method: ₹${order.paymentMethod}`);
+            doc.text(`paymnet status: ₹${paymentStatus}`);
             doc.moveDown();
         });
 

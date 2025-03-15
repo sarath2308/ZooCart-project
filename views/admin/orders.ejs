@@ -27,12 +27,7 @@
                          <td><%=order.readableId%></td>
                          <td><%=order.userId.name%></td>
                          <td>
-                            <ul>
-                            <% order.orderedItems.forEach((item,i) => { %>
-                                
-                              <li><%= item.product.productName %> <span style="color:rgba(143, 16, 234, 0.904)">(Qty:<%=item.quantity%>)</span></li>
-                              <% }); %>
-                            </ul>
+                            <%= order.orderedItem.productName %>
                          </td>
                          <td>
                             <%=order.totalQuantity%>

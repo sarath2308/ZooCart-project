@@ -38,6 +38,7 @@
               <div class="accordion-body">
                 <!-- Address List -->
                 <div class="address-container">
+                  <%if(addressData){%>
                   <% addressData.forEach((ad) => { %>
                     <div class="address-card <%= ad.default ? 'default' : '' %>" data-address-id="<%= ad._id %>">
                       <input type="radio" name="addressId" value="<%= ad._id %>" <% if (ad.default) { %> checked <% } %> class="default-radio">
@@ -56,6 +57,9 @@
                       </div>
                     </div>
                   <% }); %>
+                  <%}else{%>
+                    <p>No address Found</p>
+                    <%}%>
                 </div>
                 <br>
                 <!-- Add New Address Button -->
@@ -173,7 +177,7 @@
                       </tr>
                     </thead>
                     <tbody>
-                      <% if (products.length > 0) { %>
+                      <% if (Array.isArray(products)) { %>
                         <% products.forEach(pr => { %>
                           <tr data-item-id="<%= pr._id %>">
                             <td class="product__cart__item">
@@ -205,9 +209,32 @@
                         <% }) %>
                       <% } else { %>
                         <tr>
-                          <td colspan="4" class="text-center">
-                            <p class="lead mb-4">No items</p>
-                          </td>
+                          
+                              <td class="product__cart__item">
+                                <div class="product__cart__item__pic">
+                                    <a href="/productDetails?id=<%=products._id%>" class="btn">
+                                  <img src="<%= products.productImage[0] %>" alt="Product Image">
+                                  </a>
+                                </div>
+                                <div class="product__cart__item__text">
+                                  <h6><%= products.productName %></h6>
+          
+                                  <h6 style="color:green">
+                                    <s style="font-size: 13px; color: grey;">₹<%= products.regularPrice %></s>
+                                    ₹<%= products.salePrice %>.0
+                                  </h6>
+                                </div>
+                              </td>
+                              <td class="quantity__item">
+                                <div class="quantity">
+                                   
+                                  <p>x<%=totalQuantity%></p>
+                            
+                                  </div>
+                              </td>
+                              <td class="cart__price">
+                                <span id="item-total-<%= products._id %>">₹<%= products.salePrice*totalQuantity %></span>
+                              </td>
                         </tr>
                       <% } %>
                     </tbody>
@@ -285,7 +312,7 @@
               </div>
             </div>
             <br>
-            <button type="button" class="btn btn-success w-100" onclick="applyCoupon()">Apply Coupon</button>
+            <button type="button" class="btn btn-success w-100" id="coupon-btn" onclick="applyCoupon()">Apply Coupon</button>
             <div id="coupon-message" style="margin-top:10px;"></div>
           </div>
         
@@ -312,44 +339,10 @@
 <script>
 
 
-function openRazorpayModal(order,data) {
-  Swal.fire({
-        title: 'Razor pay called',
-        text: '',
-        icon: 'warning',
-        toast: true,
-        position: 'top-end',
-        timer: 3000,
-        showConfirmButton: false
-      });
-  const options = {
-    key: order.user_key, // Replace with your Razorpay key_id
-    amount: order.amount,
-    currency:'INR',
-    order_id: order.id, // Use the order ID from the server
-    name: 'ZooCart',
-    description: 'Order Payment',
-    handler: function (response) {
-      // Handle successful payment
-      verifyPayment(response);
-    },
-    prefill: {
-      name: data.name,
-      email: data.email,
-      contact: data.phone,
-    },
-    theme: {
-      color: '#091db1',
-    },
-  };
-
-  const rzp = new Razorpay(options);
-  rzp.open();
-}
-
-
   function placeOrder() {
-    // Define the required accordion section IDs
+    const products = <%- JSON.stringify(products|| []) %>;
+
+// Define the required accordion section IDs
     const requiredSections = ['section-address', 'section-payment', 'section-summary'];
     let allCompleted = true;
     
@@ -411,11 +404,20 @@ function openRazorpayModal(order,data) {
     var discountAmount = $('#discount-amount').text().replace(/[^\d.]/g, '').trim();
     var couponAddedText = $('#coupon-added').text().trim(); 
      var couponValue = parseFloat(couponAddedText.replace(/[^\d.]/g, ''));
-
+     var couponCode= $('#coupon-code-input').val()
     var handlingFee = $('#handling-fee').text().replace(/[^\d.]/g, '').trim();
     var packagingFee = $('#packaging-fee').text().replace(/[^\d.]/g, '').trim();
     var grandTotal = $('#grand-total').text().replace(/[^\d.]/g, '').trim();
-
+    console.log("coupon code"+couponCode);
+    let cart;
+    if(Array.isArray(products))
+    {
+       cart=true;
+    }
+    else{
+    cart=false;
+    }
+    console.log(cart);
     // 4. Build an order data object.
     var orderData = {
       addressId: addressId,
@@ -426,14 +428,17 @@ function openRazorpayModal(order,data) {
       coupon:couponValue?couponValue:null,
       handlingFee: parseFloat(handlingFee),
       packagingFee: parseFloat(packagingFee),
-      grandTotal: parseFloat(grandTotal)
+      grandTotal: parseFloat(grandTotal),
+      couponCode:couponCode,
+      cart
     };
 
     console.log("Order Data: ", orderData);
+   
     
     // 5. Use AJAX to send orderData to your REST API endpoint.
     $.ajax({
-  url: '/api/orders/placeOrder?cart=1',
+  url: `/api/orders/placeOrder?cart=${cart}`,
   type: 'POST',
   data: JSON.stringify(orderData),
   contentType: 'application/json',
@@ -454,8 +459,7 @@ function openRazorpayModal(order,data) {
         },
         modal: {
           ondismiss: function () {
-            // Redirect to the failure page
-            window.location.href = '/order-unsuccess';
+            window.location.href = `/order-unsuccess?cart=${response.cart}`;
           },
         },
         prefill: {
@@ -468,8 +472,9 @@ function openRazorpayModal(order,data) {
       const rzp = new Razorpay(options);
       rzp.open();
     } else {
+      clearLocalStorage()
       // For non-online payments (e.g., COD), redirect to the success page
-      window.location.href = '/order-placed';
+      window.location.href = `/order-placed`;
     }
   },
   error: function (err) {
@@ -501,16 +506,17 @@ function verifyPayment(response,orderId) {
     }),
     success: function (verificationResult) {
       if (verificationResult.success) {
-        // Payment verified successfully
+        clearLocalStorage()
+        
         window.location.href = '/order-placed'; // Redirect to success page
       } else {
         // Payment verification failed
-        window.location.href = '/order-unsuccess'; // Redirect to failure page
+        window.location.href = `/order-unsuccess?cart=${verificationResult.cart}`; // Redirect to failure page
       }
     },
     error: function (xhr, status, error) {
       console.error('Error verifying payment:', error);
-      window.location.href = '/order-unsuccess'; // Redirect to failure page
+      window.location.href = `/order-unsuccess`; // Redirect to failure page
     },
   });
 }
@@ -527,7 +533,7 @@ function verifyPayment(response,orderId) {
 </div>
 </section>
 <!-- Checkout Section End -->
-
+<div style="height: 300px;"></div>
 <%- include("../../views/partials/user/footer.ejs") %>
 
 <style>
@@ -712,7 +718,24 @@ input[type="radio"] {
 </style>
 
 <script>
-  // Toggle display of add address form
+  function clearLocalStorage() {
+        localStorage.removeItem('address');
+        localStorage.removeItem('paymentMethod');
+    }
+
+  function saveAddressToLocalStorage() {
+        const address = document.querySelector('input[name="addressId"]:checked').value;
+           
+        localStorage.setItem('address', address);
+    }
+
+    //store payment in local storage
+
+    function savePaymentToLocalStorage() {
+        const paymentMethod = document.querySelector('input[name="paymentOption"]:checked').value;
+        localStorage.setItem('paymentMethod', paymentMethod);
+    }
+
   function showAddAddressForm() {
     document.getElementById('addAddressForm').style.display = 'block';
   }
@@ -724,7 +747,15 @@ input[type="radio"] {
   function markComplete(sectionId, badgeId) {
     var section = document.getElementById(sectionId);
     var badge = document.getElementById(badgeId);
-    
+    if(sectionId==='section-address')
+  {
+    saveAddressToLocalStorage()
+  }
+  else if(sectionId==='section-payment')
+  {
+    savePaymentToLocalStorage()
+  }
+ 
     // Check if a radio option is selected in this section (if applicable)
     var radios = section.querySelectorAll("input[type='radio']");
     var isChecked = Array.from(radios).some(radio => radio.checked);
@@ -757,45 +788,120 @@ input[type="radio"] {
       bsNextCollapse.show();
     }
   }
-  
+  function loadFromLocalStorage() {
+    // Load address data
+    const Address = (localStorage.getItem('address'));
+    if (Address) {
+        // Mark address section as completed
+        const address = document.querySelector(`input[name="addressId"][value="${Address}"]`);
+        if (address) {
+            address.checked = true;
+
+            document.getElementById('section-address').classList.add("completed");
+            document.getElementById('address-completed').classList.remove("d-none");
+        }
+    }
+
+    // Load payment method
+    const savedPayment = localStorage.getItem('paymentMethod');
+    if (savedPayment) {
+        const paymentRadio = document.querySelector(`input[name="paymentOption"][value="${savedPayment}"]`);
+        if (paymentRadio) {
+            paymentRadio.checked = true;
+
+            // Mark payment section as completed
+            document.getElementById('section-payment').classList.add("completed");
+            document.getElementById('payment-completed').classList.remove("d-none");
+        }
+    }
+
+    // Load order summary (if applicable)
+    const savedOrder = localStorage.getItem('orderSummary');
+    if (savedOrder) {
+        // Mark order summary section as completed
+        document.getElementById('section-summary').classList.add("completed");
+        document.getElementById('summary-completed').classList.remove("d-none");
+    }
+}
+
+
+
   function selectCoupon(code) {
     document.getElementById('coupon-code-input').value = code;
   }
   
   function applyCoupon() {
-
-    var couponCode = document.getElementById('coupon-code-input').value.trim();
-    if (!couponCode) {
-      document.getElementById('coupon-message').innerHTML = "<span class='text-danger'>Please enter a coupon code.</span>";
-      return;
-    }
-
-    $.ajax({
-      url:'/api/coupons/apply',
-      type: 'POST',
-      contentType: 'application/json',
-      data: JSON.stringify({ couponCode: couponCode, cart: true }),  // You may include more data if needed.
-      success: function(response) {
-        if (response.success) {
-          // Update the order summary fields with new totals and coupon details.
-          // Adjust property names as per your backend response.
-          $('#grand-total').text('₹' + response.grandTotal)
-          $('#coupon-added').text('-₹' + response.couponOfferPrice + ' OFF').css('color', 'green');
-
-          $('#coupon-message').html("<span class='text-success'>Coupon '" + couponCode + "' applied successfully!</span>");
-        } else {
-          $('#coupon-message').html("<span class='text-danger'>" + response.message + "</span>");
-        }
-      },
-      error: function(err) {
-        console.error("Error applying coupon:", err);
-        $('#coupon-message').html("<span class='text-danger'>Error applying coupon. Please try again later.</span>");
-      }
-    });
-    // Simulate coupon application. In real use, you would call an API.
+  var couponCode = $('#coupon-code-input').val().trim();
+  if (!couponCode) {
+    $('#coupon-message').html("<span class='text-danger'>Please enter a coupon code.</span>");
+    return;
   }
 
+  $.ajax({
+    url: '/api/coupons/apply',
+    type: 'POST',
+    contentType: 'application/json',
+    data: JSON.stringify({ couponCode: couponCode, cart: true }),
+    success: function(response) {
+      if (response.success) {
+        $('#coupon-message').html("<span class='text-success'>Coupon '" + couponCode + "' applied successfully!</span>");
+        $('#coupon-added').text('-₹' + response.couponOfferPrice + ' OFF').css('color', 'green');
+        $('#grand-total').text('₹' + response.grandTotal);
+        $('#coupon-btn')
+          .removeClass('btn-primary')
+          .addClass('btn-danger')
+          .text('Cancel Coupon')
+          .attr('onclick', 'removeCoupon()');
+      } else {
+        $('#coupon-message').html("<span class='text-danger'>" + response.message + "</span>");
+      }
+    },
+    error: function(err) {
+      console.error("Error applying coupon:", err);
+      $('#coupon-message').html("<span class='text-danger'>Error applying coupon. Please try again later.</span>");
+    }
+  });
+}
 
+function removeCoupon() {
+  console.log("Removing coupon..."); // Debugging
+  $.ajax({
+    url: '/api/coupons/remove', // Endpoint to remove the coupon
+    type: 'POST',
+    contentType: 'application/json',
+    success: function (response) {
+      console.log("Response from server:", response); // Debugging
+      if (response.success) {
+        // Update the success message
+        $('#coupon-message').text("Coupon removed successfully!").css('color', 'green');
+        const timer = setTimeout(() => {
+  $('#coupon-message').text("").removeAttr("style");
+}, 2000);
+
+        $('#coupon-code-input').val('');
+        // Clear the coupon discount display
+        $('#coupon-added').text('not added').css('color', 'red');
+
+        // Reset the button to "Apply Coupon"
+        $('#coupon-btn')
+          .removeClass('btn-danger') // Remove danger class
+          .addClass('btn-primary')   // Add primary class
+          .text('Apply Coupon')      // Change button text
+          .attr('onclick', 'applyCoupon()'); // Change onclick event
+
+        // Update the grand total (if applicable)
+        $('#grand-total').text('₹' + response.grandTotal);
+      } else {
+        // Show error message if removal fails
+        $('#coupon-message').html("<span class='text-danger'>" + response.message + "</span>");
+      }
+    },
+    error: function (err) {
+      console.error("Error removing coupon:", err); // Debugging
+      $('#coupon-message').html("<span class='text-danger'>Error removing coupon. Please try again later.</span>");
+    },
+  });
+}
 
 
 
@@ -901,6 +1007,6 @@ input[type="radio"] {
     }
   });
 }
-
+window.onload = loadFromLocalStorage;
 
 </script>

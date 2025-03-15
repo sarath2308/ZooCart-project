@@ -3,27 +3,26 @@ const User=require("../../models/userSchema")
 const Address=require("../../models/addressSchema")
 const Wallet=require("../../models/walletSchema");
 const { userAuth } = require("../../middlewares/auth");
+const Product=require("../../models/productSchema")
 
 
 
 
 const loadOrders = async (req, res) => {
     try {
-        let orders = await Order.find().populate('orderedItems.product').populate('userId').sort({createdOn:-1})
+        let userId;
+        let orders = await Order.find().populate('orderedItem').populate('userId').sort({createdOn:-1}).lean()
         // Convert each Mongoose document to a plain object and add readableId
         orders = orders.map(order => {
-            let orderObj = order.toObject(); // Convert Mongoose doc to plain object
-
-            if (orderObj.orderId) { 
-                const hexString = orderObj.orderId.replace(/-/g, ""); // Remove dashes
-                orderObj.readableId = BigInt("0x" + hexString).toString(); // Convert to number
+              
+            // No need to call order.toObject() since order is already a plain object
+            if (order.orderId) {
+              const hexString = order.orderId.replace(/-/g, ""); // Remove dashes
+              order.readableId = BigInt("0x" + hexString).toString(); // Convert to number string
             }
-
-            return orderObj;
-        });
-
-        console.log(orders); // Check if readableId is present
-
+            return order;
+          });
+        
         return res.render("Orders", { data: orders });
 
     } catch (error) {
@@ -36,7 +35,7 @@ const loadOrders = async (req, res) => {
            try {
                console.log("req arrived at order Details");
                const orderId=req.query.orderId;
-               const orderData=await Order.findById({_id:orderId}).populate("orderedItems.product").populate("userId")
+               const orderData=await Order.findById({_id:orderId}).populate("orderedItem").populate("userId")
                const addressId=orderData.address;
                const userId=orderData.userId;
                const addressData=await Address.findOne({userId:userId})
@@ -85,7 +84,9 @@ const loadOrders = async (req, res) => {
                 console.log("Request received to update order status");
         
                 // Find the order by ID
-                const orderData = await Order.findById(orderId).populate("orderedItems.product");
+                const orderData = await Order.findById(orderId);
+                let pid=orderData.orderedItem;
+                let product=await Product.findById({_id:pid})
                 const userId=orderData.userId;
                 const wallet=await Wallet.findOne({userId:userId})
         
@@ -99,7 +100,9 @@ const loadOrders = async (req, res) => {
                         const payment={
                             amount:orderData.finalAmount,
                             paymentFlow:true,
-                            description:"order refund"
+                            description:"order refund",
+                            status:'credited',
+                            orderId:orderData._id,
                         }
                         wallet.balance+=orderData.finalAmount;
                         wallet.paymentHistory.push(payment)
@@ -124,28 +127,31 @@ const loadOrders = async (req, res) => {
                 }
               }
                 // If the order is being canceled, add the ordered quantity back to the product stock
-                if (status === "cancelled") {
+                if (status === "cancelled" ) {
                     orderData.cancelReason = cancelReason || "No reason provided";
         
-                    for (let item of orderData.orderedItems) {
-                        const product = item.product;
                         if (product) {
-                            product.quantity += item.quantity;
+                            product.quantity += orderData.totalQuantity;
                             await product.save();
                         }
-                    }
+                    if(orderData.paymentStatus===true)
+                    {
                     addToWallet()
+                    }
                 }
                 if(status ==='Returned')
                     {
-                        for (let item of orderData.orderedItems) {
-                            const product = item.product;
-                            if (product) {
-                                product.quantity += item.quantity;
-                                await product.save();
-                            }
+                        
+                        if (product) {
+                            product.quantity += orderData.totalQuantity;
+                            await product.save();
                         }
+                        
                         addToWallet()
+                    }
+                    if(status==='delivered')
+                    {
+                        orderData.paymentStatus=true;
                     }
                 
                 // Update order status

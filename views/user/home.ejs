@@ -73,6 +73,10 @@
     color: white;
     font-size: 18px;
 }
+.swal2-toast {
+    font-size: 12px !important;
+    font-family: 'Arial', sans-serif;
+  }
 
 </style>
     <!-- Banner Section Begin -->
@@ -137,13 +141,13 @@
                     <div class="product__item__pic set-bg" data-setbg="<%=products[i].productImage[0]%>">
                         <span class="label" style="background-color: #091db1;color:white;">New</span>
                         <ul class="product__hover">
-                            <li><a href="/addToWishlist?id=<%=products[i]._id%>"><img src="img/icon/heart.png" alt="wishlist"></a></li>
+                            <li><a  onclick="addToWishlist('<%=products[i]._id%>')"><img src="img/icon/heart.png" alt="wishlist"></a></li>
                             <li><a href="/productDetails?id=<%=products[i]._id%>"><img src="img/icon/search.png" alt="productDetails"></a></li>
                         </ul>
                     </div>
                     <div class="product__item__text">
                         <h6><%=products[i].productName%></h6>
-                        <a href="/addToCart?id=<%=products[i]._id%>" class="add-cart">+ Add To Cart</a>
+                        <a onclick="addToCart('<%=products[i]._id%>')" class="add-cart">+ Add To Cart</a>
                         <div class="rating">
                             <i class="fa fa-star-o"></i>
                             <i class="fa fa-star-o"></i>
@@ -173,7 +177,73 @@
   </section>
   <!-- Product Section End -->
   
-  
+  <script>
+      function addToCart(pid) {
+    $.ajax({
+        url: `/addToCart`,
+        method: 'POST',
+        data: JSON.stringify({ pid: pid }), // Ensure proper data format
+        contentType: "application/json", // Specify content type
+        dataType: "json", // Expect JSON response
+        success: function (response) {
+            Swal.fire({
+                title: response.message,
+                icon: 'success',
+                toast: true,
+                position: 'top-end',
+                showConfirmButton: false,
+                timer: 2000
+            });
+        },
+        error: function (xhr) {
+            let errorMessage = "Something went wrong!";
+            if (xhr.responseJSON && xhr.responseJSON.message) {
+                errorMessage = xhr.responseJSON.message;
+            }
+            Swal.fire({
+                title: errorMessage,
+                icon: 'error',
+                toast: true,
+                position: 'top-end',
+                showConfirmButton: false,
+                timer: 2000
+            });
+        }
+    });
+}
+
+function addToWishlist(pid)
+    {
+        $.ajax({
+            url: `/addToWishlist`,
+            method: 'POST',
+            data: {pid:pid},
+            success: function (response) {
+                if(response.success)
+            {
+                Swal.fire({
+            title:response.message,
+            icon: 'success',
+            toast: true,
+            position: 'top-end',
+            showConfirmButton: false,
+            timer: 2000
+        });
+    }
+            },
+            error: function (response) {
+                Swal.fire({
+            title:response.message,
+            icon: 'success',
+            toast: true,
+            position: 'top-end',
+            showConfirmButton: false,
+            timer: 2000
+        });
+        }});
+    }
+
+  </script>
 
     
         <%-include("../../views/partials/user/footer.ejs")%>

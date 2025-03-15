@@ -140,18 +140,16 @@
   
   <div class="order-summary-section">
     <h3>Products Ordered</h3>
-    <% data.orderedItems.forEach((item) => { %>
         <div class="order-summary-product">
             <div class="product-info">
-                <img src="<%= item.product.productImage[0] %>" alt="Product Image">
+                <img src="<%= data.orderedItem.productImage[0] %>" alt="Product Image">
                 <div class="order-summary-product-details">
-                    <div class="product-name"><%= item.product.productName %></div>
-                    <div class="quantity" style="color:#007bff">Qty: <%= item.quantity %></div>
+                    <div class="product-name"><%=data.orderedItem.productName %></div>
+                    <div class="quantity" style="color:#007bff">Qty: <%= data.totalQuantity %></div>
                 </div>
             </div>
-            <div class="product-price" style="font-weight: bold;">₹<%=item.price *item.quantity%></div>
+            <div class="product-price" style="font-weight: bold;">₹<%=data.finalAmount%></div>
         </div>
-    <% }) %>
 </div>
 
   
@@ -163,13 +161,16 @@
       <div class="order-summary-detail"><span>Packaging Fee</span> <span style="font-weight: bold;">₹<%=data.packagingFee%></span></div>
       <div class="order-summary-detail"><span>Delivery</span> <span style="font-weight: bold;color: green;"><%=data.deliveryCharge%></span></div>
       <div class="order-summary-detail"><span>Payment Method:</span> <span style="font-weight: bold;"><%=data.paymentMethod%></span></div>
+      <%if(data.paymentMethod==='online payment'){%>
+      <div class="order-summary-detail"><span>paymentId</span> <span style="font-weight: lighter; font-size:small;color: rgb(2, 4, 2);"><%=data.paymentId%></span></div>
+      <%}%>
       <div class="order-summary-detail"><span>Coupon:</span> <span style="font-weight: bold;"><%=data.coupon?'applied':'not applied'%></span></div>
       <div class="order-summary-detail"><span>Total Amount:(inclusive of all taxes):</span> <span style="font-weight: bold;">₹<%=data.finalAmount%>.0</span></div>
     </div>
   
   <div class="order-summary-buttons">
       <button class="order-summary-btn" onclick="window.print()">Download Invoice (PDF)</button>
-      <a class="btn btn-warning " href="/shop">Continue Shopping</a>
+      <a class="btn btn-warning " href="/orderDetails?orderId=<%=data._id%>">back to orders</a>
   </div>
 </div>
 

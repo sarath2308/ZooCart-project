@@ -185,17 +185,16 @@
                     <!-- Products Ordered -->
                     <h6>Products Ordered</h6>
                     <div class="ordered-items">
-                        <%orderData.orderedItems.forEach((order)=>{%>
+
                         <div class="product-item">
-                            <a class="btn" href="/productDetails?id=<%= order.product._id %>">
-                            <img src="<%=order.product.productImage[0]%>" class="product-image" alt="<%=order.product.productName%>">
+                            <a class="btn" href="/productDetails?id=<%= orderData.orderedItem._id %>">
+                            <img src="<%=orderData.orderedItem.productImage[0]%>" class="product-image" alt="<%=orderData.orderedItem.productName%>">
                             </a>
                             <div>
-                                <p class="product-title"><%=order.product.productName%></p>
-                                <small class="text-muted">₹<%=order.product.salePrice%>| Qty:<%=order.quantity%></small>
+                                <p class="product-title"><%=orderData.orderedItem.productName%></p>
+                                <small class="text-muted">₹<%=orderData.orderedItem.salePrice%>| Qty:<%=orderData.totalQuantity%></small>
                             </div>
                         </div>
-                      <%})%>
                     </div>
 
                 </div>
@@ -405,7 +404,8 @@ document.addEventListener("DOMContentLoaded", function () {
                 </div>
 
                 <!-- Download Invoice -->
-                <button class="btn invoice-btn w-100 mt-4" id="invoice-download">📄 Download Invoice</button>
+                <a href="/orderInvoice?orderId=<%=orderData._id%>" class="btn invoice-btn w-100 mt-4" id="invoice-download">📄 Download Invoice</a>
+
 
             </div>
 
@@ -415,14 +415,9 @@ document.addEventListener("DOMContentLoaded", function () {
     <!-- JavaScript -->
     <script>
 
-        document.getElementById('add-review').addEventListener('click', function() {
-            alert("Redirecting to review section...");
-        });
-
-        document.getElementById('invoice-download').addEventListener('click', function() {
-            alert("Downloading Invoice...");
-        });
-
+          let orderId='<%=orderData._id%>'
+          console.log("orderId:"+orderId);
+          
     </script>
 
     <style>
