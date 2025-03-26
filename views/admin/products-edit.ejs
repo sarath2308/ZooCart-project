@@ -35,14 +35,144 @@
   color: black !important;
 }
 </style>
+<script>
 
+function deleteImage(imageId,productId)
+  {
+    const swalWithBootstrapButtons = Swal.mixin({
+  customClass: {
+    confirmButton: "btn btn-success",
+    cancelButton: "btn btn-danger"
+  },
+  buttonsStyling: false
+});
+swalWithBootstrapButtons.fire({
+  title: "Are you sure?",
+  text: "You won't be able to revert this!",
+  icon: "warning",
+  showCancelButton: true,
+  confirmButtonText: "Yes, delete it!",
+  cancelButtonText: "No, cancel!",
+  reverseButtons: true
+}).then((result) => {
+  if (result.isConfirmed) {
+    $.ajax({
+        url:"/admin/products/deleteImage",
+        method:"post",
+        data:{imageId:imageId,
+            productId:productId,
+        },
+        success:(response)=>
+        {
+            if(response.success)
+        {
+          swalWithBootstrapButtons.fire({
+      title: "Deleted!",
+      text: "Your file has been deleted.",
+      icon: "success"
+    }).then(()=>
+  {
+    location.reload();
+  })
+           
+        }
+        else{
+            Swal.fire({
+      title: 'error',
+      text: response.message,
+      icon: 'error',
+      toast: true,
+      position: 'top-end',
+      timer: 3000,
+    });
+        }
+        },
+        error:(response)=>
+        {
+            Swal.fire({
+      title: 'error',
+      text: response.message,
+      icon: 'error',
+      toast: true,
+      position: 'top-end',
+      timer: 3000,
+        })
+    }})
+   
+  } else if (
+    /* Read more about handling dismissals below */
+    result.dismiss === Swal.DismissReason.cancel
+  ) {
+    swalWithBootstrapButtons.fire({
+      title: "Cancelled",
+      text: "Your imaginary file is safe :)",
+      icon: "error"
+    });
+  }
+});
+    
+  }
+
+  function validateAndSubmit(images) {
+    Swal.fire({
+      title: 'error',
+      text: "function called",
+      icon: 'warning',
+      toast: true,
+      position: 'top-end',
+      timer: 3000,
+    });
+    if (validateForm(images)) {
+      Swal.fire({
+        title: 'Are you sure?',
+        text: 'You are about to publish the product!',
+        icon: 'warning',
+        showCancelButton: true,
+        confirmButtonText: 'Yes, publish!',
+        cancelButtonText: 'No, cancel'
+      }).then(result => {
+        if (result.isConfirmed) document.forms[0].submit();
+      });
+    }
+  }
+
+  function validateForm(existingImages) {
+
+    let newImagesSelected = false;
+
+    // Check if any new image has been selected
+    for (let i = 0; i < 4; i++) {
+        const fileInput = document.getElementById(`input${i}`);
+        if (fileInput && fileInput.files.length > 0) {
+            newImagesSelected = true;
+            break;
+        }
+    }
+
+    // If no existing images and no new images selected, prevent form submission
+    if (existingImages.length === 0 && !newImagesSelected) {
+      Swal.fire({
+      title: 'error',
+      text: "please choose atleast 1 image",
+      icon: 'warning',
+      toast: true,
+      position: 'top-end',
+      timer: 3000,
+    });
+        return false; // Prevent form submission
+    }
+
+    return true; // Allow form submission
+}
+
+</script>
 <section class="content-main">
   <div class="row">
     <div class="space"></div>
     <div class="col-lg-6">
       <div class="card mb-4">
         <div class="card-body">
-          <form method="post" id="productAdd" action="/admin/products/editproduct?id=<%=data._id%>" enctype="multipart/form-data" onsubmit="return validateForm()">
+          <form method="post" id="productAdd" action="/admin/products/editproduct?id=<%=data._id%>" enctype="multipart/form-data">
             <div class="mb-4">
               <label for="product_name" class="form-label">Product Name</label>
               <input type="text" placeholder="Type here" name="productName" class="form-control border" value="<%=data.productName%>" id="product_name">
@@ -108,36 +238,45 @@
                 <h4>Choose Images</h4>
               </div>
               <div class="row">
-                <% for (let i = 0; i < data.productImage.length; i++) { %>
-                  <div class="position-relative card-body align-items-center mb-4">
-                    <!-- Show existing image if available -->
-                    <% if (data.productImage[i]) { %>
-                      <img id="imgView<%= i %>" src="<%= data.productImage[i] %>" alt="Preview" style="max-width: 300px; display: block;">
-                      <!-- X mark for deleting the image -->
-                      <button type="button" class="btn-close position-absolute" style="top: 5px; right: 250px;" 
-                              onclick="deleteImage('<%=data.productImage[i]%>', '<%=data._id %>')" aria-label="Close"></button>
-                    <% } else { %>
-                      <img id="imgView<%= i %>" src="" alt="No Image" style="max-width: 300px; display: none;">
-                    <% } %>
-              
-                    <!-- File input for new image -->
-                    <input class="form-control mt-2" type="file" name="images" id="input<%= i %>" accept="image/png, image/jpeg" 
-                           onchange="viewImage(event, '<%= i %>')">
-                    
-                    <!-- Cropped image preview (initially hidden) -->
-                    <img id="croppedImg<%= i %>" class="cropped-image mt-2" style="display:none;">
-                    
-                    <!-- Save cropped image button -->
-                    <button type="button" id="saveButton<%= i %>" class="btn-sm btn-primary mt-2" style="display:none;" 
-                            onclick="saveCroppedImage('<%= i %>')">Save Cropped Image</button>
-                  </div>
+                <% for (let i = 0; i < 4; i++) { %>
+                    <div class="position-relative card-body align-items-center mb-4">
+                        <!-- Numbering for clarity -->
+                        <h5 class="image-number">Image <%= i + 1 %></h5>
+            
+                        <% if (data.productImage[i]) { %>
+                            <!-- Show existing image -->
+                            <img id="imgView<%= i %>" src="<%= data.productImage[i] %>" alt="Preview" 
+                                 style="max-width: 300px; display: block;">
+                            <!-- X mark for deleting the image -->
+                            <button type="button" class="btn-close position-absolute" style="top: 5px; right: 250px;" 
+                                    onclick="deleteImage('<%=data.productImage[i]%>', '<%=data._id %>')" 
+                                    aria-label="Close"></button>
+                        <% } else { %>
+                            <!-- Empty image slot for adding new image -->
+                            <img id="imgView<%= i %>" src="" alt="No Image" 
+                                 style="max-width: 300px; display: none;">
+                        <% } %>
+            
+                        <!-- File input to replace/add an image -->
+                        <input class="form-control mt-2" type="file" name="images" id="input<%= i %>" 
+                               accept="image/png, image/jpeg" 
+                               onchange="viewImage(event, '<%= i %>')">
+            
+                        <!-- Cropped image preview (initially hidden) -->
+                        <img id="croppedImg<%= i %>" class="cropped-image mt-2" style="display:none;">
+            
+                        <!-- Save cropped image button -->
+                        <button type="button" id="saveButton<%= i %>" class="btn-sm btn-primary mt-2" 
+                                style="display:none;" 
+                                onclick="saveCroppedImage('<%= i %>')">Save Cropped Image</button>
+                    </div>
                 <% } %>
-              </div>
-              
+            </div>
+            </div>
               
               
 
-            <button class="btn btn-md rounded btn-success hover-up" type="button" onclick="validateAndSubmit()">Publish</button>
+            <button class="btn btn-md rounded btn-success hover-up" type="button" onclick='validateAndSubmit(<%= JSON.stringify(data.productImage) %>)'>Publish</button>
           </form>
         </div>
       </div>
@@ -191,24 +330,8 @@
     croppers[index].destroy();
   }
 
-  function validateAndSubmit() {
-    if (validateForm()) {
-      Swal.fire({
-        title: 'Are you sure?',
-        text: 'You are about to publish the product!',
-        icon: 'warning',
-        showCancelButton: true,
-        confirmButtonText: 'Yes, publish!',
-        cancelButtonText: 'No, cancel'
-      }).then(result => {
-        if (result.isConfirmed) document.forms[0].submit();
-      });
-    }
-  }
 
-  function validateForm() {
-    return true;
-  }
+
   function stockCheck(stock)
   {
     if(stock>300)
@@ -221,43 +344,7 @@
     return;
   }
   }
-  function deleteImage(imageId,productId)
-  {
-    $.ajax({
-        url:"/admin/products/deleteImage",
-        method:"post",
-        data:{imageId:imageId,
-            productId:productId,
-        },
-        success:(response)=>
-        {
-            if(response.success)
-        {
-            location.reload();
-        }
-        else{
-            Swal.fire({
-      title: 'error',
-      text: response.message,
-      icon: 'error',
-      toast: true,
-      position: 'top-end',
-      timer: 3000,
-    });
-        }
-        },
-        error:(response)=>
-        {
-            Swal.fire({
-      title: 'error',
-      text: response.message,
-      icon: 'error',
-      toast: true,
-      position: 'top-end',
-      timer: 3000,
-        })
-    }})
-  }
+ 
 </script>
 
 <%- include("../../views/partials/admin/footer") %>

@@ -13,6 +13,7 @@ const bannerController=require("../controllers/admin/bannerController")
 const couponController=require("../controllers/admin/couponController")
 const orderController=require("../controllers/admin/orderController")
 const dashboardController=require("../controllers/admin/dashboardController")
+const walletController=require("../controllers/admin/walletController")
 
 
 router.get('/pageerror',adminController.pageerror)
@@ -81,5 +82,16 @@ router.patch("/orders/orderDetails/status",adminAuth,orderController.changeStatu
 
 
 //banner management
-router.get("/banners",adminAuth,bannerController.loadBannerPage)
+router
+  .get("/banners", adminAuth, bannerController.loadBannerPage)
+  .post("/banners/add", adminAuth, upload.single("image"), bannerController.addBanner)
+  
+  router.delete("/banners", adminAuth, bannerController.deleteBanner);
+
+// wallet management
+router
+     .get("/wallet",adminAuth,walletController.loadWallet)
+     .get("/wallet/paymentDetails",adminAuth,walletController.paymentDetails)
+
+
 module.exports=router;

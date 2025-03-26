@@ -1,0 +1,210 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Payment Details</title>
+    <style>
+        body {
+            font-family: 'Arial', sans-serif;
+            background-color: #f4f4f9;
+            margin: 0;
+            padding: 20px;
+        }
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            background: #fff;
+            padding: 20px;
+            border-radius: 10px;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+        }
+        h1 {
+            text-align: center;
+            color: #333;
+            margin-bottom: 20px;
+        }
+        .btn-container {
+            text-align: left;
+            margin-bottom: 15px;
+        }
+        .btn {
+            display: inline-block;
+            text-decoration: none;
+            padding: 10px 15px;
+            border-radius: 5px;
+            font-weight: bold;
+            transition: 0.3s;
+        }
+        .btn-back {
+            background-color: #6c757d;
+            color: white;
+        }
+        .btn-back:hover {
+            background-color: #5a6268;
+        }
+        .order-card {
+            background: #fff;
+            padding: 15px;
+            border-radius: 10px;
+            box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+            margin-bottom: 20px;
+        }
+        .order-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            border-bottom: 1px solid #ddd;
+            padding-bottom: 10px;
+            margin-bottom: 10px;
+        }
+        .user-info {
+            font-size: 14px;
+            color: #555;
+        }
+        .order-status {
+            padding: 5px 10px;
+            border-radius: 5px;
+            font-size: 14px;
+            font-weight: bold;
+            color: white;
+        }
+        .status-pending { background-color: #ffc107; }
+        .status-processing { background-color: #17a2b8; }
+        .status-shipped { background-color: #007bff; }
+        .status-delivered { background-color: #28a745; }
+        .status-cancelled { background-color: #dc3545; }
+        .status-return { background-color: #ff851b; }
+        
+        .product-list {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 10px;
+        }
+        .product-card {
+            width: calc(33.33% - 10px);
+            background: #f9f9f9;
+            padding: 10px;
+            border-radius: 5px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+        .product-card img {
+            width: 50px;
+            height: 50px;
+            object-fit: cover;
+            border-radius: 5px;
+        }
+        .product-info {
+            font-size: 14px;
+            color: #333;
+        }
+        .order-footer {
+            margin-top: 10px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        .btn-details {
+            background-color: #007bff;
+            color: white;
+            padding: 7px 10px;
+            border-radius: 5px;
+            text-decoration: none;
+            font-size: 14px;
+        }
+        .btn-details:hover {
+            background-color: #0056b3;
+        }
+        .order-status-large {
+            text-align: center;
+            margin-top: 10px;
+            font-size: 16px;
+            font-weight: bold;
+            padding: 8px;
+            border-radius: 5px;
+            color: white;
+        }
+        .wallet-status {
+            text-align: center;
+            margin-bottom: 20px;
+            font-size: larger;
+            font-weight: bolder;
+        }
+        @media (max-width: 768px) {
+            .product-card {
+                width: 100%;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>Payment Details</h1>
+
+        <div class="btn-container">
+            <a href="javascript:history.back()" class="btn btn-back">← Back</a>
+        </div>
+
+        <% if (message) { %>
+            <p class="error"><%= message %></p>
+        <% } else { %>
+
+            <!-- Wallet Transaction Status (Displayed ONCE) -->
+            <div class="wallet-status">
+                <% if (status === 'credited') { %>
+                    <span style="color: #28a745;">✅ Credited to Wallet</span>
+                <% } else { %>
+                    <span style="color: #f71414;">❌ Debited from Wallet</span>
+                <% } %>
+            </div>
+
+            <% orders.forEach(order => { %>
+                <div class="order-card">
+                    <div class="order-header">
+                        <div>
+                            <strong>Order ID:</strong> <%= order.cartId ? order.cartId : order.uniqueId %><br>
+                            <span class="user-info">
+                                <strong>User:</strong> <%= order.userId?.name || "N/A" %> |
+                                <%= order.userId?.email || "N/A" %>
+                            </span>
+                        </div>
+                    </div>
+
+                    <div class="product-list">
+                        <% order.orderedItems.forEach(item => { %>
+                            <div class="product-card">
+                                <% if (item.product.productImage) { %>
+                                    <img src="<%= item.product.productImage[0] %>" alt="Product Image">
+                                <% } %>
+                                <div class="product-info">
+                                    <strong><%= item.product.productName %></strong><br>
+                                    ₹<%= item.product.price %> (Qty: <%= item.quantity %>)
+                                </div>
+                            </div>
+                        <% }); %>
+                    </div>
+
+                    <div class="order-footer">
+                        <strong>Total: ₹<%= order.finalAmount %></strong>
+                        <a href="/admin/orders/order-details?orderId=<%= order._id %>" class="btn-details">View Order Details</a>
+                    </div>
+
+                    <!-- Large Status Display Below Order -->
+                    <div class="order-status-large 
+                        <%= order.status === 'pending' ? 'status-pending' : 
+                            order.status === 'processing' ? 'status-processing' :
+                            order.status === 'shipped' ? 'status-shipped' :
+                            order.status === 'delivered' ? 'status-delivered' :
+                            order.status === 'cancelled' ? 'status-cancelled' :
+                            order.status.includes('Return') ? 'status-return' : '' %>">
+                        Order Status: <%= order.status %>
+                    </div>
+
+                </div>
+            <% }); %>
+        <% } %>
+    </div>
+</body>
+</html>

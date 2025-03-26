@@ -10,18 +10,25 @@ const reviewSchema=new Schema({
         type:String,
         required:true,
     },
-    link:
+    rating:
     {
-        type:String
+       type:Number,
+       required:true
     },
-    startDate:{
+    userId:{
+        type:Schema.Types.ObjectId,
+        ref:"User",
+        required:true 
+    },
+    date:{
         type:Date,
-        required:true,
+        default:Date.now
     },
-    endDate:{
-        type:Date,
-        required:true
-    },
+    productId:{
+        type:Schema.Types.ObjectId,
+        ref:"Product",
+        required:true 
+    }
 })
-const Banner=mongoose.model("Banner",bannerSchema)
-module.exports=Banner;
+const Review=mongoose.model("Reviews",reviewSchema)
+module.exports=Review;

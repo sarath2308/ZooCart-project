@@ -1,4 +1,5 @@
 <%-include("../../views/partials/user/header.ejs")%>
+<script src="https://checkout.razorpay.com/v1/checkout.js"></script>
 
   <style>
   /* Global Styles */
@@ -309,6 +310,15 @@
     .debit {
       color: #e53935;
     }
+
+    #toast-container > .toast-error {
+            background-color: #dc3545 !important;
+            border-radius: 8px;
+        }
+#toast-container > .toast-warning {
+            background-color: #ffc107 !important;
+            border-radius: 8px;
+        }
 
   </style>
   <div class="row">
@@ -828,67 +838,228 @@
           <section id="my-orders" class="tab-content hidden">
             <h2>Your Orders</h2>
             <% if (orders && orders.length > 0) { %>
-                <% orders.forEach(function(order) { %>
-                    <div class="order-container">
-                        <div class="order-header">
-                            <span><strong>Order ID:</strong> <%= order.readableOrderId %></span>
-                            <% let statusClass = ''; %>
-                            <% switch(order.status) { 
-                                case 'pending': statusClass = 'status-pending'; break;
-                                case 'processing': statusClass = 'status-processing'; break;
-                                case 'shipped': statusClass = 'status-shipped'; break;
-                                case 'delivered': statusClass = 'status-delivered'; break;
-                                case 'cancelled': statusClass = 'status-cancelled'; break;
-                                case 'Return Request': statusClass = 'status-return-request'; break;
-                                case 'Returned': statusClass = 'status-returned'; break;
-                                case 'Return Rejected': statusClass = 'status-returnRejected'; break;
-                            } %>
-                            
-                            <span class="order-status <%= statusClass %>">
-                                <strong>Status:</strong> <%= order.status %>
-                            </span>
-                            
-                        </div>
-        
-                        <div class="order-content">
-                            <!-- Ordered Items (Dynamically Layout) -->
-                            <div class="ordered-items">
-                                    <div class="ordered-item">
-                                        <% if (order.orderedItem && order.orderedItem.productImage) { %>
-                                            <a href="/productDetails?id=<%=order.orderedItem._id%>" class="btn">
-                                                <img src="<%= order.orderedItem.productImage[0] %>" 
-                                                     alt="<%= order.orderedItem.productName %>" 
-                                                     class="product-image">
-                                            </a>
-                                        <% } else { %>
-                                            <img src="/images/default-product.png" alt="No image" class="product-image">
-                                        <% } %>
-                                        <div class="product-details">
-                                            <p><strong>Product:</strong> <%= order.orderedItem ? order.orderedItem.productName : 'Unknown Product' %></p>
-                                            <p><strong>Price:</strong> ₹<%= order.finalAmount %></p>
-                                            <p><strong>Quantity:</strong> <%= order.totalQuantity%></p>
-                                        </div>
-                                    </div>
+              <% orders.forEach(function(order) { %>
+                <div class="order-container">
+                  <div class="order-header">
+                    <span>
+                      <strong>Order ID:</strong> <%= order.readableOrderId %>
+                    </span>
+                    <% if (order.paymentStatus) { %>
+                      <% let statusClass = ''; %>
+                      <% switch(order.status) { 
+                           case 'pending': statusClass = 'status-pending'; break;
+                           case 'processing': statusClass = 'status-processing'; break;
+                           case 'shipped': statusClass = 'status-shipped'; break;
+                           case 'delivered': statusClass = 'status-delivered'; break;
+                           case 'cancelled': statusClass = 'status-cancelled'; break;
+                           case 'Return Request': statusClass = 'status-return-request'; break;
+                           case 'Returned': statusClass = 'status-returned'; break;
+                           case 'Return Rejected': statusClass = 'status-returnRejected'; break;
+                         } %>
+                      <span class="order-status <%= statusClass %>">
+                        <strong>Status:</strong> <%= order.status %>
+                      </span>
+                    <% } else { %>
+                      <span class="order-status status-pending">
+                        <strong>Status:</strong> Payment Pending
+                      </span>
+                    <% } %>
+                  </div>
+          
+                  <div class="order-content">
+                    <!-- Ordered Items List -->
+                    <div class="ordered-items">
+                      <% if(order.orderedItems && order.orderedItems.length > 0) { %>
+                        <% order.orderedItems.forEach(function(item) { %>
+                          <div class="ordered-item">
+                            <% if (item.product && item.product.productImage && item.product.productImage[0]) { %>
+                              <a href="/productDetails?id=<%= item.product._id %>" class="btn">
+                                <img src="<%= item.product.productImage[0] %>" 
+                                     alt="<%= item.product.productName %>" 
+                                     class="product-image">
+                              </a>
+                            <% } else { %>
+                              <img src="/images/default-product.png" alt="No image" class="product-image">
+                            <% } %>
+                            <div class="product-details">
+                              <p>
+                                <strong>Product:</strong> 
+                                <%= item.product ? item.product.productName : 'Unknown Product' %>
+                              </p>
+                              <p><strong>Price:</strong> ₹<%= item.price %></p>
+                              <p><strong>Quantity:</strong> <%= item.quantity %></p>
                             </div>
-        
-                            <!-- Order Info (Status & Delivery Date) -->
-                            <div class="order-info">
-                                <% 
-                                    const invoiceDate = new Date(order.invoiceDate);
-                                    invoiceDate.setDate(invoiceDate.getDate() + 4);
-                                %>
-                                <%if(order.status!=='Returned'&&order.status!=='cancelled'&&order.status!=='Return Request'&&order.status!=='Return Rejected'&&order.status!=='delivered'){%>
-                                <p style="font-weight: bolder;"><strong style="color:green">Expected Delivery:</strong> <%= invoiceDate.toLocaleDateString() %></p>
-                                <%}%>
-                              <a class="btn btn-warning" href="/orderDetails?orderId=<%=order._id%>">order details</a>
-                            </div>
-                        </div>
+                          </div>
+                        <% }); %>
+                      <% } else { %>
+                        <p>No products found in this order.</p>
+                      <% } %>
                     </div>
-                <% }); %>
+          
+                    <!-- Order Info or Payment Button -->
+                    <div class="order-info">
+                      <% 
+                        // For Cash on Delivery, do not show the "Complete Payment" button
+                        if (!order.paymentStatus && order.paymentMethod !== 'Cash on Delivery') { 
+                      %>
+                        <!-- Show "Complete Payment" button if payment is pending and not COD -->
+                        <button class="btn btn-danger complete-payment-btn" onclick="retryPayment('<%= order._id %>')">
+                          Complete Payment
+                        </button>
+                      <% } else { %>
+                        <% 
+                          const invoiceDate = new Date(order.invoiceDate);
+                          invoiceDate.setDate(invoiceDate.getDate() + 4);
+                        %>
+                        <% if(order.status !== 'Returned' && order.status !== 'cancelled' && order.status !== 'Return Request' && order.status !== 'Return Rejected' && order.status !== 'delivered') { %>
+                          <p style="font-weight: bolder;">
+                            <strong style="color:green">Expected Delivery:</strong> <%= invoiceDate.toLocaleDateString() %>
+                          </p>
+                        <% } %>
+                        <a class="btn btn-warning" href="/orderDetails?orderId=<%= order._id %>">Order Details</a>
+                      <% } %>
+                    </div>
+                  </div>
+                </div>
+              <% }); %>
             <% } else { %>
-                <p>You have no orders yet.</p>
+              <p>You have no orders yet.</p>
             <% } %>
-        </section>
+          </section>
+          
+          
+          
+          <script>
+         toastr.options = {
+            "closeButton": true,
+            "progressBar": true,
+            "positionClass": "toast-top-right",
+            "timeOut": "4000",
+            "extendedTimeOut": "1000",
+            "showEasing": "swing",
+            "hideEasing": "linear",
+            "showMethod": "slideDown",
+            "hideMethod": "slideUp",
+            "preventDuplicates": true,
+            "newestOnTop": true
+        };
+  function retryPayment(orderId) {
+              
+  $.ajax({
+  url: `/api/orders/retry-payment?orderId=${orderId}`,
+  type: 'GET',
+  success: function (response) {
+    if (response.success) {
+        const options = {
+          key: response.razorpay_key, // Razorpay API key
+          amount: response.order.amount, 
+          currency: response.order.currency,
+          order_id: response.order.id,
+          name: "ZooCart",
+          description: "Retry Payment",
+          handler: function (res) {
+            console.log("Retry Payment ID:", res.razorpay_payment_id);
+
+            // Verify Payment on Server
+            verifyPayment(res, orderId);
+          },
+          modal: {
+            ondismiss: function () {
+              toastr.error("Payment Failed! Please Try Again later.", "Error");
+            },
+          },
+          prefill: {
+            name: response.user.name,
+            email: response.user.email,
+            contact: response.user.phone,
+          },
+        };
+
+        const rzp = new Razorpay(options);
+        rzp.open();
+      } else {
+        toastr.error("Payment Failed! Please Try Again later.", "Error");
+      }
+    },
+    error: function (err) {
+    console.error('Error placing order:', err);
+
+    // Ensure err.responseJSON exists and contains a message
+    if (err.responseJSON && err.responseJSON.message &&  err.responseJSON.refresh) {
+      Swal.fire({
+            title: 'warning',
+            text: err.responseJSON.message,
+            icon: 'warning',
+            toast: true,
+            position: 'top-end',
+            timer: 3000,
+            showConfirmButton: false,
+        }).then(()=>
+      {
+        location.reload()
+      })
+     
+    } else {
+        Swal.fire({
+            title: 'Error',
+            text: 'There was an error placing your order. Please try again.',
+            icon: 'error',
+            toast: true,
+            position: 'top-end',
+            timer: 3000,
+            showConfirmButton: false,
+        });
+    }
+},
+})
+}
+function verifyPayment(response,orderId) {
+  $.ajax({
+    url: '/api/orders/verifyPayment',
+    type: 'POST',
+    contentType: 'application/json',
+    data: JSON.stringify({
+      orderId:orderId,
+      razorpay_payment_id: response.razorpay_payment_id,
+      razorpay_order_id: response.razorpay_order_id,
+      razorpay_signature: response.razorpay_signature,
+    }),
+    success: function (verificationResult) {
+      if (verificationResult.success) {
+        
+        window.location.href = '/order-placed'; // Redirect to success page
+      } else {
+        // Payment verification failed
+       
+      }
+    },
+    error: function (err) {
+    console.error('Error placing order:', err);
+
+    // Ensure err.responseJSON exists and contains a message
+    if (err.responseJSON && err.responseJSON.message &&  err.responseJSON.refresh) {
+      toastr.warning(err.responseJSON.message, "Warning").then(()=>
+    {
+      location.reload();
+    })
+
+    } else {
+        Swal.fire({
+            title: 'Error',
+            text: 'There was an error placing your order. Please try again.',
+            icon: 'error',
+            toast: true,
+            position: 'top-end',
+            timer: 3000,
+            showConfirmButton: false,
+        });
+    }
+},
+})
+}
+          </script>
+          
+        
 
         <section id="wallet" class="wallet-section tab-content hidden">
           <!-- User Details -->
@@ -935,7 +1106,7 @@
                     <%if(pay.paymentFlow){%>
                       <span style="color: green;">+<%=pay.amount%></span>
                      <%}else{%>
-                       <span style="color: red;">+<%=pay.amount%> </span> 
+                       <span style="color: red;">-<%=pay.amount%> </span> 
                       <%}%>
                   </td>
                   <%if(pay.paymentFlow){%>

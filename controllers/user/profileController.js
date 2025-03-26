@@ -11,6 +11,8 @@ const Brand=require("../../models/BrandSchema.js")
 const env=require("dotenv").config();
 const bcrypt=require("bcrypt")
 const Wallet=require("../../models/walletSchema.js")
+const transactionIdGenerator=require("../../helpers/transactionId.js")
+const Review=require("../../models/reviewSchema.js")
 
 
 
@@ -500,7 +502,10 @@ const deleteAddress = async (req, res) => {
         const userId= req.session.user || (req.user && req.user._id);
         const userData=await User.findById({_id:userId})
         const orderId=req.query.orderId;
-        const orderData=await Order.findById({_id:orderId}).populate("orderedItem")
+        const orderData=await Order.findById({_id:orderId}).populate("orderedItems.product")
+        console.log("order Data is"+orderData);
+        const reviewData=await Review.findOne({orderId})
+        
         const addressId=orderData.address;
         const addressData=await Address.findOne({userId:userId})
         let deliveryAddress;
@@ -532,6 +537,7 @@ const deleteAddress = async (req, res) => {
                 userData,
                 readableId:readableOrderId,
                 deliveryAddress,
+                reviewData
             }
         )
         
@@ -549,11 +555,12 @@ const deleteAddress = async (req, res) => {
         const { orderId } = req.body;
         const userId= req.session.user || (req.user && req.user._id);
         const wallet=await Wallet.findOne({userId:userId})
+        let uniqueId;
 
         console.log("Request received to update order status");
 
         // Find the order by ID
-        const orderData = await Order.findById(orderId).populate("orderedItem");
+        const orderData = await Order.findById(orderId).populate("orderedItems.product");
 
         if (!orderData) {
             return res.status(404).json({ success: false, message: "Order not found" });
@@ -562,12 +569,19 @@ const deleteAddress = async (req, res) => {
         // If the order is being canceled, add the ordered quantity back to the product stock
 
            
-                const product =await Product.findById({_id:orderData.orderedItem._id})
+                const product =await Product.findById({_id:orderData.orderedItems[0].product._id})
                 if (product) {
                     product.quantity += orderData.totalQuantity;
                     await product.save();
                 }
-
+              if(orderData.cartId)
+              {
+               uniqueId=orderData.cartId
+              }
+              else
+              {
+               uniqueId=orderData.uniqueId;
+              }
                 if(wallet)
                     {
                         const payment={
@@ -575,7 +589,8 @@ const deleteAddress = async (req, res) => {
                             paymentFlow:true,
                             description:"order refund",
                             status:'credited',
-                            orderId:orderData._id,
+                            orderId:uniqueId,
+                            transactionId:transactionIdGenerator.generateTransactionId()
                         }
                         wallet.balance+=orderData.finalAmount;
                         wallet.paymentHistory.push(payment)
@@ -588,7 +603,8 @@ const deleteAddress = async (req, res) => {
                         paymentFlow:true,
                         description:"order refund",
                         status:'credited',
-                        orderId:orderData._id,
+                        orderId:uniqueId,
+                        transactionId:transactionIdGenerator.generateTransactionId()
                     }
                     const newWallet=new Wallet({
                         userId:userId,
@@ -619,7 +635,7 @@ const deleteAddress = async (req, res) => {
         console.log("Request received to return Ordrer");
 
         // Find the order by ID
-        const orderData = await Order.findById(orderId).populate("orderedItem");
+        const orderData = await Order.findById(orderId).populate("orderedItems.product");
 
         if (!orderData) {
             return res.status(404).json({ success: false, message: "Order not found" });
@@ -640,6 +656,64 @@ const deleteAddress = async (req, res) => {
     }
 
  }
+
+
+
+ const addReview=async(req,res)=>
+ {
+  try {
+    const userId= req.session.user || (req.user && req.user._id);
+    const {rating,review,orderId}=req.body;
+
+    const orderData=await Order.findById(orderId)
+    if(!orderData)
+    {
+        return res.status(404).json({success:false,message:"order not found"})
+    }
+    const newReview=await new Review({
+        userId,
+        rating,
+        review,
+        productId:orderData.orderedItems[0].product,
+        orderId
+
+    })
+    await newReview.save()
+
+    return res.status(200).json({success:true,message:"review added"})
+
+  } catch (error) {
+    console.log("error occured in review adding"+error);
+    return res.status(500).json({success:false,message:"server error occured"})
+    
+  }
+ }
+
+
+ const editReview=async(req,res)=>
+ {
+    try {
+        const {orderId,rating,review,id}=req.body;
+        const orderData=await Order.findById(orderId)
+        if(!orderData)
+        {
+            return res.status(404).json({success:false,message:"order not found"})
+        }
+        const reviewData=await Review.findById(id)
+        reviewData.rating=rating;
+        reviewData.review=review;
+        await reviewData.save()
+
+        return res.status(200).json({success:true,message:"review edited"})
+    } catch (error) {
+        console.log("error occured while editing review"+error);
+        return res.status(500).json({message:"server error"})
+        
+        
+    }
+ }
+
+
 module.exports=
 {
     updateProfile,
@@ -656,4 +730,6 @@ module.exports=
     cancelOrder,
     resendOtp,
     returnOrder,
+    addReview,
+    editReview
 };

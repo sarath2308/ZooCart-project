@@ -12,11 +12,21 @@ const orderSchema=new Schema({
    ref:'User',
    required:true,
    },
-   orderedItem:{
+   orderedItems:[{
+    product:{
         type:Schema.Types.ObjectId,
         ref:"Product",
         required:true,
     },
+    quantity:{
+      type:Number,
+      default:0
+    },
+    price:{
+      type:Number,
+      default:0
+    }
+}],
    totalPrice:{
     type:Number,
     required:true
@@ -90,7 +100,7 @@ const orderSchema=new Schema({
    },
    uniqueId:{
     type:Number,
-    unique:true,
+    default:0,
    }
 
 })

@@ -5,6 +5,33 @@
     <!-- Hero Section Begin -->
     <section class="hero">
         <div class="hero__slider owl-carousel">
+            <%if(bannerData.banner1){%>
+                
+            <div class="hero__items set-bg" data-setbg="<%=bannerData.banner1.image%>" style="background-size: cover; background-position: center center;">
+                <div class="container">
+                    <div class="row">
+                        <div class="col-xl-5 col-lg-7 col-md-8">
+                            <div class="hero__text">
+                                <h6>iPhone Collection</h6>
+                                <h2>iPhone 14 Series - 2030</h2>
+                                <p>Discover the new iPhone with cutting-edge features and design that will elevate your experience.</p>
+                                <%if(bannerData.banner1.product){%>
+                                <a href="/productDetails?id=<%=bannerData.banner1.product%>" class="primary-btn btn-info">Shop now <span class="arrow_right"></span></a>
+                                <%}else{%>
+                                    <a href="#" class="primary-btn btn-info">Shop now <span class="arrow_right"></span></a>
+                                    <%}%>
+                                <div class="hero__social">
+                                    <a href="#"><i class="fa fa-facebook"></i></a>
+                                    <a href="#"><i class="fa fa-twitter"></i></a>
+                                    <a href="#"><i class="fa fa-pinterest"></i></a>
+                                    <a href="#"><i class="fa fa-instagram"></i></a>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <%}else{%>
            
             <div class="hero__items set-bg" data-setbg="uploads/re-image/iphoneinsta.jpg" style="background-size: cover; background-position: center center;">
                 <div class="container">
@@ -26,7 +53,11 @@
                     </div>
                 </div>
             </div>
-        <div class="hero__items set-bg" data-setbg="uploads/re-image/banner3.jpg" style="background-size: cover; background-position: center center;">
+            <%}%>
+
+            <!--banner 2-->
+            <%if(bannerData.banner2){%>
+                <div class="hero__items set-bg" data-setbg="<%=bannerData.banner2.image%>" style="background-size: cover; background-position: center center;"></div>
             <div class="container">
                 <div class="row">
                     <div class="col-xl-5 col-lg-7 col-md-8">
@@ -34,7 +65,11 @@
                             <h6>Summer Collection</h6>
                             <h2>Fall - Winter Collections 2030</h2>
                             <p>Experience the luxury of our new collections with exceptional quality and design.</p>
-                            <a href="#" class="primary-btn btn-info">Shop now <span class="arrow_right"></span></a>
+                            <%if(bannerData.banner2.product){%>
+                                <a href="/productDetails?id=<%=bannerData.banner2.product%>" class="primary-btn btn-info">Shop now <span class="arrow_right"></span></a>
+                                <%}else{%>
+                                    <a href="#" class="primary-btn btn-info">Shop now <span class="arrow_right"></span></a>
+                                    <%}%>
                             <div class="hero__social">
                                 <a href="#"><i class="fa fa-facebook"></i></a>
                                 <a href="#"><i class="fa fa-twitter"></i></a>
@@ -45,6 +80,27 @@
                     </div>
                 </div>
             </div>
+            <%}else{%>
+                <div class="container">
+                    <div class="row">
+                        <div class="col-xl-5 col-lg-7 col-md-8">
+                            <div class="hero__text">
+                                <h6>Summer Collection</h6>
+                                <h2>Fall - Winter Collections 2030</h2>
+                                <p>Experience the luxury of our new collections with exceptional quality and design.</p>
+                                <a href="#" class="primary-btn btn-info">Shop now <span class="arrow_right"></span></a>
+                                <div class="hero__social">
+                                    <a href="#"><i class="fa fa-facebook"></i></a>
+                                    <a href="#"><i class="fa fa-twitter"></i></a>
+                                    <a href="#"><i class="fa fa-pinterest"></i></a>
+                                    <a href="#"><i class="fa fa-instagram"></i></a>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <%}%>
+
         </div>
     </div>
 </div>
@@ -83,6 +139,23 @@
     <section class="banner spad">
         <div class="container">
             <div class="row">
+                <%if(bannerData.banner3){%>
+                <div class="col-lg-7 offset-lg-4">
+                    <div class="banner__item">
+                        <div class="banner__item__pic">
+                            <img src="<%=bannerData.banner3.image%>" alt="">
+                        </div>
+                        <div class="banner__item__text">
+                            <h2>Android Collections 2030</h2>
+                            <%if(bannerData.banner3.product){%>
+                            <a style="color:#091db1;"href="/productDetails?id=<%=bannerData.banner3.product%>">Shop now</a>
+                            <%}else{%>
+                                <a style="color:#091db1;"href="#">Shop now</a>
+                                <%}%>
+                        </div>
+                    </div>
+                </div>
+              <%}else{%>
                 <div class="col-lg-7 offset-lg-4">
                     <div class="banner__item">
                         <div class="banner__item__pic">
@@ -94,28 +167,66 @@
                         </div>
                     </div>
                 </div>
+                <%}%>
+                <%if(bannerData.banner4){%>
                 <div class="col-lg-5">
                     <div class="banner__item banner__item--middle">
                         <div class="banner__item__pic">
-                            <img src="uploads/re-image/banner6.jpg" alt="">
+                            <img src="<%=bannerData.banner4.image%>" alt="">
                         </div>
                         <div class="banner__item__text">
                             <h2>Flagships</h2>
-                            <a href="#" style="color:#091db1;">Shop now</a>
+                            <%if(bannerData.banner4.product){%>
+                            <a href="/productDetails?id=<%=bannerData.banner4.product%>" style="color:#091db1;">Shop now</a>
+                            <%}else{%>
+                                <a href="#" style="color:#091db1;">Shop now</a>
+                                <%}%>
                         </div>
                     </div>
                 </div>
+                <%}else{%>
+                    <div class="col-lg-5">
+                        <div class="banner__item banner__item--middle">
+                            <div class="banner__item__pic">
+                                <img src="uploads/re-image/banner6.jpg" alt="">
+                            </div>
+                            <div class="banner__item__text">
+                                <h2>Flagships</h2>
+                                <a href="#" style="color:#091db1;">Shop now</a>
+                            </div>
+                        </div>
+                    </div>
+                    <%}%>
+
+                    <%if(bannerData.banner5){%>
                 <div class="col-lg-7">
                     <div class="banner__item banner__item--last">
                         <div class="banner__item__pic">
-                            <img src="uploads/re-image/iphoneinsta.jpg" alt="">
+                            <img src="<%=bannerData.banner5.image%>" alt="">
                         </div>
                         <div class="banner__item__text">
                             <h2>ios devices 2030</h2>
-                            <a href="#" style="color:#091db1;">Shop now</a>
+                            <%if(bannerData.banner5.product){%>
+                            <a href="/productDetails?id=<%=bannerData.banner5.product%>" style="color:#091db1;">Shop now</a>
+                            <%}else{%>
+                                <a href="" style="color:#091db1;">Shop now</a>
+                                <%}%>
                         </div>
                     </div>
                 </div>
+                <%}else{%>
+                    <div class="col-lg-7">
+                        <div class="banner__item banner__item--last">
+                            <div class="banner__item__pic">
+                                <img src="uploads/re-image/iphoneinsta.jpg" alt="">
+                            </div>
+                            <div class="banner__item__text">
+                                <h2>ios devices 2030</h2>
+                                <a href="#" style="color:#091db1;">Shop now</a>
+                            </div>
+                        </div>
+                    </div>
+                    <%}%>
             </div>
         </div>
     </section>

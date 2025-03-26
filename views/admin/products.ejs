@@ -297,7 +297,6 @@ try {
         {
             if(response.success)
         {
-            location.reload()
             Swal.fire({
       title: 'product Blocked',
       text: 'successfully blocked product',
@@ -305,7 +304,10 @@ try {
       toast: true,
       position: 'top-end',
       timer: 3000,
-    });
+    }).then(()=>
+  {
+    location.reload()
+  })
         }
         else
         {
@@ -373,7 +375,6 @@ try {
         {
             if(response.success)
         {
-            location.reload()
             Swal.fire({
       title: 'product unblocked',
       text: 'successfully unblocked product',
@@ -381,7 +382,10 @@ try {
       toast: true,
       position: 'top-end',
       timer: 3000,
-    });
+    }).then(()=>
+  {
+    location.reload()
+  })
         }
         else
         {

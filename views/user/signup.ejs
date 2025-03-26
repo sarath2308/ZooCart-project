@@ -92,83 +92,18 @@
 		</div>
 	</div>
 </div>
+<p class="hide" id="refer">Do you have a referral code?<a class="referBtn" id="referBtn">Click here</a></p>
+<input type="text" class="referalCode hide" id="referalCode" name="referalCode">
 <style>
-	/* Dropdown container */
-	.dropdown {
-		position: relative;
-		display: inline-block;
-		margin-top: 20px;
-	}
-
-	/* Dropdown button */
-	.dropdown-btn {
-		background-color:#091db1;
-		color: white;
-		padding: 10px 15px;
-		font-size: 16px;
-		border: none;
-		border-radius: 5px;
-		cursor: pointer;
-		transition: 0.3s;
-	}
-
-	/* Hover effect */
-	.dropdown-btn:hover {
-		background-color: #df2110;
-	}
-
-	/* Dropdown content */
-	.dropdown-content {
+	.hide
+	{
 		display: none;
-		position: absolute;
-		background-color: white;
-		min-width: 160px;
-		box-shadow: 0px 4px 8px rgba(0, 0, 0, 0.2);
-		border-radius: 5px;
-		z-index: 1;
-		overflow: hidden;
-	}
-
-	/* Dropdown items */
-	.dropdown-content a {
-		color: #333;
-		padding: 10px 15px;
-		text-decoration: none;
-		display: block;
-		transition: 0.3s;
-	}
-
-	/* Hover effect for items */
-	.dropdown-content a:hover {
-		background-color: #f1f1f1;
-	}
-
-	/* Show dropdown on click */
-	.dropdown.active .dropdown-content {
-		display: block;
 	}
 </style>
 </head>
-<body>
-
-
-<script>
-	document.querySelector(".dropdown-btn").addEventListener("click", function () {
-		document.querySelector(".dropdown").classList.toggle("active");
-	});
-
-	// Close dropdown if clicked outside
-	document.addEventListener("click", function (event) {
-		if (!document.querySelector(".dropdown").contains(event.target)) {
-			document.querySelector(".dropdown").classList.remove("active");
-		}
-	});
-</script>
-
 <head>
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.3/css/all.min.css" rel="stylesheet">
 </head>
 <script src="js/signup.js"></script>
 <script src="js/validate.js"></script>
-</body>
 </html>

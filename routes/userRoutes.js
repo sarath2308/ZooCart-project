@@ -51,6 +51,8 @@ router.get("/orderDetails",userAuth,profileController.orderDetails)
 router.patch("/api/userProfile/orders/orderDetails/cancelOrder",userAuth,profileController.cancelOrder)
 router.post("/userProfile/resendOtp",userAuth,profileController.resendOtp)
 router.patch("/api/userProfile/orders/orderDetails/returnOrder",userAuth,profileController.returnOrder)
+router.post("/api/userProfile/orders/orderDetails/addReview",userAuth,profileController.addReview)
+router.patch("/api/userProfile/orders/orderDetails/editReview",userAuth,profileController.editReview)
 
 // address management 
 
@@ -78,10 +80,12 @@ router.post("/api/coupons/remove",userAuth,checkoutController.removeCoupon)
 router.post("/api/addresses",userAuth,profileController.addAddress)
 router.post("/api/orders/placeOrder",userAuth,checkoutController.placeOrder)
 router.get("/order-placed",userAuth,checkoutController.orderPlaced)
-router.get("/order-unsuccess",userAuth,checkoutController.orderNotPlaced)
 router.get("/orderInvoice",userAuth,checkoutController.invoiceData)
 router.post("/api/orders/verifyPayment",userAuth,checkoutController.verifyPayment)
 
+
+//Retry payment
+router.get("/api/orders/retry-payment",userAuth,checkoutController.getRetryData)
 
 
 

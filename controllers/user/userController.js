@@ -11,6 +11,7 @@ const Cart=require("../../models/cartSchema.js")
 const env=require("dotenv").config();
 const bcrypt=require("bcrypt")
 const Wallet=require("../../models/walletSchema.js")
+const Banner=require("../../models/bannerSchema.js")
 
 const loadHomePage=async(req,res)=>
 {
@@ -18,6 +19,25 @@ const loadHomePage=async(req,res)=>
         console.log(req.session.user);
         
         const category=await Category.find({isListed:true})
+        const banners = await Banner.find().sort({ position: 1 });
+
+        const bannerData = {
+            banner1: null,
+            banner2: null,
+            banner3: null,
+            banner4: null,
+            banner5: null
+        };
+        
+        // Assign banners to their respective positions
+        banners.forEach(banner => {
+            if (banner.position >= 1 && banner.position <= 5) {
+                bannerData[`banner${banner.position}`] = banner;
+            }
+        });
+        
+        console.log(bannerData);
+        
         const products= await Product.find({
             isBlocked:false,
             category:{$in:category.map((cat)=>cat._id)},
@@ -32,11 +52,12 @@ const loadHomePage=async(req,res)=>
                 user:userData,
                 products:products,
                 category:category,
+                bannerData,
         })
         }  
         else
         {
-            return res.render('home',{user:'',products:products,category:category});
+            return res.render('home',{bannerData,user:'',products:products,category:category});
           }
 }
     catch(err)
@@ -579,7 +600,7 @@ console.log(userWallet);
       const orders = await Order.find({ _id: { $in: data.orderHistory } })
         .populate("address") 
         .populate({
-          path: "orderedItem", 
+          path: "orderedItems.product", 
           model: "Product",
         }).sort({createdOn:-1})
         let ordersWithReadableId =[]
@@ -639,8 +660,10 @@ console.log(userWallet);
         quantity: { $gt: 0 }
       };
   
-  
-      // Fetch products with filters, sorting, and pagination
+      const result = await Product.updateMany(
+        { quantity: { $lte: 0 } }, // Condition: Quantity is less than or equal to 0
+        { $set: { status: 'Out of Stock' } } // Update: Set status to 'Out of Stock'
+    );
       const products = await Product.find(filter).limit(limit);
       const totalProducts = await Product.countDocuments(filter);
       const totalPages = Math.ceil(totalProducts / limit);
@@ -694,7 +717,7 @@ console.log(userWallet);
       }
   
       // Build the filter object
-      const filter = {};
+      const filter = {isBlocked:false};
   
       if (query) {
         filter.productName = { $regex: query, $options: 'i' };

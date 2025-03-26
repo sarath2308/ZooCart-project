@@ -6,7 +6,7 @@ const User=require("../../models/userSchema")
 const fs=require("fs");
 const path=require("path");
 const sharp=require("sharp");
-const cloudinary =require("../../config/cloudinary");  // Adjust path if needed
+const cloudinary =require("../../config/cloudinary");  
 const multer=require("../../helpers/multer")
 
 const loadProduct = async (req, res) => {
@@ -72,10 +72,6 @@ console.log("Cloudinary Instance:", cloudinary);
 
 
     try {
-        // Check if admin is logged in
-        if (!req.session.admin) {
-            return res.redirect("/admin/login");
-        }
 
         // Fetch categories and brands
         const category = await Category.find({ isListed: true });
@@ -290,69 +286,77 @@ const loadEditProducts = async (req, res) => {
     }
   };
   
-
-
-
-
   const editProducts = async (req, res) => {
+    console.log("req arrived at edit product");
+
     try {
-      const id = req.query.id;
-      const products = await Product.findOne({ _id: id });
-      const data = req.body;
-      console.log(data);
-  
-      const existingProduct = await Product.findOne({
-        productName: data.productName,
-        _id: { $ne: id },
-      });
-      
-      const categoryData = await Category.findOne({ name: data.category });
-      const brandData=await Brand.findOne({name:data.brand})
-      
-      if (existingProduct) {
-        return res.status(400).json({
-          success: false,
-          message: "Product with the same name already exists. Try another name or update that product",
+        const id = req.query.id;
+        const products = await Product.findOne({ _id: id });
+        const data = req.body;
+        console.log(data);
+
+        const existingProduct = await Product.findOne({
+            productName: data.productName,
+            _id: { $ne: id },
         });
-      }
-        // Upload images to Cloudinary
-        const uploadPromises = req.files.map((file) =>
-            cloudinary.uploader.upload(file.path, { folder: "uploads" })
-        );
 
-        const images = await Promise.all(uploadPromises);
-        const imageUrls = images.map((img) => img.secure_url);
+        const categoryData = await Category.findOne({ name: data.category });
+        const brandData = await Brand.findOne({ name: data.brand });
 
-        console.log("Uploaded Image URLs:", imageUrls); // Debugging line
+        if (existingProduct) {
+            return res.status(400).json({
+                success: false,
+                message: "Product with the same name already exists. Try another name or update that product",
+            });
+        }
 
-    
-  
-      const updateProduct = {
-        productName: data.productName,
-        discription: data.description,
-        brand: brandData? brandData._id:products.brand,
-        category: categoryData ? categoryData._id : products.category,  // Ensure category is updated
-        regularPrice: data.regularPrice,
-        salePrice: data.salePrice,
-        createdOn: new Date(),
-        quantity: data.quantity,
-        color: data.color,
-        status: 'Available',
-      };
-  
-      // If new images are uploaded, push them to the productImage array
-      if (images.length > 0) {
-        updateProduct.productImage = images;
-      }
-  
-      await Product.findByIdAndUpdate(id, updateProduct, { new: true });
-  
-      return res.redirect("/admin/products");
+        let productImage = products.productImage || []; // Preserve existing images
+
+        // If files are uploaded, add their paths to the productImage array
+        if (req.files && req.files.length > 0) {
+            // Upload files to Cloudinary
+            const uploadPromises = req.files.map((file) =>
+                cloudinary.uploader.upload(file.path, { folder: "uploads" })
+            );
+
+            const images = await Promise.all(uploadPromises);
+            const newImageUrls = images.map((img) => img.secure_url); // Array of new image URLs
+
+            // Push new image URLs into the existing productImage array
+            productImage.push(...newImageUrls);
+        } else if (req.body.productImage) {
+            // If a single image URL is provided in the request body, add it to the array
+            productImage.push(req.body.productImage);
+        }
+
+        console.log("Updated Image URLs:", productImage); // Debugging line
+
+        const updateProduct = {
+            productName: data.productName,
+            discription: data.description,
+            brand: brandData ? brandData._id : products.brand,
+            category: categoryData ? categoryData._id : products.category, // Ensure category is updated
+            regularPrice: data.regularPrice,
+            salePrice: data.salePrice,
+            createdOn: new Date(),
+            quantity: data.quantity,
+            color: data.color,
+            status: 'Available',
+            productImage: productImage, // Update with combined images
+        };
+
+        await Product.findByIdAndUpdate(id, updateProduct, { new: true });
+
+        return res.redirect("/admin/products");
     } catch (error) {
-      console.log("Error occurred while updating product details: " + error);
-      res.redirect("/admin/pageerror");
+        console.log("Error occurred while updating product details: ");
+        console.log(error);
+
+        res.redirect("/admin/pageerror");
     }
-  };
+};
+
+  
 const deleteImage=async(req,res)=>
     {
         try {

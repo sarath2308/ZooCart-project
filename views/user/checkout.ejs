@@ -18,6 +18,14 @@
   </div>
 </section>
 <!-- Breadcrumb Section End -->
+<!-- Custom Refresh Warning Modal -->
+<div id="refresh-warning-modal" class="custom-modal">
+  <div class="custom-modal-content">
+      <p class="custom-modal-text">Are you sure you want to refresh? Your progress may be lost.</p>
+      <button id="refresh-confirm-btn" class="custom-btn confirm-btn">Yes, Refresh</button>
+      <button id="refresh-cancel-btn" class="custom-btn cancel-btn">Cancel</button>
+  </div>
+</div>
 
 <!-- Checkout Section Begin -->
 <section class="checkout spad">
@@ -338,7 +346,73 @@
 
 <script>
 
+toastr.options = {
+            "closeButton": true,
+            "progressBar": true,
+            "positionClass": "toast-top-right",
+            "timeOut": "4000",
+            "extendedTimeOut": "1000",
+            "showEasing": "swing",
+            "hideEasing": "linear",
+            "showMethod": "slideDown",
+            "hideMethod": "slideUp",
+            "preventDuplicates": true,
+            "newestOnTop": true
+        };
+     function  processRetryPayment(orderId)
+       {
+  
+  // 5. Use AJAX to send orderData to your REST API endpoint.
+  $.ajax({
+  url: `/api/orders/retry-payment?orderId=${orderId}`,
+  type: 'GET',
+  success: function (response) {
+    if (response.success) {
+        const options = {
+          key: response.razorpay_key, // Razorpay API key
+          amount: response.order.amount, 
+          currency: response.order.currency,
+          order_id: response.order.id,
+          name: "ZooCart",
+          description: "Retry Payment",
+          handler: function (res) {
+            console.log("Retry Payment ID:", res.razorpay_payment_id);
 
+            // Verify Payment on Server
+            verifyPayment(res, orderId);
+          },
+          modal: {
+            ondismiss: function () {
+              toastr.error("Payment Failed Again! Please Try Again.", "Error");
+            },
+          },
+          prefill: {
+            name: response.user.name,
+            email: response.user.email,
+            contact: response.user.phone,
+          },
+        };
+
+        const rzp = new Razorpay(options);
+        rzp.open();
+      } else {
+        toastr.error("Retry Payment Failed! Try Again.", "Error");
+      }
+    },
+    error: function (err) {
+      console.error("Error retrying payment:", err);
+      Swal.fire({
+        title: "Error",
+        text: "There was an issue retrying your payment. Please try again.",
+        icon: "error",
+        toast: true,
+        position: "top-end",
+        timer: 3000,
+        showConfirmButton: false,
+      });
+    },
+  });
+}
   function placeOrder() {
     const products = <%- JSON.stringify(products|| []) %>;
 
@@ -459,36 +533,46 @@
         },
         modal: {
           ondismiss: function () {
-            window.location.href = `/order-unsuccess?cart=${response.cart}`;
+            toastr.error("Payment Failed! Please Try again.", "Error");
+            const placeOrderBtn = document.getElementById("placeOrder");
+    placeOrderBtn.innerText = "RETRY PAYMENT"; // Change button text
+    placeOrderBtn.setAttribute("onclick", `processRetryPayment('${response.savedOrder._id}')`);
+
           },
         },
         prefill: {
-          name: response.savedOrder.name,
-          email: response.savedOrder.email,
-          contact:response.savedOrder.phone,
+          name: '',
+          email: '',
+          contact:'',
         },
       };
 
       const rzp = new Razorpay(options);
       rzp.open();
     } else {
-      clearLocalStorage()
       // For non-online payments (e.g., COD), redirect to the success page
       window.location.href = `/order-placed`;
     }
   },
   error: function (err) {
     console.error('Error placing order:', err);
-    Swal.fire({
-      title: 'Error',
-      text: 'There was an error placing your order. Please try again.',
-      icon: 'error',
-      toast: true,
-      position: 'top-end',
-      timer: 3000,
-      showConfirmButton: false,
-    });
-  },
+
+    // Ensure err.responseJSON exists and contains a message
+    if (err.responseJSON && err.responseJSON.message) {
+      toastr.warning(err.responseJSON.message, "Warning");
+
+    } else {
+        Swal.fire({
+            title: 'Error',
+            text: 'There was an error placing your order. Please try again.',
+            icon: 'error',
+            toast: true,
+            position: 'top-end',
+            timer: 3000,
+            showConfirmButton: false,
+        });
+    }
+},
 });
   }
 
@@ -506,22 +590,39 @@ function verifyPayment(response,orderId) {
     }),
     success: function (verificationResult) {
       if (verificationResult.success) {
-        clearLocalStorage()
         
         window.location.href = '/order-placed'; // Redirect to success page
       } else {
         // Payment verification failed
-        window.location.href = `/order-unsuccess?cart=${verificationResult.cart}`; // Redirect to failure page
+       
       }
     },
-    error: function (xhr, status, error) {
-      console.error('Error verifying payment:', error);
-      window.location.href = `/order-unsuccess`; // Redirect to failure page
-    },
-  });
+    error: function (err) {
+    console.error('Error placing order:', err);
+
+    // Ensure err.responseJSON exists and contains a message
+    if (err.responseJSON && err.responseJSON.message &&  err.responseJSON.refresh) {
+      toastr.warning(err.responseJSON.message, "Warning").then(()=>
+    {
+      location.reload();
+    })
+
+    } else {
+        Swal.fire({
+            title: 'Error',
+            text: 'There was an error placing your order. Please try again.',
+            icon: 'error',
+            toast: true,
+            position: 'top-end',
+            timer: 3000,
+            showConfirmButton: false,
+        });
+    }
+},
+})
 }
 
- 
+
 
 </script>
 
@@ -715,26 +816,85 @@ input[type="radio"] {
   hr {
     margin: 10px auto;
   }
+
+  /*toast css*/
+  #toast-container > .toast-error {
+            background-color: #dc3545 !important;
+            border-radius: 8px;
+        }
+
+
+        /* Custom Modal Styles */
+#refresh-warning-modal {
+    display: none;
+    position: fixed;
+    z-index: 2000;
+    left: 0;
+    top: 0;
+    width: 100%;
+    height: 100%;
+    background-color: rgba(0, 0, 0, 0.6);
+    justify-content: center;
+    align-items: center;
+}
+
+/* Modal Content */
+.custom-modal-content {
+    background: #ffffff;
+    padding: 25px;
+    border-radius: 12px;
+    text-align: center;
+    width: 350px;
+    box-shadow: 0px 4px 10px rgba(0, 0, 0, 0.2);
+}
+
+/* Modal Text */
+.custom-modal-text {
+    font-size: 18px;
+    color: #333;
+    margin-bottom: 20px;
+}
+
+/* Buttons */
+.custom-btn {
+    padding: 10px 18px;
+    border: none;
+    border-radius: 6px;
+    font-size: 16px;
+    cursor: pointer;
+    margin: 10px;
+    transition: 0.3s ease-in-out;
+}
+
+/* Confirm Button */
+#refresh-confirm-btn {
+    background-color: #d9534f;
+    color: white;
+}
+
+#refresh-confirm-btn:hover {
+    background-color: #c9302c;
+}
+
+/* Cancel Button */
+#refresh-cancel-btn {
+    background-color: #5a5a5a;
+    color: white;
+}
+
+#refresh-cancel-btn:hover {
+    background-color: #424242;
+}
+#toast-container > .toast-warning {
+            background-color: #ffc107 !important;
+            border-radius: 8px;
+        }
 </style>
 
 <script>
-  function clearLocalStorage() {
-        localStorage.removeItem('address');
-        localStorage.removeItem('paymentMethod');
-    }
 
-  function saveAddressToLocalStorage() {
-        const address = document.querySelector('input[name="addressId"]:checked').value;
-           
-        localStorage.setItem('address', address);
-    }
 
-    //store payment in local storage
 
-    function savePaymentToLocalStorage() {
-        const paymentMethod = document.querySelector('input[name="paymentOption"]:checked').value;
-        localStorage.setItem('paymentMethod', paymentMethod);
-    }
 
   function showAddAddressForm() {
     document.getElementById('addAddressForm').style.display = 'block';
@@ -747,14 +907,6 @@ input[type="radio"] {
   function markComplete(sectionId, badgeId) {
     var section = document.getElementById(sectionId);
     var badge = document.getElementById(badgeId);
-    if(sectionId==='section-address')
-  {
-    saveAddressToLocalStorage()
-  }
-  else if(sectionId==='section-payment')
-  {
-    savePaymentToLocalStorage()
-  }
  
     // Check if a radio option is selected in this section (if applicable)
     var radios = section.querySelectorAll("input[type='radio']");
@@ -788,41 +940,6 @@ input[type="radio"] {
       bsNextCollapse.show();
     }
   }
-  function loadFromLocalStorage() {
-    // Load address data
-    const Address = (localStorage.getItem('address'));
-    if (Address) {
-        // Mark address section as completed
-        const address = document.querySelector(`input[name="addressId"][value="${Address}"]`);
-        if (address) {
-            address.checked = true;
-
-            document.getElementById('section-address').classList.add("completed");
-            document.getElementById('address-completed').classList.remove("d-none");
-        }
-    }
-
-    // Load payment method
-    const savedPayment = localStorage.getItem('paymentMethod');
-    if (savedPayment) {
-        const paymentRadio = document.querySelector(`input[name="paymentOption"][value="${savedPayment}"]`);
-        if (paymentRadio) {
-            paymentRadio.checked = true;
-
-            // Mark payment section as completed
-            document.getElementById('section-payment').classList.add("completed");
-            document.getElementById('payment-completed').classList.remove("d-none");
-        }
-    }
-
-    // Load order summary (if applicable)
-    const savedOrder = localStorage.getItem('orderSummary');
-    if (savedOrder) {
-        // Mark order summary section as completed
-        document.getElementById('section-summary').classList.add("completed");
-        document.getElementById('summary-completed').classList.remove("d-none");
-    }
-}
 
 
 
@@ -1007,6 +1124,28 @@ function removeCoupon() {
     }
   });
 }
-window.onload = loadFromLocalStorage;
+// Check if the page is being refreshed
+const isPageRefreshed = performance.getEntriesByType("navigation")[0]?.type === "reload";
+
+if (isPageRefreshed) {
+    window.addEventListener("beforeunload", function (event) {
+        event.preventDefault(); 
+        event.returnValue = ""; // Required for some browsers
+
+        // Show the custom modal
+        document.getElementById("refresh-warning-modal").style.display = "flex";
+
+        // Handle "Yes, Refresh" button click
+        document.getElementById("refresh-confirm-btn").onclick = function () {
+            window.location.reload(); // Refresh the page
+        };
+
+        // Handle "Cancel" button click
+        document.getElementById("refresh-cancel-btn").onclick = function () {
+            document.getElementById("refresh-warning-modal").style.display = "none"; // Hide modal
+        };
+    });
+}
+
 
 </script>

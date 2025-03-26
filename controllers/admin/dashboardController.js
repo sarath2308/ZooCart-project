@@ -3,7 +3,9 @@ const Order=require("../../models/orderSchema")
 const ExcelJS = require('exceljs');
 const fs = require('fs');
 const path = require('path');
-const PDFDocument = require("pdfkit");
+const PdfPrinter = require("pdfmake");
+
+
 
 
 const filterOrder = async (req, res) => {
@@ -164,91 +166,109 @@ const downloadExcel = async (req, res) => {
     }
   };
 
-  const downloadPdf=async(req,res)=>
-  {
-    try {
-      const { startDate, endDate } = req.query;
 
-      let query = {
-        status: { $in: ['delivered'] }
-    };
 
-    console.log("start date:", startDate);
-    console.log("end date:", endDate);
+  
 
-    // Check if startDate and endDate are the same
-    if (startDate && endDate && startDate === endDate) {
-        const startOfDay = new Date(startDate);
-        startOfDay.setHours(0, 0, 0, 0); // Start of the day (00:00:00.000)
 
-        const endOfDay = new Date(endDate);
-        endOfDay.setHours(23, 59, 59, 999); // End of the day (23:59:59.999)
-
-        query.createdOn = {
-            $gte: startOfDay,
-            $lte: endOfDay
-        };
-    } else {
-        // Handle separate startDate and endDate
-        if (startDate) query.createdOn = { $gte: new Date(startDate) };
-        if (endDate) {
-          
-          const endOfDay = new Date(endDate);
-        
-          endOfDay.setHours(23, 59, 59, 999);
-         
-          query.createdOn = { ...query.createdOn, $lte: endOfDay };
+  const downloadPdf = async (req, res) => {
+      try {
+          const { startDate, endDate } = req.query;
+  
+          let query = { status: "delivered" };
+  
+          if (startDate && endDate && startDate === endDate) {
+              const startOfDay = new Date(startDate);
+              startOfDay.setHours(0, 0, 0, 0);
+              const endOfDay = new Date(endDate);
+              endOfDay.setHours(23, 59, 59, 999);
+              query.createdOn = { $gte: startOfDay, $lte: endOfDay };
+          } else {
+              if (startDate) query.createdOn = { $gte: new Date(startDate) };
+              if (endDate) {
+                  const endOfDay = new Date(endDate);
+                  endOfDay.setHours(23, 59, 59, 999);
+                  query.createdOn = { ...query.createdOn, $lte: endOfDay };
+              }
+          }
+  
+          const orders = await Order.find(query).populate("userId").sort({ createdOn: -1 });
+  
+          const fonts = {
+              Roboto: {
+                  normal: "Helvetica", // Use built-in font
+                  bold: "Helvetica-Bold", // Use built-in bold font
+                  italics: "Helvetica-Oblique",
+                  bolditalics: "Helvetica-BoldOblique"
+              }
+          };
+  
+          const printer = new PdfPrinter(fonts);
+  
+          const tableHeaders = [
+              { text: "No", bold: true },
+              { text: "Order ID", bold: true },
+              { text: "Date", bold: true },
+              { text: "Customer", bold: true },
+              { text: "Status", bold: true },
+              { text: "Amount", bold: true },
+              { text: "Payment Method", bold: true }
+          ];
+  
+          const tableBody = orders.map((order, i) => {
+              let paymentStatus = order.paymentStatus
+                  ? "Paid"
+                  : order.paymentMethod === "online payment"
+                  ? "Payment Unsuccessful"
+                  : "Pending";
+  
+              return [
+                  i + 1,
+                  order.orderId,
+                  order.createdOn.toISOString().split("T")[0],
+                  order.userId.name,
+                  order.status,
+                  `₹${order.finalAmount}`,
+                  order.paymentMethod
+              ];
+          });
+  
+          const docDefinition = {
+              content: [
+                  { text: "Sales Report", style: "header" },
+                  {
+                      table: {
+                          headerRows: 1,
+                          widths: ["auto", "*", "auto", "*", "auto", "auto", "auto"],
+                          body: [tableHeaders, ...tableBody]
+                      }
+                  }
+              ],
+              styles: {
+                  header: {
+                      fontSize: 18,
+                      bold: true,
+                      alignment: "center",
+                      margin: [0, 0, 0, 10]
+                  }
+              }
+          };
+  
+          const pdfDoc = printer.createPdfKitDocument(docDefinition);
+          res.setHeader("Content-Disposition", "attachment; filename=Orders.pdf");
+          res.setHeader("Content-Type", "application/pdf");
+          pdfDoc.pipe(res);
+          pdfDoc.end();
+      } catch (error) {
+          console.error("Error generating PDF:", error);
+          res.status(500).send("Error generating PDF");
       }
-  }
-      
+  };
   
-    
-      const orders = await Order.find(query)
-        .populate("userId") 
-        .sort({ createdOn: -1 });
   
-        // Create PDF document
-        const doc = new PDFDocument();
-        res.setHeader("Content-Disposition", "attachment; filename=Orders.pdf");
-        res.setHeader("Content-Type", "application/pdf");
-        doc.pipe(res);
 
-        doc.fontSize(16).text("Sales Report", { align: "center" });
-        doc.moveDown();
-        let paymentStatus;
-        orders.forEach((order,i) => {
-          if(order.paymentStatus)
-            {
-               paymentStatus='paid'
-            }
-            else if(order.paymentStatus===false && order.paymentMethod==='online payment')
-            {
-               paymentStatus='payment unsuccess'
-            }
-            else
-            {
-              paymentStatus='pending'
-            }
-            doc.text(`No: ${i+1}`);
-            doc.text(`Order ID: ${order.orderId}`);
-            doc.text(`Date: ${order.createdOn.toISOString().split("T")[0]}`);
-            doc.text(`Customer : ${order.userId.name}`);
-            doc.text(`Status: ${order.status}`);
-            doc.text(`Discount: ${order.discount}`);
-            doc.text(`Coupon discount: ${order.couponApplied}`);
-            doc.text(`Total Amount: ₹${order.finalAmount}`);
-            doc.text(`Payment Method: ₹${order.paymentMethod}`);
-            doc.text(`paymnet status: ₹${paymentStatus}`);
-            doc.moveDown();
-        });
-
-        doc.end();
-    } catch (error) {
-        console.error("Error generating PDF:", error);
-        res.status(500).send("Error generating PDF");
-    }
-};
-
+ 
+ 
 module.exports={
     filterOrder,
     downloadExcel,

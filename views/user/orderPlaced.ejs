@@ -142,9 +142,9 @@
     <h3>Products Ordered</h3>
         <div class="order-summary-product">
             <div class="product-info">
-                <img src="<%= data.orderedItem.productImage[0] %>" alt="Product Image">
+                <img src="<%= data.orderedItems[0].product.productImage[0] %>" alt="Product Image">
                 <div class="order-summary-product-details">
-                    <div class="product-name"><%=data.orderedItem.productName %></div>
+                    <div class="product-name"><%=data.orderedItems[0].product.productName %></div>
                     <div class="quantity" style="color:#007bff">Qty: <%= data.totalQuantity %></div>
                 </div>
             </div>
@@ -164,7 +164,7 @@
       <%if(data.paymentMethod==='online payment'){%>
       <div class="order-summary-detail"><span>paymentId</span> <span style="font-weight: lighter; font-size:small;color: rgb(2, 4, 2);"><%=data.paymentId%></span></div>
       <%}%>
-      <div class="order-summary-detail"><span>Coupon:</span> <span style="font-weight: bold;"><%=data.coupon?'applied':'not applied'%></span></div>
+      <div class="order-summary-detail"><span>Coupon:</span> <span style="font-weight: bold;"><%=data.couponApplied?'applied':'not applied'%></span></div>
       <div class="order-summary-detail"><span>Total Amount:(inclusive of all taxes):</span> <span style="font-weight: bold;">₹<%=data.finalAmount%>.0</span></div>
     </div>
   

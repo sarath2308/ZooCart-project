@@ -27,7 +27,7 @@
                          <td><%=order.readableId%></td>
                          <td><%=order.userId.name%></td>
                          <td>
-                            <%= order.orderedItem.productName %>
+                            <%= order.orderedItems[0].product.productName %>
                          </td>
                          <td>
                             <%=order.totalQuantity%>

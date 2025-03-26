@@ -12,6 +12,10 @@ const loadCart = async (req, res) => {
     const userId = req.session.user || (req.user && req.user._id);
     const userData=await User.findById({_id:userId})
     const oid = new mongoose.Types.ObjectId(userId);
+      const result = await Product.updateMany(
+            { quantity: { $lte: 0 } }, // Condition: Quantity is less than or equal to 0
+            { $set: { status: 'Out of Stock' } } // Update: Set status to 'Out of Stock'
+        );
 
     // Aggregation on the Cart collection
     const cartData = await Cart.aggregate([

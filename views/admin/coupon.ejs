@@ -37,7 +37,7 @@
                             ₹<%=cou.offerPrice%>
                             <%}%>
                         </td>
-                            <td><%= cou.minimumPrice %></td>
+                            <td>₹<%= cou.minimumPrice %></td>
                             <td>
                                 <% if (cou.isList) { %>
                                     <span style="color: greenyellow;">Listed</span>
@@ -74,7 +74,142 @@
                   </table>
                   
       </div>
-    
+<script>
+ function addCoupon(event) {
+
+    console.log("called");
+
+    const offerPrice = document.getElementById("offerPrice").value.trim();
+    const minimumPrice = document.getElementById("minimumPrice").value.trim();
+    const startDate = document.getElementById("startDate").value;
+    const expiryDate = document.getElementById("expiredOn").value;
+    const couponCode = document.getElementById("couponCode").value.trim();
+    const couponModal = document.getElementById("couponModal")
+
+    // Check if all fields are filled
+    if (couponCode === '' || offerPrice === '' || minimumPrice === '' || startDate === '' || expiryDate === '') {
+        Swal.fire({
+            title: 'All fields are required',
+            icon: 'error',
+            toast: true,
+            position: 'top-end',
+            showConfirmButton: false,
+            timer: 3000
+        });
+        return; // Missing closing bracket was added here
+    }
+
+    // Check if the code is at least 6 characters
+    if (couponCode.length < 6) {
+        Swal.fire({
+            title: 'Code should be at least 6 characters long',
+            icon: 'error',
+            toast: true,
+            position: 'top-end',
+            showConfirmButton: false,
+            timer: 3000
+        });
+        return;
+    }
+
+    // Validate that offerPrice and minimumPrice are numbers
+    if (isNaN(offerPrice) || isNaN(minimumPrice)) {
+        Swal.fire({
+            title: 'Offer Price and Minimum Price must be numbers',
+            icon: 'error',
+            toast: true,
+            position: 'top-end',
+            showConfirmButton: false,
+            timer: 3000
+        });
+        return;
+    }
+
+    // Validate that offerPrice and minimumPrice are positive numbers
+    if (offerPrice <= 0 || minimumPrice <= 0) {
+        Swal.fire({
+            title: 'Offer Price and Minimum Price should be greater than 0',
+            icon: 'error',
+            toast: true,
+            position: 'top-end',
+            showConfirmButton: false,
+            timer: 3000
+        });
+        return;
+    }
+
+ 
+    if (offerPrice >= minimumPrice) {
+        console.log(offerPrice);
+        
+        Swal.fire({
+            title: 'Offer price should be less than Minimum Purchase',
+            icon: 'warning',
+            toast: true,
+            position: 'top-end',
+            showConfirmButton: false,
+            timer: 3000
+        });
+        return;
+    }
+
+    // Check if expiry date is not before the start date
+    if (new Date(expiryDate) <= new Date(startDate)) {
+        Swal.fire({
+            title: 'Expiry date must be after the start date',
+            icon: 'error',
+            toast: true,
+            position: 'top-end',
+            showConfirmButton: false,
+            timer: 3000
+        });
+        return;
+    }
+
+    // AJAX request to send coupon data
+    $.ajax({
+        url: '/admin/add-coupon',
+        type: 'POST',
+        data: { offerPrice, minimumPrice, startDate, expiryOn:expiryDate, couponCode },  
+        success: function (response) {
+            if (response.success) {
+                Swal.fire({
+                    title: 'Coupon added',
+                    icon: 'success',
+                    toast: true,
+                    position: 'top-end',
+                    showConfirmButton: false,
+                    timer: 3000
+                }).then(() => {
+                    location.reload();
+                });
+            }
+        },
+        error: function (err) {
+            if (err.responseJSON && err.responseJSON.message) {
+                Swal.fire({
+                    title: err.responseJSON.message,
+                    icon: 'error',
+                    toast: true,
+                    position: 'top-end',
+                    showConfirmButton: false,
+                    timer: 3000
+                });
+            } else {
+                Swal.fire({
+                    title: 'Coupon not added',
+                    icon: 'error',
+                    toast: true,
+                    position: 'top-end',
+                    showConfirmButton: false,
+                    timer: 3000
+                });
+            }
+        }
+    });
+}
+
+</script>
     <div class="modal fade" id="couponModal" tabindex="-1" aria-labelledby="couponModalLabel" aria-hidden="true">
         <div class="modal-dialog">
             <div class="modal-content">
@@ -83,7 +218,6 @@
                     <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
                 </div>
                 <div class="modal-body">
-                    <form id="couponForm" action="/admin/add-coupon" method="post" onsubmit="return validateCoupon()">
                         <div class="mb-3">
                             <label for="couponCode" class="form-label">Coupon Code</label>
                             <input type="text" name="code" class="form-control" id="couponCode">
@@ -105,12 +239,12 @@
                             <input type="date" name="expiryOn" class="form-control" id="expiredOn">
                         </div>
                       
-                        <button type="submit" class="btn btn-success mt-3">add Coupon</button>
-                    </form>
+                        <button onclick="addCoupon()" class="btn btn-success mt-3">add Coupon</button>
                 </div>
             </div>
         </div>
     </div>
+
     <div class="modal fade" id="couponEditModal" tabindex="-1" aria-labelledby="couponModalLabel" aria-hidden="true">
         <div class="modal-dialog">
             <div class="modal-content">
@@ -119,7 +253,7 @@
                     <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
                 </div>
                 <div class="modal-body">
-                    <form id="couponForm" action="/admin/edit-coupon" method="post" onsubmit="return validateCouponEdit()">
+                    <form id="couponForm" action="/admin/edit-coupon" method="post">
                         <div class="mb-3">
                             <label for="couponCode" class="form-label">Coupon Code</label>
                             <input type="text" name="code" class="form-control" id="editCouponCode">
@@ -149,82 +283,8 @@
         </div>
     </div>
     <script>
-      function validateCoupon() {
-    const code = document.getElementById("couponCode").value;
-    const offerPrice = document.getElementById("offerPrice").value;
-    const minimumPrice = document.getElementById("minimumPrice").value;
-    const startDate = document.getElementById("startDate").value;
-    const expiryDate = document.getElementById("expiredOn").value;
 
-    // Check if all fields are filled
-    if (code === '' || offerPrice === '' || minimumPrice === '' || startDate === '' || expiryDate === '') {
-        Swal.fire({
-            title: 'All fields are required',
-            icon: 'error',
-            toast: true,
-            position: 'top-end',
-            showConfirmButton: false,
-            timer: 3000
-        });
-        return false;
-    }
-
-    // Check if the code is at least 6 characters
-    if (code.length < 6) {
-        Swal.fire({
-            title: 'Code should be at least 6 characters long',
-            icon: 'error',
-            toast: true,
-            position: 'top-end',
-            showConfirmButton: false,
-            timer: 3000
-        });
-        return false;
-    }
-
-    // Validate that offerPrice and minimumPrice are numbers
-    if (isNaN(offerPrice) || isNaN(minimumPrice)) {
-        Swal.fire({
-            title: 'Offer Price and Minimum Price must be numbers',
-            icon: 'error',
-            toast: true,
-            position: 'top-end',
-            showConfirmButton: false,
-            timer: 3000
-        });
-        return false;
-    }
-
-    // Validate that offerPrice and minimumPrice are positive numbers
-    if (offerPrice <= 0 || minimumPrice <= 0) {
-        Swal.fire({
-            title: 'Offer Price and Minimum Price should be greater than 0',
-            icon: 'error',
-            toast: true,
-            position: 'top-end',
-            showConfirmButton: false,
-            timer: 3000
-        });
-        return false;
-    }
-
-    // Check if expiry date is not before the start date
-    if (new Date(expiryDate) <= new Date(startDate)) {
-        Swal.fire({
-            title: 'Expiry date must be after the start date',
-            icon: 'error',
-            toast: true,
-            position: 'top-end',
-            showConfirmButton: false,
-            timer: 3000
-        });
-        return false;
-    }
-
-    // All validations passed
-    return true;
-}
-
+   
 
 function validateCouponEdit() {
     const code = document.getElementById("editCouponCode").value;
@@ -501,6 +561,17 @@ function unlistCoupon(cid)
     });
 }
 
+document.addEventListener('DOMContentLoaded', function () {
+    const startDate = document.getElementById('startDate');
+    const endDate = document.getElementById('expiredOn');
+    
+    // Get today's date in YYYY-MM-DD format
+    const today = new Date().toISOString().split('T')[0];
+
+    // Set the 'min' attribute to today's date
+    startDate.setAttribute('min', today);
+    endDate.setAttribute('min', today);
+});
 
     </script>
     <%-include("../../views/partials/admin/footer.ejs")%>

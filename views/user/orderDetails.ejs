@@ -187,12 +187,12 @@
                     <div class="ordered-items">
 
                         <div class="product-item">
-                            <a class="btn" href="/productDetails?id=<%= orderData.orderedItem._id %>">
-                            <img src="<%=orderData.orderedItem.productImage[0]%>" class="product-image" alt="<%=orderData.orderedItem.productName%>">
+                            <a class="btn" href="/productDetails?id=<%= orderData.orderedItems[0].product._id %>">
+                            <img src="<%=orderData.orderedItems[0].product.productImage[0]%>" class="product-image" alt="<%=orderData.orderedItems[0].product.productName%>">
                             </a>
                             <div>
-                                <p class="product-title"><%=orderData.orderedItem.productName%></p>
-                                <small class="text-muted">₹<%=orderData.orderedItem.salePrice%>| Qty:<%=orderData.totalQuantity%></small>
+                                <p class="product-title"><%=orderData.orderedItems[0].product.productName%></p>
+                                <small class="text-muted">₹<%=orderData.orderedItems[0].product.salePrice%>| Qty:<%=orderData.totalQuantity%></small>
                             </div>
                         </div>
                     </div>
@@ -202,7 +202,9 @@
 <!-- Cancel Order Section -->
 <div class="mb-3">
     <% if (orderData.status !== 'cancelled'&&orderData.status!=='Return Request' &&orderData.status!=='delivered'&&orderData.status!=='Returned'&&orderData.status!=='Return Rejected') { %>
-        <button class="btn btn-danger" id="cancelOrder">Cancel Order</button>
+        <button type="button" class="btn btn-danger mx-1" data-bs-toggle="modal" data-bs-target="#cancelModal">
+            Cancel Product
+          </button>
     <% } %>
 </div>
 <%if(orderData.status==='Return Request'){%>
@@ -238,80 +240,499 @@
           </div>
         </div>
       </div>
+      <br><br>
             <%}%>
 
-<div id="cancelReasonDiv" class="mb-3" style="display: none;">
-    <label for="cancelReason" class="form-label"><strong>Reason for Cancellation:</strong></label><br>
-    <select id="cancelReason" class="form-select">
-        <option value="">Select Reason</option>
-        <option value="changed my mind">changed my mind</option>
-        <option value="got a better deal">got a better deal</option>
-        <option value="delivery">delievry is longer expected</option>
-        <option value="Other">Other</option>
-    </select>
-    <button class="btn btn-danger mt-2" onclick="cancelOrder()" id="confirmCancel">Submit Cancellation</button>
-</div>
 <div class="mb-3">
 <% if (orderData.status === 'delivered') { %>
-    <button class="btn btn-info" id="returnOrder">return my product </button>
+    <button type="button" class="btn btn-warning mx-1" data-bs-toggle="modal" data-bs-target="#returnModal">
+        Return Product
+      </button>
 <% } %>
+<%if(orderData.status==='delivered'||orderData.status==='Returned' || orderData.status==='Return Request') {%>
+    <%if(reviewData){%>
+        <button id="editReviewButton" class="btn btn-warning" data-bs-toggle="modal" data-bs-target="#updateReviewModal">
+            Edit Review
+        </button>
+        
+        <%}else{%>
+             
+            <button type="button" class="btn btn-primary mx-1" data-bs-toggle="modal" data-bs-target="#reviewModal">
+                Write a Review
+              </button>
+    <%}%>
+    <%}%>
 </div>
 
-<div id="returnReasonDiv" class="mb-3" style="display: none;">
-    <label for="returnReason" class="form-label"><strong>Reason for return:</strong></label><br>
-    <select id="returnReason" class="form-select">
-        <option value="">Select Reason</option>
-        <option value="damaged product">damaged product</option>
-        <option value="wrong color">wrong color</option>
-        <option value="product working issue">product is not working</option>
-        <option value="Other">Other</option>
-    </select>
-    <button class="btn btn-danger mt-2" onclick="returnOrder()"id="confirmReturn">Return</button>
+
+<!-- Custom Review Modal -->
+<div class="modal fade" id="reviewModal" tabindex="-1" aria-labelledby="reviewModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content">
+            <!-- Modal Header -->
+            <div class="modal-header">
+                <h5 class="modal-title" id="reviewModalLabel">Write a Review</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+
+            <!-- Modal Body -->
+            <div class="modal-body">
+                <form id="reviewForm">
+                    <!-- Rating Section -->
+                    <div class="mb-4">
+                        <label for="reviewRatingInput" class="form-label fw-bold">Rating</label>
+                        <div class="review-rating-stars">
+                            <span class="review-star" data-value="1" data-meaning="Poor">☆</span>
+                            <span class="review-star" data-value="2" data-meaning="Fair">☆</span>
+                            <span class="review-star" data-value="3" data-meaning="Good">☆</span>
+                            <span class="review-star" data-value="4" data-meaning="Very Good">☆</span>
+                            <span class="review-star" data-value="5" data-meaning="Excellent">☆</span>
+                        </div>
+                        <input type="hidden" id="reviewRatingInput" name="rating" required>
+                        <!-- Rating Meaning Display -->
+                        <div id="ratingMeaningDisplay" class="mt-2 text-muted" style="font-size: 0.9rem;"></div>
+                    </div>
+
+                    <!-- Review Text Section -->
+                    <div class="mb-3">
+                        <label for="reviewTextArea" class="form-label fw-bold">Your Review</label>
+                        <textarea class="form-control" id="reviewTextArea" rows="4" placeholder="Share your experience with us..." required></textarea>
+                    </div>
+                </form>
+            </div>
+
+            <!-- Modal Footer -->
+            <div class="modal-footer">
+                <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">Cancel</button>
+                <button type="button" class="btn btn-primary" id="submitReviewButton">Submit Review</button>
+            </div>
+        </div>
+    </div>
 </div>
 
 
+
+<div class="modal fade" id="updateReviewModal" tabindex="-1" aria-labelledby="updateReviewModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content">
+            <!-- Modal Header -->
+            <div class="modal-header">
+                <h5 class="modal-title" id="updateReviewModalLabel">Edit Your Review</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+
+            <!-- Modal Body -->
+            <div class="modal-body">
+                <form id="updateReviewForm">
+                    <!-- Rating Section -->
+                    <div class="mb-4">
+                        <label for="updateReviewRatingInput" class="form-label fw-bold">Rating</label>
+                        <div class="review-rating-stars">
+                            <span class="review-star" data-value="1" data-meaning="Poor">☆</span>
+                            <span class="review-star" data-value="2" data-meaning="Fair">☆</span>
+                            <span class="review-star" data-value="3" data-meaning="Good">☆</span>
+                            <span class="review-star" data-value="4" data-meaning="Very Good">☆</span>
+                            <span class="review-star" data-value="5" data-meaning="Excellent">☆</span>
+                        </div>
+                        <input type="hidden" id="updateReviewRatingInput" name="rating" required>
+                        <!-- Rating Meaning Display -->
+                        <div id="updateRatingMeaningDisplay" class="mt-2 text-muted" style="font-size: 0.9rem;"></div>
+                    </div>
+
+                    <!-- Review Text Section -->
+                    <div class="mb-3">
+                        <label for="updateReviewTextArea" class="form-label fw-bold">Your Review</label>
+                        <textarea class="form-control" id="updateReviewTextArea" rows="4" placeholder="Share your experience with us..." required></textarea>
+                    </div>
+                </form>
+            </div>
+
+            <!-- Modal Footer -->
+            <div class="modal-footer">
+                <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">Cancel</button>
+                <button type="button" class="btn btn-primary" id="updateSubmitReviewButton">Update Review</button>
+            </div>
+        </div>
+    </div>
+</div>
 <script>
-document.addEventListener("DOMContentLoaded", function () {
-    const cancelOrderBtn = document.getElementById("cancelOrder");
-    const cancelReasonDiv = document.getElementById("cancelReasonDiv");
-    const cancelReason = document.getElementById("cancelReason");
-    const confirmCancelBtn = document.getElementById("confirmCancel");
+document.addEventListener('DOMContentLoaded', () => {
+    const stars = document.querySelectorAll('#updateReviewModal .review-star');
+    const ratingInput = document.getElementById('updateReviewRatingInput');
+    const ratingMeaningDisplay = document.getElementById('updateRatingMeaningDisplay');
+    const reviewTextArea = document.getElementById('updateReviewTextArea');
+    const updateSubmitButton = document.getElementById('updateSubmitReviewButton');
+    const editReviewButton = document.getElementById('editReviewButton'); // Button to open modal
 
-    // Show cancellation reason selection when "Cancel Order" is clicked
-    cancelOrderBtn?.addEventListener("click", function () {
-        cancelReasonDiv.style.display = "block";
+    // Define rating meanings
+    const ratingMeanings = {
+        1: "Poor - Very dissatisfied",
+        2: "Fair - Somewhat dissatisfied",
+        3: "Good - Satisfied",
+        4: "Very Good - Highly satisfied",
+        5: "Excellent - Extremely satisfied"
+    };
+
+    let reviewId = null; // Store the review ID to update
+
+    function fillReviewData(reviewData) {
+        if (!reviewData || !reviewData._id) {
+            console.warn("No review data found.");
+            return;
+        }
+
+        reviewId = reviewData._id; // Store the review ID
+
+        // Set review text
+        reviewTextArea.value = reviewData.reviewText || '';
+
+        // Set rating stars
+        const rating = Number(reviewData.rating) || 0;
+        ratingInput.value = rating;
+
+        // Reset and fill stars correctly
+        stars.forEach(star => {
+            const value = parseInt(star.getAttribute('data-value'));
+            star.classList.toggle('filled', value <= rating);
+        });
+
+        // Display rating meaning
+        ratingMeaningDisplay.textContent = rating ? `${rating} - ${ratingMeanings[rating]}` : "";
+    }
+
+    // Event listener for opening the modal
+    editReviewButton.addEventListener('click', function () {
+        // Ensure reviewData is available before using it
+        <% if (reviewData) { %>
+            const reviewData = {
+                _id: "<%= reviewData._id %>",
+                rating: "<%= reviewData.rating %>",
+                reviewText: "<%= reviewData.review %>"
+            };
+            fillReviewData(reviewData);
+        <% } else { %>
+            console.warn("No review data available.");
+        <% } %>
     });
 
-    // Show text input if "Other" is selected
-    cancelReason.addEventListener("change", function () {
-        if (this.value === "Other") {
-            otherReason.style.display = "block";
-        } else {
-            otherReason.style.display = "none";
+    // Handle star click event
+    stars.forEach(star => {
+        star.addEventListener('click', () => {
+            const value = parseInt(star.getAttribute('data-value'));
+            ratingInput.value = value;
+
+            // Update star selection
+            stars.forEach(s => {
+                s.classList.toggle('filled', parseInt(s.getAttribute('data-value')) <= value);
+            });
+
+            // Update rating meaning display
+            ratingMeaningDisplay.textContent = `${value} - ${ratingMeanings[value]}`;
+        });
+    });
+
+    // Send PATCH request when clicking "Update Review"
+    updateSubmitButton.addEventListener('click', () => {
+        const rating = ratingInput.value;
+        const review = reviewTextArea.value;
+
+        if (!rating || !review) {
+            Swal.fire({
+                title: 'Please provide a rating and review',
+                icon: 'warning',
+                toast: true,
+                position: 'top-end',
+                showConfirmButton: false,
+                timer: 3000
+            });
+            return;
+        }
+
+        editReview(rating, review, reviewId);
+    });
+});
+
+function editReview(rating, review, id) {
+    const orderId = "<%= orderData ? orderData._id : '' %>";
+
+    if (!id) {
+        console.error("Review ID is missing.");
+        return;
+    }
+
+    $.ajax({
+        url: "/api/userProfile/orders/orderDetails/editReview",
+        type: "PATCH",
+        contentType: "application/json",
+        data: JSON.stringify({ orderId, rating, review, id }),
+        success: function (response) {
+            Swal.fire({
+                title: 'Review updated successfully!',
+                icon: 'success',
+                toast: true,
+                position: 'top-end',
+                showConfirmButton: false,
+                timer: 3000
+            }).then(() => {
+                location.reload();
+            });
+        },
+        error: function () {
+            Swal.fire({
+                title: 'Oops! Something went wrong',
+                icon: 'error',
+                toast: true,
+                position: 'top-end',
+                showConfirmButton: false,
+                timer: 3000
+            });
         }
     });
-       
-      const returnOrderBtn = document.getElementById("returnOrder");
-    const returnReasonDiv = document.getElementById("returnReasonDiv");
-    const returnReason = document.getElementById("returnReason");
-    const confirmReturnBtn = document.getElementById("confirmReturn");
+}
 
-    // Show cancellation reason selection when "Cancel Order" is clicked
-    returnOrderBtn?.addEventListener("click", function () {
-        returnReasonDiv.style.display = "block";
-    });
+</script>
 
-    // Show text input if "Other" is selected
-    returnReason.addEventListener("change", function () {
-        if (this.value === "Other") {
-            otherReason.style.display = "block";
-        } else {
-            otherReason.style.display = "none";
-        }
-    });
-       
-    });
 
+
+
+<!-- Custom CSS for the Review Modal -->
+<style>
+    /* Review Rating Stars Styling */
+    .review-rating-stars {
+        display: flex;
+        gap: 10px;
+        margin-top: 8px;
+    }
+
+    .review-rating-stars .review-star {
+        font-size: 24px;
+        color: #ccc;
+        cursor: pointer;
+        transition: color 0.2s;
+    }
+
+    .review-rating-stars .review-star.filled,
+    .review-rating-stars .review-star:hover {
+        color: #ffc107; /* Yellow color for filled stars */
+    }
+
+    /* Modal Custom Styling */
+    .modal-content {
+        border-radius: 12px;
+        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
+    }
+
+    .modal-header {
+        border-bottom: 1px solid #e9ecef;
+        padding: 16px;
+    }
+
+    .modal-title {
+        font-size: 1.25rem;
+        font-weight: 600;
+    }
+
+    .modal-body {
+        padding: 20px;
+    }
+
+    .modal-footer {
+        border-top: 1px solid #e9ecef;
+        padding: 16px;
+    }
+
+    .btn-primary {
+        background-color: #007bff;
+        border: none;
+        padding: 8px 16px;
+        border-radius: 6px;
+    }
+
+    .btn-outline-secondary {
+        border: 1px solid #ccc;
+        padding: 8px 16px;
+        border-radius: 6px;
+    }
+
+    .btn-primary:hover {
+        background-color: #0056b3;
+    }
+
+    .btn-outline-secondary:hover {
+        background-color: #f8f9fa;
+    }
+</style>
+<script>
+
+document.addEventListener('DOMContentLoaded', () => {
+    const stars = document.querySelectorAll('.review-rating-stars .review-star');
+    const ratingInput = document.getElementById('reviewRatingInput');
+    const ratingMeaningDisplay = document.getElementById('ratingMeaningDisplay');
+
+    // Define rating meanings
+    const ratingMeanings = {
+        1: "Poor - Very dissatisfied",
+        2: "Fair - Somewhat dissatisfied",
+        3: "Good - Satisfied",
+        4: "Very Good - Highly satisfied",
+        5: "Excellent - Extremely satisfied"
+    };
+
+    let selectedRating = 0; // Default rating
+
+    if (stars.length > 0 && ratingInput && ratingMeaningDisplay) {
+        stars.forEach(star => {
+            star.addEventListener('click', () => {
+                selectedRating = star.getAttribute('data-value');
+                ratingInput.value = selectedRating;
+
+                // Highlight selected stars
+                stars.forEach(s => {
+                    s.classList.toggle('filled', s.getAttribute('data-value') <= selectedRating);
+                });
+
+                // Display the rating meaning immediately
+                ratingMeaningDisplay.textContent = `${selectedRating} - ${ratingMeanings[selectedRating]}`;
+            });
+        });
+
+        // Set default display text for the meaning section
+        ratingMeaningDisplay.textContent = "Select a star to rate";
+    }
+
+    // Handle review submission
+    const submitReviewButton = document.getElementById('submitReviewButton');
+    if (submitReviewButton) {
+        submitReviewButton.addEventListener('click', () => {
+            const rating = ratingInput?.value;
+            const reviewText = document.getElementById('reviewTextArea')?.value.trim();
+  if(!rating && !reviewText)
+  {
+    Swal.fire({
+            title:'please give a rating and review ',
+            icon: 'warning',
+            toast: true,
+            position: 'top-end',
+            showConfirmButton: false,
+            timer: 3000
+        })
+                return;
+  }
+            if (!rating) {
+                Swal.fire({
+            title:'please select a rating',
+            icon: 'warning',
+            toast: true,
+            position: 'top-end',
+            showConfirmButton: false,
+            timer: 3000
+        })
+                return;
+            }
+
+            if (!reviewText) {
+                Swal.fire({
+            title:'please add the review',
+            icon: 'warning',
+            toast: true,
+            position: 'top-end',
+            showConfirmButton: false,
+            timer: 3000
+        })
+                return;
+            }
+
+           addReview(rating,reviewText)
+        });
+    }
+});
+
+</script>
+
+
+
+  <!-- Cancel Product Modal -->
+  <div class="modal fade" id="cancelModal" tabindex="-1" aria-labelledby="cancelModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="cancelModalLabel">Cancel Product</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <form id="cancelForm">
+                    <!-- Reason Selection -->
+                    <div class="mb-3 row align-items-center">
+                        <label for="cancelReason" class="col-sm-4 col-form-label fw-bold text-end">Reason for Cancellation:</label>
+                        <div class="col-sm-8">
+                            <select id="cancelReason" required>
+                                <option value="" disabled selected>Select a reason</option>
+                                <option value="changed_mind">Changed My Mind</option>
+                                <option value="ordered_wrong">Ordered Wrong Product</option>
+                                <option value="found_cheaper">Found a Cheaper Alternative</option>
+                                <option value="other">Other</option>
+                            </select>
+                        </div>
+                    </div>
+                   
+                </form>
+            </div>
+
+            <div class="modal-footer d-flex justify-content-between">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+                <button type="button" onclick="cancelOrder()" class="btn btn-danger" id="submitCancel">Confirm Cancellation</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="modal fade" id="returnModal" tabindex="-1" aria-labelledby="returnModalLabel">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content">
+            <!-- Modal Header -->
+            <div class="modal-header">
+                <h5 class="modal-title" id="returnModalLabel">Return Product</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+
+            <!-- Modal Body -->
+            <div class="modal-body">
+                <form id="returnForm">
+                    <!-- Reason for Return (Aligned properly) -->
+                    <div class="mb-3 row">
+                        <label for="returnReason" class="col-sm-4 col-form-label">Reason for Return</label>
+                        <div class="col-sm-8">
+                            <select  id="returnReason" required>
+                                <option value="" disabled selected>Select a reason</option>
+                                <option value="damaged">Product Damaged</option>
+                                <option value="not_as_described">Not as Described</option>
+                                <option value="changed_mind">Changed My Mind</option>
+                                <option value="other">Other</option>
+                            </select>
+                        </div>
+                    </div>
+
+                    <!-- Other Reason Text Box (Disabled by default) -->
+                    <div class="mb-3 row">
+                        <label for="returnOtherText" class="col-sm-4 col-form-label">Other Reason</label>
+                        <div class="col-sm-8">
+                            <textarea class="form-control" id="returnOtherText" rows="3" placeholder="Enter your reason..."></textarea>
+                        </div>
+                    </div>
+                </form>
+            </div>
+
+            <!-- Modal Footer -->
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+                <button type="button" onclick="returnOrder()" class="btn btn-warning" id="submitReturn">Submit Return Request</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- JavaScript Fix -->
+<script>
 
     function cancelOrder()
     {
@@ -344,14 +765,48 @@ document.addEventListener("DOMContentLoaded", function () {
 
     function returnOrder()
     {
+        let reason;
         const returnReason = document.getElementById("returnReason").value;
-         console.log(returnReason);
+        const returnText = document.getElementById("returnOtherText").value.trim();
+        if(returnReason==='other' && returnText==='')
+       {
+        Swal.fire({
+            title:'please write the reason',
+            icon: 'warning',
+            toast: true,
+            position: 'top-end',
+            showConfirmButton: false,
+            timer: 3000
+        })
+    }
+    else if(returnReason==='' && returnText==='')
+    {
+        Swal.fire({
+            title:'please choose a reason',
+            icon: 'warning',
+            toast: true,
+            position: 'top-end',
+            showConfirmButton: false,
+            timer: 3000
+        })  
+    }
+    else
+    {
+        if(returnReason==='other' && returnText!=='' || returnReason==='' && returnText!=='')
+    {
+        reason=returnText;
+    }
+    else
+    {
+        reason=returnReason;
+    }
+        console.log(returnReason);
          let orderId='<%=orderData._id%>'
         $.ajax({
             url: "/api/userProfile/orders/orderDetails/returnOrder",
             type: "PATCH",
             contentType: "application/json",
-            data: JSON.stringify({ orderId:orderId,reason:returnReason }),
+            data: JSON.stringify({ orderId:orderId,reason}),
             success: function (response) {
                 Swal.fire({
             title:'Order return request send',
@@ -362,14 +817,44 @@ document.addEventListener("DOMContentLoaded", function () {
             timer: 3000
         }).then(()=>
     {
-        location.reload();
+        location.reload()
     })
             
+            },
+            error: function () {
+                alert("Error in adding review.");
+            }
+        });
+    }
+        
+    }
+    function addReview(rating,review)
+    {
+        const orderId='<%=orderData._id%>'
+
+        $.ajax({
+            url: "/api/userProfile/orders/orderDetails/addReview",
+            type: "post",
+            contentType: "application/json",
+            data: JSON.stringify({ orderId:orderId,rating,review}),
+            success: function (response) {
+                Swal.fire({
+            title:'Thank you for your feedback',
+            icon: 'success',
+            toast: true,
+            position: 'top-end',
+            showConfirmButton: false,
+            timer: 3000
+        }).then(()=>
+    {
+        location.reload()
+    })
             },
             error: function () {
                 alert("Error in returning the order. Please try again.");
             }
         });
+
     }
 </script>
 
@@ -517,10 +1002,6 @@ document.addEventListener("DOMContentLoaded", function () {
             color: white;
         }
 
-        .review-btn {
-            background-color: #f0ad4e;
-            color: white;
-        }
 
         .invoice-btn {
             background: #5cb85c;

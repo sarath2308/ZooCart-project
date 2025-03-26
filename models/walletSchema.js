@@ -1,3 +1,4 @@
+const { Transaction } = require("mongodb");
 const mongoose = require("mongoose");
 const { Schema } = mongoose;
 
@@ -34,10 +35,13 @@ const walletSchema = new Schema({
             enum:['credited','debited','pending']
         },
         orderId:{
-            type: Schema.Types.ObjectId,  // Fixed "Objectid" to "ObjectId"
-            ref: "Order",
-            required: true,
+            type:Number,
+            required:true,
         },
+        transactionId:{
+            type:Number,
+            required:true
+        }
     }]
 });
 

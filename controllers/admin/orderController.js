@@ -11,7 +11,7 @@ const Product=require("../../models/productSchema")
 const loadOrders = async (req, res) => {
     try {
         let userId;
-        let orders = await Order.find().populate('orderedItem').populate('userId').sort({createdOn:-1}).lean()
+        let orders = await Order.find().populate('orderedItems.product').populate('userId').sort({createdOn:-1}).lean()
         // Convert each Mongoose document to a plain object and add readableId
         orders = orders.map(order => {
               
@@ -35,7 +35,7 @@ const loadOrders = async (req, res) => {
            try {
                console.log("req arrived at order Details");
                const orderId=req.query.orderId;
-               const orderData=await Order.findById({_id:orderId}).populate("orderedItem").populate("userId")
+               const orderData=await Order.findById({_id:orderId}).populate("orderedItems.product").populate("userId")
                const addressId=orderData.address;
                const userId=orderData.userId;
                const addressData=await Address.findOne({userId:userId})
@@ -85,7 +85,7 @@ const loadOrders = async (req, res) => {
         
                 // Find the order by ID
                 const orderData = await Order.findById(orderId);
-                let pid=orderData.orderedItem;
+                let pid=orderData.orderedItems[0].product;
                 let product=await Product.findById({_id:pid})
                 const userId=orderData.userId;
                 const wallet=await Wallet.findOne({userId:userId})
@@ -102,7 +102,7 @@ const loadOrders = async (req, res) => {
                             paymentFlow:true,
                             description:"order refund",
                             status:'credited',
-                            orderId:orderData._id,
+                            orderId:orderData.cartId?orderData.cartId:orderData.uniqueId,
                         }
                         wallet.balance+=orderData.finalAmount;
                         wallet.paymentHistory.push(payment)
@@ -115,7 +115,7 @@ const loadOrders = async (req, res) => {
                         paymentFlow:true,
                         description:"order refund",
                         status:'credited',
-                        orderId:orderData._id,
+                        orderId:orderData.cartId?orderData.cartId:orderData.uniqueId,
                     }
                     const newWallet=new Wallet({
                         userId:userId,

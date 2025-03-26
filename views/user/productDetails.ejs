@@ -269,54 +269,6 @@
             });
         });
         document.addEventListener("DOMContentLoaded", function () {
-  let selectedRating = 0;
-  const stars = document.querySelectorAll("#rating-stars .star");
-  const reviewText = document.getElementById("review-text");
-  const submitReviewBtn = document.getElementById("submit-review");
-
-  // Star hover effect (for review rating)
-  stars.forEach((star, index) => {
-    star.addEventListener("mouseover", function () {
-      resetStarColors();
-      for (let i = 0; i <= index; i++) {
-        stars[i].classList.add("hovered");
-      }
-    });
-
-    star.addEventListener("mouseout", function () {
-      resetStarColors();
-      highlightSelectedStars();
-    });
-
-    star.addEventListener("click", function () {
-      selectedRating = index + 1;
-      document.getElementById("selected-rating").textContent = `Selected Rating: ${selectedRating}`;
-      highlightSelectedStars();
-    });
-  });
-
-  function resetStarColors() {
-    stars.forEach((star) => star.classList.remove("hovered", "selected"));
-  }
-
-  function highlightSelectedStars() {
-    for (let i = 0; i < selectedRating; i++) {
-      stars[i].classList.add("selected");
-    }
-  }
-
-  // Submit Review Button
-  submitReviewBtn.addEventListener("click", function () {
-    if (selectedRating > 0 && reviewText.value.trim() !== "") {
-      // Handle review submission (store data in DB or update UI)
-      // You would send the selectedRating and reviewText value to the server here
-
-      // Reset after submission
-      selectedRating = 0;
-      reviewText.value = "";
-      resetStarColors();
-    }
-  });
   var proQty = $('.pro-qty');
   proQty.prepend('<span class="fa fa-angle-up dec qtybtn"></span>');
   proQty.append('<span class="fa fa-angle-down inc qtybtn"></span>');
@@ -428,8 +380,22 @@ function addToWishlist(pid)
 
 const placeOrder=function()
 {
+  
     var quantityValue = $('.pro-qty input').val();
+    const currentAvailability='<%=product.quantity%>'
     const pid='<%=product._id%>'
+    if( quantityValue>currentAvailability)
+{
+    Swal.fire({
+            title:"Insufficient stock available. Please reduce the quantity and try again.",
+            icon: 'warning',
+            toast: true,
+            position: 'top-end',
+            showConfirmButton: false,
+            timer: 2000
+        });
+        return;
+}
     window.location.href=`/checkout?pid=${pid}&quantity=${quantityValue}`
 
 }
@@ -451,7 +417,7 @@ const placeOrder=function()
                             <span> - 5 Reviews</span>
                         </div>
                         <%const offer=productOffer || categoryOffer%>
-                        <%if (product.status === "Available") {%>
+                        <%if (product.status === "Available" && product.quantity>0) {%>
                             <h3>₹<%=product.salePrice%><span><%=product.regularPrice%></span> 
                             <%if(!productOffer && !categoryOffer){%>
                                <em style="font-size: 16px;color:red;"> no offers</em>
@@ -500,12 +466,16 @@ const placeOrder=function()
                             </div>
                         </div>
                         <div class="product__details__cart__option">
+                            <%if(product.quantity>0 && product.status==='Available'){%>
                             <div class="quantity">
                                 <div class="pro-qty">
                                     <input type="text" value="1">
                                 </div>
                             </div>
+                           
                             <a onclick="placeOrder()" style="color:white" class="primary-btn">Buy Now</a>
+                            <%}%>
+
                         </div>
                         <div class="product__details__btns__option">
                             <a  class="btn" onclick="addToWishlist('<%=product._id%>')"><i class="fa fa-heart"></i> add to wishlist</a>
@@ -576,51 +546,223 @@ const placeOrder=function()
                             </div>
                             </div>
                               
-
-                            <div class="tab-pane" id="tabs-6" role="tabpanel">
+                            <div class="tab-pane" id="tabs-6" role="tabpanel" aria-labelledby="tabs-6-tab">
                                 <div class="product__details__tab__content">
-                                  <!-- Average Rating Section -->
-                                  <div class="product__details__tab__content__item">
-                                    <h5>Average Rating</h5>
-                                    <div class="average-rating">
-                                      <span id="average-rating">4.0</span> / 5
+                                    <!-- Average Rating Section -->
+                                    <div class="product__details__tab__content__item">
+                                        <h5>Average Rating</h5>
+                                        <div class="review-average mb-3" role="region" aria-label="Average product rating">
+                                            <div class="review-count-badge"><%=averageReview.totalReviews%></div>
+                                            <div class="review-average-stars" id="review-average-stars">
+                                                <span class="review-star filled">★</span>
+                                                <span class="review-star filled">★</span>
+                                                <span class="review-star filled">★</span>
+                                                <span class="review-star filled">★</span>
+                                                <span class="review-star">★</span>
+                                            </div>
+                                            <p class="review-rating-text">
+                                                <span id="review-average-rating"><%= averageReview.averageRating%></span> / 5 
+                                                <small>(based on <%=averageReview.totalReviews%> reviews)</small>
+                                            </p>
+                                        </div>
                                     </div>
-                                    <div id="average-stars" class="stars">
-                                      <span class="star"></span>
-                                      <span class="star"></span>
-                                      <span class="star"></span>
-                                      <span class="star"></span>
-                                      <span class="star"></span>
+                        
+                                    <!-- Display Reviews -->
+                                    <div class="product__details__tab__content__item">
+                                        <h5>Customer Reviews</h5>
+                                        <div id="review-list" role="list">
+                                            <% if (reviewData.length > 0) { %>
+                                                <% reviewData.forEach(review => { %>
+                                                    <div class="review-card" role="listitem">
+                                                        <!-- Star Ratings -->
+                                                        <div class="review-stars">
+                                                            <% for (let i = 1; i <= 5; i++) { %>
+                                                                <span class="review-star <%= i <= review.rating ? 'filled' : '' %>">★</span>
+                                                            <% } %>
+                                                        </div>
+                                                        <!-- Review Text -->
+                                                        <p class="review-content-text">"<%= review.review %>"</p>
+                                                        <!-- User and Date -->
+                                                        <p class="review-meta">
+                                                            <strong><%= review.userId.name %></strong> - 
+                                                            <%= new Date(review.date).toLocaleDateString("en-US", { month: 'long', day: 'numeric', year: 'numeric' }) %>
+                                                        </p>
+                                                    </div>
+                                                <% }) %>
+                                            <% } else { %>
+                                                <p>No reviews yet. Be the first to review this product!</p>
+                                            <% } %>
+                                        </div>
                                     </div>
-                                  </div>
-                              
-                                  <!-- Rating and Review Section -->
-                                  <div class="product__details__tab__content__item">
-                                    <h5>Rate and Review</h5>
-                                    <!-- Star Rating -->
-                                    <div class="stars mb-3" id="rating-stars">
-                                      <span class="star" data-value="1">&#9733;</span>
-                                      <span class="star" data-value="2">&#9733;</span>
-                                      <span class="star" data-value="3">&#9733;</span>
-                                      <span class="star" data-value="4">&#9733;</span>
-                                      <span class="star" data-value="5">&#9733;</span>
-                                    </div>
-                                    <p id="selected-rating" class="text-muted">Selected Rating: 0</p>
-                              
-                                    <!-- Review Form -->
-                                    <textarea id="review-text" class="form-control mb-3" placeholder="Write your review here..." rows="5"></textarea>
-                                    <button id="submit-review" class="btn btn-primary w-100">Submit Review</button>
-                                  </div>
-                              
-                                  <!-- Display Reviews -->
-                                  <div class="product__details__tab__content__item">
-                                    <h5>Customer Reviews</h5>
-                                    <div id="reviews-list">
-                                      <!-- Reviews will be dynamically added here -->
-                                    </div>
-                                  </div>
+                                    
                                 </div>
-                                </div>
+                            </div>
+                        
+                            <style>
+                                /* General Styling for Tab Content */
+                                .product__details__tab__content {
+                                    background-color: #f5f6f8; /* Softer gray background */
+                                    padding: 30px;
+                                    font-family: 'Arial', sans-serif;
+                                    border-radius: 15px;
+                                }
+                        
+                                .product__details__tab__content__item {
+                                    margin-bottom: 40px;
+                                }
+                        
+                                .product__details__tab__content__item h5 {
+                                    font-size: 1.5rem; /* Larger heading */
+                                    color: #1a1a1a; /* Darker for contrast */
+                                    margin-bottom: 20px;
+                                    font-weight: 600;
+                                }
+                        
+                                /* Average Rating Section */
+                                .review-average {
+                                    background: linear-gradient(135deg, #ffffff 0%, #f9f9f9 100%); /* Subtle gradient */
+                                    padding: 30px;
+                                    border-radius: 20px;
+                                    box-shadow: 0 6px 15px rgba(0, 0, 0, 0.08);
+                                    text-align: center;
+                                    position: relative;
+                                    transition: transform 0.3s ease;
+                                }
+                        
+                                .review-average:hover {
+                                    transform: scale(1.02); /* Subtle hover effect */
+                                }
+                        
+                                .review-average-stars {
+                                    font-size: 3rem; /* Even larger stars */
+                                    margin-bottom: 15px;
+                                }
+                        
+                                .review-star {
+                                    color: #d3d3d3; /* Softer gray for empty stars */
+                                    transition: color 0.2s ease;
+                                }
+                        
+                                .review-star.filled {
+                                    color: #ffb400; /* Brighter golden yellow */
+                                }
+                        
+                                .review-rating-text {
+                                    font-size: 1.8rem; /* Larger text */
+                                    color: #1a1a1a; /* High contrast */
+                                    font-weight: 700;
+                                    margin: 0;
+                                    line-height: 1.2;
+                                }
+                        
+                                #review-average-rating {
+                                    font-size: 2.5rem; /* Bigger rating number */
+                                    color: #2b4eff; /* Vibrant blue for emphasis */
+                                }
+                        
+                                .review-rating-text small {
+                                    display: block;
+                                    font-size: 1rem;
+                                    color: #666;
+                                    font-weight: 400;
+                                    margin-top: 5px;
+                                }
+                        
+                                /* Review Count Badge */
+                                .review-count-badge {
+                                    position: absolute;
+                                    top: -15px;
+                                    right: -15px;
+                                    background-color: #2b4eff;
+                                    color: #fff;
+                                    font-size: 0.9rem;
+                                    padding: 5px 10px;
+                                    border-radius: 12px;
+                                    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+                                }
+                        
+                                /* Review Cards */
+                                .review-card {
+                                    background-color: #fff;
+                                    border: none;
+                                    border-radius: 15px;
+                                    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
+                                    padding: 20px;
+                                    margin-bottom: 20px;
+                                    transition: all 0.3s ease;
+                                }
+                        
+                                .review-card:hover {
+                                    box-shadow: 0 6px 18px rgba(0, 0, 0, 0.08);
+                                    transform: translateY(-3px);
+                                }
+                        
+                                .review-stars {
+                                    font-size: 1.3rem;
+                                    margin-bottom: 10px;
+                                }
+                        
+                                .review-content-text {
+                                    font-size: 1rem; /* Slightly larger for readability */
+                                    color: #333;
+                                    margin: 0 0 10px 0;
+                                    line-height: 1.5;
+                                }
+                        
+                                .review-meta {
+                                    font-size: 0.9rem;
+                                    color: #777;
+                                }
+                        
+                                .review-meta strong {
+                                    color: #1a1a1a;
+                                    font-weight: 600;
+                                }
+                        
+                                /* Responsive Adjustments */
+                                @media (max-width: 768px) {
+                                    .product__details__tab__content {
+                                        padding: 20px;
+                                    }
+                        
+                                    .product__details__tab__content__item h5 {
+                                        font-size: 1.3rem;
+                                    }
+                        
+                                    .review-average {
+                                        padding: 20px;
+                                    }
+                        
+                                    .review-average-stars {
+                                        font-size: 2.2rem;
+                                    }
+                        
+                                    .review-rating-text {
+                                        font-size: 1.4rem;
+                                    }
+                        
+                                    #review-average-rating {
+                                        font-size: 1.8rem;
+                                    }
+                        
+                                    .review-rating-text small {
+                                        font-size: 0.9rem;
+                                    }
+                        
+                                    .review-count-badge {
+                                        font-size: 0.8rem;
+                                        padding: 4px 8px;
+                                    }
+                        
+                                    .review-stars {
+                                        font-size: 1.1rem;
+                                    }
+                        
+                                    .review-card {
+                                        padding: 15px;
+                                    }
+                                }
+                            </style>
                         </div>
                               
                               

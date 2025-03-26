@@ -9,14 +9,16 @@ const bannerSchema=new Schema({
         type:String,
         required:true,
     },
-    discription:{
+    product:{
+        type:Schema.Types.ObjectId,
+           ref:'Product',
+    },
+    position:{
         type:String,
         required:true,
+        unique:true,
     },
-    link:
-    {
-        type:String
-    },
+   
     startDate:{
         type:Date,
         required:true,

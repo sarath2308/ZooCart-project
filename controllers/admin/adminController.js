@@ -78,13 +78,13 @@ const loadDashboard=async(req,res)=>
         //pagination setup
         let page =  1;
         const limit = 10;
-        const totalPages = Math.ceil(totalOrders / limit);
+        const totalPages = Math.ceil(totalSales / limit);
       
 
         const totalRefund = await Order.aggregate([
             {
               $match: {
-                status: { $in: ["Returned", "Cancelled"] } // Match documents with status "Returned" or "Cancelled"
+                status: { $in: ["Returned", "cancelled"] } // Match documents with status "Returned" or "Cancelled"
               }
             },
             {
@@ -192,37 +192,43 @@ console.log(monthlySales);
 //most ordred product 
 const getTopTwoOrderedProducts = async () => {
   try {
-      
     const result = await Order.aggregate([
-      { $group: { _id: "$orderedItem", count: { $sum: 1 } } }, // Group by orderedItem and count
-      { $sort: { count: -1 } }, // Sort in descending order
+      { $unwind: "$orderedItems" }, // Unwind orderedItems array
+      {
+        $group: {
+          _id: "$orderedItems.product", // Group by product ID
+          totalOrders: { $sum: 1 }, // Count occurrences (orders containing the product)
+          totalQuantity: { $sum: "$orderedItems.quantity" } // Sum total ordered quantity
+        }
+      },
+      { $sort: { totalQuantity: -1 } }, // Sort by totalQuantity (highest first)
       { $limit: 2 }, // Get top 2 products
       {
-          $lookup: {
-              from: "products", // Collection name for products
-              localField: "_id",
-              foreignField: "_id",
-              as: "productDetails"
-          }
+        $lookup: {
+          from: "products", // Join with Products collection
+          localField: "_id",
+          foreignField: "_id",
+          as: "productDetails"
+        }
       },
       { $unwind: "$productDetails" }, // Extract product details object
       {
-          $project: {
-              _id: "$productDetails._id",
-              productName: "$productDetails.productName",
-              price: "$productDetails.salePrice",
-              category: "$productDetails.category",
-              productImage: "$productDetails.productImage", // Include product image
-              count: 1 // Include order count
-          }
+        $project: {
+          _id: "$productDetails._id",
+          productName: "$productDetails.productName",
+          price: "$productDetails.salePrice",
+          category: "$productDetails.category",
+          productImage: "$productDetails.productImage", // Include product image
+          totalOrders: 1, // Include order count
+          totalQuantity: 1 // Include total quantity
+        }
       }
-  ]);
+    ]);
 
-
-      console.log("Top Two Ordered Products:", result);
-      return result;
+    console.log("Top Two Ordered Products by Total Quantity:", result);
+    return result;
   } catch (error) {
-      console.error("Error finding top two ordered products:", error);
+    console.error("Error finding top two ordered products by total quantity:", error);
   }
 };
 
