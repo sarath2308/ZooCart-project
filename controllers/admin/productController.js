@@ -9,7 +9,7 @@ const sharp=require("sharp");
 const cloudinary =require("../../config/cloudinary");  
 const multer=require("../../helpers/multer")
 
-const loadProduct = async (req, res) => {
+const loadProduct = async (req, res,next) => {
     try {
         if(!req.session.admin)
         {
@@ -27,18 +27,18 @@ const loadProduct = async (req, res) => {
       return res.render("products", {
         data: products,
         category: categories,  // Pass categories for use in the view
-        brand: brands          // Pass brands for use in the view
-      });
+        brand: brands,       // Pass brands for use in the view
+        currentPath:req.path
+    });
   
     } catch (error) {
-      console.log("Error occurred while displaying all products:", error); // Improved error logging
-      return res.redirect("/admin/pageerror");  // Redirect to error page
+        next(error)
     }
   };
   
 
 
-const loadAddProducts=async(req,res)=>
+const loadAddProducts=async(req,res,next)=>
 {
     if(!req.session.admin)
         {
@@ -58,19 +58,16 @@ const loadAddProducts=async(req,res)=>
 }
 catch(error)
 {
-    console.log("Error occured while loading add product page");
-    return res.redirect("/admin/pageerror")
+   
+    next(error)
     
 }
 
 };
 
 
-const addProducts = async (req, res) => {
-    console.log("Request arrived at adding product");
-console.log("Cloudinary Instance:", cloudinary);
-
-
+const addProducts = async (req, res,next) => {
+   
     try {
 
         // Fetch categories and brands
@@ -120,7 +117,7 @@ console.log("Cloudinary Instance:", cloudinary);
         const images = await Promise.all(uploadPromises);
         const imageUrls = images.map((img) => img.secure_url);
 
-        console.log("Uploaded Image URLs:", imageUrls); // Debugging line
+     
 
         // Validate category and brand
         const categoryData = await Category.findOne({ name: categoryName }).select("_id");
@@ -153,12 +150,11 @@ console.log("Cloudinary Instance:", cloudinary);
         await newProduct.save();
         return res.status(201).redirect("/admin/products");
     } catch (error) {
-        console.error("Error occurred while adding products:", error);
-        return res.redirect("/admin/pageerror");
+        next(error)
     }
 };
 
-const addOffer=async(req,res)=>
+const addOffer=async(req,res,next)=>
 {
     try {
        
@@ -174,14 +170,12 @@ const addOffer=async(req,res)=>
         await findProduct.save();
         res.status(200).json({success:true,message:"offer successfully addedd"})
     } catch (error) {
-        console.log(error);
-        
-        res.status(500).redirect("/admin/pageerror")
-        console.log("error occured at adding offer to product");
+      
+        next(error)
         
     }
 }
-const removeOffer=async(req,res)=>
+const removeOffer=async(req,res,next)=>
 {
     try {
         const {productId}=req.body;
@@ -197,12 +191,12 @@ const removeOffer=async(req,res)=>
         await findProduct.save();
         res.status(200).json({success:true,message:"offer removed"})
     } catch (error) {
-        res.redirect("/admin/pageerror")
+        next(error)
     }
 }
-const BlockProducts=async(req,res)=>
+
+const BlockProducts=async(req,res,next)=>
 {
-    console.log("req arrived at blocking product");
     
     try {
         const {productId}=req.body;
@@ -215,12 +209,11 @@ const BlockProducts=async(req,res)=>
         await findProduct.save();
         return res.status(200).json({success:true,message:"product Blocked"})
     } catch (error) {
-       console.log("Error occured while blocking product"+error);
-        res.redirect("/admin/products")
+        next(error)
     }
 }
 
-const unblockProducts=async(req,res)=>
+const unblockProducts=async(req,res,next)=>
 {
     
     try {
@@ -234,11 +227,10 @@ const unblockProducts=async(req,res)=>
         await findProduct.save();
         return res.status(200).json({success:true,message:"product unblocked"})
     } catch (error) {
-       console.log("Error occured while unblocking product"+error);
-        res.redirect("/admin/products")
+        next(error)
     }
 }
-const removeProducts=async(req,res)=>
+const removeProducts=async(req,res,next)=>
 {
     try {
         const {productId}=req.body;
@@ -250,11 +242,10 @@ const removeProducts=async(req,res)=>
        const deleteProduct= await Product.deleteOne({_id:productId})
         return res.status(200).json({success:true,message:"product unblocked"})
     } catch (error) {
-       console.log("Error occured while unblocking product"+error);
-        res.redirect("/admin/products")
+        next(error)
     }
 }
-const loadEditProducts = async (req, res) => {
+const loadEditProducts = async (req, res,next) => {
     try {
         if(!req.session.admin)
             {
@@ -269,7 +260,6 @@ const loadEditProducts = async (req, res) => {
       const product = await Product.findOne({ _id: productId }).populate('category');
       
       if (!product) {
-        console.log("Product not found");
         return res.redirect("/admin/pageerror");
       }
   
@@ -281,19 +271,16 @@ const loadEditProducts = async (req, res) => {
       });
   
     } catch (error) {
-      console.log("Error occurred while editing product: " + error);
-      res.redirect("/admin/pageerror");
+        next(error)
     }
   };
   
-  const editProducts = async (req, res) => {
-    console.log("req arrived at edit product");
+  const editProducts = async (req, res,next) => {
 
     try {
         const id = req.query.id;
         const products = await Product.findOne({ _id: id });
         const data = req.body;
-        console.log(data);
 
         const existingProduct = await Product.findOne({
             productName: data.productName,
@@ -329,7 +316,6 @@ const loadEditProducts = async (req, res) => {
             productImage.push(req.body.productImage);
         }
 
-        console.log("Updated Image URLs:", productImage); // Debugging line
 
         const updateProduct = {
             productName: data.productName,
@@ -349,42 +335,27 @@ const loadEditProducts = async (req, res) => {
 
         return res.redirect("/admin/products");
     } catch (error) {
-        console.log("Error occurred while updating product details: ");
-        console.log(error);
-
-        res.redirect("/admin/pageerror");
+       next(error)
     }
 };
 
   
-const deleteImage=async(req,res)=>
+const deleteImage=async(req,res,next)=>
     {
         try {
             const {imageId,productId}=req.body;
             const product=await Product.findByIdAndUpdate(productId,{$pull:{productImage:imageId}});
             const imagePath=path.join("public","public-image",imageId)
             if(fs.existsSync(imagePath)){
-                await fs.unlinkSync(imagePath);
-                console.log(`image ${imageId} deleted successfull`);
-                
+                await fs.unlinkSync(imagePath);   
             }
-            else{
-                console.log(`image ${imageId} not found`); 
-            }
-            res.json({success:true,message:"image deleted"})
+
+           return  res.status(200).json({success:true,message:"image deleted"})
         } catch (error) {
-            console.log("error occured while deleting product"+error);
             
+           next(error)
         }
     }  
-
-
-
-
-
-
-
-
 
 
 

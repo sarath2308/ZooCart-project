@@ -1,0 +1,304 @@
+<%- include("../../views/partials/user/header.ejs") %>
+<style>
+  .profile-section {
+    border-left: 4px solid #4361ee;
+    max-width: 600px;
+    margin: 0 auto;
+  }
+  .form-icon {
+    width: 38px;
+    background-color: #f0f4ff;
+    border-right: 1px solid #dee2e6;
+  }
+  .otp-input {
+    letter-spacing: 2px;
+    font-size: 1.2rem;
+    text-align: center;
+    width: 40px;
+    height: 40px;
+  }
+  @media (max-width: 576px) {
+    .profile-section {
+      border-left: none;
+      border-top: 4px solid #dadce4;
+      padding: 15px;
+    }
+    .container {
+      padding: 15px;
+    }
+    .btn {
+      width: 100%;
+      padding: 10px;
+    }
+    .otp-input {
+      width: 35px;
+      height: 35px;
+      font-size: 1rem;
+    }
+  }
+  .swal2-toast {
+    font-size: 12px !important;
+    font-family: 'Arial', sans-serif;
+  }
+</style>
+
+<div class="container py-4">
+  <div class="row justify-content-center">
+    <div class="col-12 col-lg-8">
+      <a href="/userProfile" class="btn btn-outline-secondary mb-4">
+        <i class="fas fa-arrow-left me-2"></i>Back to Profile
+      </a>
+
+      <div class="card shadow-sm">
+        <div class="card-header bg-white">
+          <h3 class="mb-0">
+            <i class="fas fa-envelope text-primary me-2"></i>
+            Change Email Address
+          </h3>
+        </div>
+
+        <div class="card-body">
+          <div class="profile-section p-3 bg-white rounded">
+            <form id="emailChangeForm">
+              <div class="mb-3">
+                <label class="form-label">Current Email</label>
+                <div class="input-group">
+                  <span class="input-group-text form-icon">
+                    <i class="fas fa-envelope"></i>
+                  </span>
+                  <input type="email" class="form-control" id="email" value="<%=userData.email%>" readonly>
+                </div>
+              </div>
+              <div class="mb-3">
+                <label for="newEmail" class="form-label">New Email</label>
+                <div class="input-group">
+                  <span class="input-group-text form-icon">
+                    <i class="fas fa-envelope"></i>
+                  </span>
+                  <input type="email" class="form-control" id="newEmail" placeholder="Enter new email" required>
+                </div>
+              </div>
+              <button type="button" id="requestOtpButton" class="btn btn-primary">
+                <i class="fas fa-shield-alt me-2"></i>Request OTP
+              </button>
+            </form>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="modal fade" id="otpModal" tabindex="-1" aria-hidden="true">
+  <div class="modal-dialog">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title">
+          <i class="fas fa-shield-alt text-primary me-2"></i>
+          Email Verification
+        </h5>
+        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+      </div>
+      <div class="modal-body">
+        <p>We've sent a 6-digit OTP to <strong id="emailDisplay"></strong>.</p>
+
+        <form id="otpForm">
+          <div class="mb-3">
+            <label class="form-label">Enter OTP</label>
+            <input type="text" id="otpInput" class="form-control text-center" maxlength="6" placeholder="Enter 6-digit OTP">
+            <p class="small mt-2 d-block text-muted" id="resendOtpText">Resend OTP in <span id="timer">60</span>s</p>
+            <button class=" mt-2 d-none btn btn-info" id="resendOtp">Resend OTP</button>
+          </div>
+          <button type="submit" class="btn btn-primary w-100">
+            <i class="fas fa-check-circle me-2"></i>Verify & Update Email
+          </button>
+        </form>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+<script>
+  let otpTimer;
+  let countdown = 60;
+
+  function startOtpTimer() {
+    $("#resendOtpText").removeClass("d-none");
+    $("#resendOtp").addClass("d-none");
+    countdown = 60;
+
+    otpTimer = setInterval(() => {
+      countdown--;
+      $("#timer").text(countdown);
+      if (countdown === 0) {
+        clearInterval(otpTimer);
+        $("#resendOtpText").addClass("d-none");
+        $("#resendOtp").removeClass("d-none");
+      }
+    }, 1000);
+  }
+
+  $("#requestOtpButton").click(function () {
+    let newEmail = $("#newEmail").val().trim();
+    let currentEmail = $("#email").val().trim();
+
+    if (newEmail === currentEmail) {
+      Swal.fire({
+        title: "Both emails are the same. Try another email.",
+        icon: "error",
+        toast: true,
+        position: "top-right",
+        showConfirmButton: false,
+        timer: 3000
+      });
+      return;
+    }
+
+    if (!newEmail || !/\S+@\S+\.\S+/.test(newEmail)) {
+      alert("Please enter a valid email address.");
+      return;
+    }
+
+    $.ajax({
+      url: "/api/userProfile/change-email/otp",
+      type: "POST",
+      contentType: "application/json",
+      data: JSON.stringify({ email: newEmail }),
+      beforeSend: function () {
+        $("#requestOtpButton").prop("disabled", true).html('<i class="fas fa-spinner fa-spin"></i> Sending OTP...');
+      },
+      success: function () {
+        Toastify({
+          text: "✅ OTP sent!",
+          duration: 2000,
+          gravity: "top",
+          position: "center",
+          stopOnFocus: true,
+          close: true,
+          className: "toast-success"
+        }).showToast();
+
+        $("#emailDisplay").text(newEmail);
+        $("#otpModal").modal("show");
+        $("#requestOtpButton").prop("disabled", false).html('<i class="fas fa-shield-alt me-2"></i>Request OTP');
+        startOtpTimer();
+      },
+      error: function () {
+        Toastify({
+          text: "❌ OTP not sent!",
+          duration: 2000,
+          gravity: "top",
+          position: "center",
+          stopOnFocus: true,
+          close: true,
+          className: "toast-error"
+        }).showToast();
+
+        $("#requestOtpButton").prop("disabled", false);
+      }
+    });
+  });
+ 
+  $("#resendOtp").click(function (e) {
+  e.preventDefault();
+
+  if ($(this).hasClass("disabled")) {
+    return; // Prevent multiple clicks before the timer ends
+  }
+   
+  $("#otpInput").val(""); // Clear OTP input
+  $("#requestOtpButton").click();
+  })
+  let isOtpVerificationInProgress = false;
+  //verify Otp
+  $("#otpForm").submit(function (e) {
+    isOtpVerificationInProgress=true;
+    e.preventDefault();
+    
+    let otp = $("#otpInput").val().trim();
+    let newEmail = $("#emailDisplay").text().trim();
+
+    if (!otp || otp.length !== 6 || isNaN(otp)) {
+      Swal.fire({
+        title: "Invalid OTP!",
+        text: "Please enter a 6-digit OTP.",
+        icon: "error",
+        toast: true,
+        position: "top-right",
+        showConfirmButton: false,
+        timer: 3000
+      });
+      return;
+    }
+
+    $.ajax({
+      url: "/api/userProfile/change-email/verify-otp",
+      type: "POST",
+      contentType: "application/json",
+      data: JSON.stringify({ otp: otp, email: newEmail }),
+      beforeSend: function () {
+        $("button[type='submit']").prop("disabled", true).html('<i class="fas fa-spinner fa-spin"></i> Verifying...');
+      },
+      success: function (response) {
+        Toastify({
+          text: "✅ Email updated successfully!",
+          duration: 3000,
+          gravity: "top",
+          position: "center",
+          stopOnFocus: true,
+          close: true,
+          className: "toast-success"
+        }).showToast();
+
+        setTimeout(() => {
+          window.location.href = "/userProfile"; // Redirect to profile page after success
+        }, 2000);
+      },
+      error: function (xhr) {
+        let errorMessage = xhr.responseJSON?.message || "Verification failed!";
+        Swal.fire({
+          title: "Error!",
+          text: errorMessage,
+          icon: "error",
+          toast: true,
+          position: "top-right",
+          showConfirmButton: false,
+          timer: 3000
+        });
+
+        $("button[type='submit']").prop("disabled", false).html('<i class="fas fa-check-circle me-2"></i>Verify & Update Email');
+      }
+    });
+  });
+
+  isOtpVerificationInProgress = true;
+$(document).ready(function () {
+  // Warn user before leaving the page
+  $(window).on("beforeunload", function (e) {
+    if (isOtpVerificationInProgress) {
+      e.preventDefault();
+      e.returnValue = "You have an ongoing OTP verification. Are you sure you want to leave?";
+      return "You have an ongoing OTP verification. Are you sure you want to leave?";
+    }
+  });
+
+  
+
+  // Reset flag on success
+  $(document).ajaxSuccess(function (event, xhr, settings) {
+    if (settings.url === "/api/userProfile/change-email/verify-otp") {
+      isOtpVerificationInProgress = false;
+    }
+  });
+
+  // Optional: Reset flag after some time (if necessary)
+  setTimeout(() => {
+    isOtpVerificationInProgress = false;
+  }, 5000);
+});
+
+</script>
+
+
+<%- include("../../views/partials/user/footer.ejs") %>

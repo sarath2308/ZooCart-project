@@ -41,21 +41,31 @@ router.get("/productDetails",userAuth,productController.productDetails)
 
 //user Profile
 router.get("/userProfile",userAuth,userController.loadUserProfile)
-router.post("/update-profile",userAuth,profileController.updateProfile)
-router.post("/add-phone",userAuth,profileController.addPhone)
-router.post("/api/users/:otpType/otp",userAuth,profileController.sendOtp)
-router.post('/api/users/:otpType/otp/verify',userAuth,profileController.verifyOtp)
-router.put("/api/users/password",userAuth,profileController.newPassword)
-router.put("/api/users/email",userAuth,profileController.updateEmail)
+router.get("/userDetails",userAuth,profileController.userDetails)
+router.get("/editUserProfile",userAuth,profileController.editUserDetails)
+router.get("/change-email",userAuth,profileController.changeEmail)
+router.get("/change-password",userAuth,profileController.changePassword)
+
+router.post("/api/userProfile/update-profile",userAuth,profileController.updateProfile)
+
+router.post("/api/userProfile/change-email/otp",userAuth,profileController.sendOtp)
+router.post("/api/userProfile/change-email/verify-otp",userAuth,profileController.verifyOtp)
+router.post("/api/userProfile/change-password/otp",userAuth,profileController.sendOtp)
+router.put("/api/userProfile/change-password/verify-otp",userAuth,profileController.verifyOtp)
+//orders
+router.get("/orders",userAuth,profileController.loadOrders)
+
+//wallet
+router.get("/wallet",userAuth,profileController.loadWallet)
+
 router.get("/orderDetails",userAuth,profileController.orderDetails)
 router.patch("/api/userProfile/orders/orderDetails/cancelOrder",userAuth,profileController.cancelOrder)
-router.post("/userProfile/resendOtp",userAuth,profileController.resendOtp)
 router.patch("/api/userProfile/orders/orderDetails/returnOrder",userAuth,profileController.returnOrder)
 router.post("/api/userProfile/orders/orderDetails/addReview",userAuth,profileController.addReview)
 router.patch("/api/userProfile/orders/orderDetails/editReview",userAuth,profileController.editReview)
 
 // address management 
-
+router.get("/address",userAuth,profileController.loadAddress)
 router.post("/add-address",userAuth,profileController.addAddress)
 router.post('/update-default-address',userAuth,profileController.changeDefault)
 router.post("/edit-address",userAuth,profileController.editAddress)
@@ -86,6 +96,9 @@ router.post("/api/orders/verifyPayment",userAuth,checkoutController.verifyPaymen
 
 //Retry payment
 router.get("/api/orders/retry-payment",userAuth,checkoutController.getRetryData)
+
+router.get("/about",userAuth,userController.loadAbout)
+router.get("/contact",userAuth,userController.loadContact)
 
 
 

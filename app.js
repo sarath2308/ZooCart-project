@@ -9,7 +9,10 @@ const session=require('express-session')
 const passport=require('./config/passport')
 const MongoStore = require("connect-mongo");
 const mongoose=require("mongoose")
+const helmet = require("helmet");
+
 //middlewars
+app.use(helmet());
 app.use(express.json());
 app.use(express.urlencoded({extended:true}))
 app.set("view engine","ejs")
@@ -50,6 +53,31 @@ app.use(passport.session());
 app.use("/",userRouter)
 //admin requests handling
 app.use('/admin',adminRouter)
+
+
+app.use((err, req, res, next) => {
+  const statusCode = err.status || 500;
+
+  // Check if the request expects JSON (API request)
+  if (req.xhr || req.headers.accept?.includes("application/json")) {
+    return res.status(statusCode).json({ 
+      success: false, 
+      error: err.message || "Internal Server Error" 
+    });
+  }
+
+  // Determine if the error is from the admin side
+  const isAdminRoute = req.originalUrl.startsWith("/admin");
+
+  // Render different error pages based on user/admin routes
+  const errorPage = isAdminRoute ? "pageerror" : "page-not-found";
+
+  res.status(statusCode).render(errorPage, { 
+    message: err.message || (isAdminRoute ? "Admin Page Not Found" : "Page Not Found") 
+  });
+});
+
+
 const PORT=3000||process.env.PORT;
 app.listen(PORT,()=>
 {

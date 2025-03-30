@@ -7,7 +7,7 @@ const mongoose = require("mongoose");
 
 
 
-const productDetails=async(req,res)=>
+const productDetails=async(req,res,next)=>
 {
     try {
         const userId=req.session.user || req.user._id;
@@ -49,13 +49,13 @@ const productDetails=async(req,res)=>
                         return { averageRating: "0.0", totalReviews: 0 }; // No reviews found
                     }
                 } catch (error) {
-                    console.error("Error fetching average rating:", error);
+                   
                     return { averageRating: "0.0", totalReviews: 0 };
                 }
             }
 
             let averageReview=await getAverageRating(productId)
-            console.log(averageReview);
+           
             
             
         const category=await Category.findById({_id:productData.category._id})
@@ -63,8 +63,6 @@ const productDetails=async(req,res)=>
         const categoryOffer=category.CategoryOffer || 0;
         const productOffer=productData.productOffer ||0;
         const totalOffer=categoryOffer + productOffer;
-        console.log("productOffer:"+productOffer);
-        console.log("categoryOffer:"+category);
         
             return res.render("productDetails",{
                 user:userData,
@@ -81,8 +79,8 @@ const productDetails=async(req,res)=>
             })
 
     } catch (error) {
-        console.log("error occured while showing product Details"+error);
-        return res.redirect("/page-not-found")
+        
+        next(error)
     }
 }
 

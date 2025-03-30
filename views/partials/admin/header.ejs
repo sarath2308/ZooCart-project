@@ -38,7 +38,6 @@
             <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css">
         
             <!-- Bootstrap Bundle JS -->
-            <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js" integrity="sha384-YvpcrYf0tY3lHB60NNkmXc5s9fDVZLESaAA55NDzOxhy9GkcIdslK1eN7N6jIeHz" crossorigin="anonymous"></script>
             <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons/font/bootstrap-icons.css" rel="stylesheet">
         
             <!-- Chart.js -->
@@ -63,35 +62,35 @@
     </div>
   
     <ul class="categories list-unstyled">
-      <li class="">
-        <i class="uil-estate fa-fw"></i><a href="/admin"> Dashboard</a>
+      <li class="<%= currentPath === '/' ? 'active' : '' %>">
+          <i class="uil-estate fa-fw"></i><a href="/admin"> Dashboard</a>
       </li>
-      <li class="">
-        <i class="uil-folder"></i><a href="/admin/users"> User Management</a>
+      <li class="<%= currentPath === '/users' ? 'active' : '' %>">
+          <i class="uil-folder"></i><a href="/admin/users"> User Management</a>
       </li>
-      <li class="">
-        <i class="uil-calendar-alt"></i><a href="/admin/products"> Manage products</a>
+      <li class="<%= currentPath === '/products' ? 'active' : '' %>">
+          <i class="uil-calendar-alt"></i><a href="/admin/products"> Manage products</a>
       </li>
-      <li class="">
-        <i class="uil-envelope-download fa-fw"></i><a href="/admin/orders">Manage Orders</a>
+      <li class="<%= currentPath === '/orders' ? 'active' : '' %>">
+          <i class="uil-envelope-download fa-fw"></i><a href="/admin/orders">Manage Orders</a>
       </li>
-      <li class="">
-        <i class="uil-shopping-cart-alt"></i><a href="/admin/coupons">Manage Coupon</a>
+      <li class="<%= currentPath === '/coupons' ? 'active' : '' %>">
+          <i class="uil-shopping-cart-alt"></i><a href="/admin/coupons">Manage Coupon</a>
       </li>
-      <li class="">
-        <i class="uil-bag"></i><a href="/admin/category"> Manage Category</a>
+      <li class="<%= currentPath === '/category' ? 'active' : '' %>">
+          <i class="uil-bag"></i><a href="/admin/category"> Manage Category</a>
       </li>
-      <li class="">
-        <i class="uil-setting"></i><a href="/admin/brands">Manage Brands</a>
-        
+      <li class="<%= currentPath === '/brands' ? 'active' : '' %>">
+          <i class="uil-setting"></i><a href="/admin/brands">Manage Brands</a>
       </li>
-      <li class="">
-        <i class="uil-chart-pie-alt"></i><a href="/admin/banners"> Manage Banner</a>
+      <li class="<%= currentPath === '/banners' ? 'active' : '' %>">
+          <i class="uil-chart-pie-alt"></i><a href="/admin/banners"> Manage Banner</a>
       </li>
-      <li class="">
-        <i class="uil-panel-add"></i><a href="/admin/wallet"> User Wallets</a>
-      
+      <li class="<%= currentPath === '/wallet' ? 'active' : '' %>">
+          <i class="uil-panel-add"></i><a href="/admin/wallet"> User Wallets</a>
       </li>
+  </ul>
+  
       <!-- <li class="">
         <i class="uil-map-marker"></i><a href="#"> Maps</a>
       </li> -->
@@ -393,10 +392,20 @@ background-color: #3c3f58;
 background-color: rgba(0, 0, 0, 0.3);
 }
 
+.categories li.active {
+    background-color:#313348; /* Blue background */
+    color: white; /* White text */
+    border-radius: 5px;
+}
+
+.categories li.active a {
+    color: white !important;
+}
 
     </style>
   <script>
 document.addEventListener('DOMContentLoaded', function () {
+  
 function $(selector) {
 return document.querySelector(selector)
 }

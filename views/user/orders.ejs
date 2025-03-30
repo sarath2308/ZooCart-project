@@ -1,0 +1,182 @@
+<%- include("../../views/partials/user/header.ejs") %>
+<script src="https://checkout.razorpay.com/v1/checkout.js"></script>
+  <div class="container py-4" style="margin-bottom: 500px;">
+    <h2 class="mb-4">All Orders</h2>
+    <% if (orders && orders.length > 0) { %>
+      <% orders.forEach(function(order) { %>
+        <div class="card mb-4 shadow-sm">
+          <div class="card-header d-flex justify-content-between align-items-center">
+            <span><strong>Order ID:</strong> <%= order.readableOrderId %></span>
+            <% let statusClass = '';
+               switch(order.status) {
+                 case 'pending': statusClass = 'text-warning'; break;
+                 case 'processing': statusClass = 'text-primary'; break;
+                 case 'shipped': statusClass = 'text-info'; break;
+                 case 'delivered': statusClass = 'text-success'; break;
+                 case 'cancelled': statusClass = 'text-danger'; break;
+                 case 'Return Request': statusClass = 'text-muted'; break;
+                 case 'Returned': statusClass = 'text-dark'; break;
+                 case 'Return Rejected': statusClass = 'text-secondary'; break;
+               } %>
+               <span class="order-status <%= statusClass %> d-block text-truncate">
+                <strong>Status:</strong> <%= order.status %>
+              </span>
+              
+          </div>
+          <div class="card-body">
+            <% order.orderedItems.forEach(function(item) { %>
+              <div class="d-flex align-items-center mb-3">
+                <img src="<%= item.product?.productImage[0] %>" alt="Product" class="me-3" width="60">
+                <div>
+                  <p><strong>Product:</strong> <%= item.product?.productName || 'Unknown Product' %></p>
+                  <p><strong>Price:</strong> ₹<%= item.price %></p>
+                  <p><strong>Quantity:</strong> <%= item.quantity %></p>
+                </div>
+              </div>
+            <% }); %>
+            <div class="d-flex justify-content-between">
+              <% if (!order.paymentStatus && order.paymentMethod !== 'Cash on Delivery') { %>
+                <button class="btn btn-danger" onclick="retryPayment('<%= order._id %>')">Complete Payment</button>
+              <% } else { %>
+                <a class="btn btn-warning" href="/orderDetails?orderId=<%= order._id %>">View Details</a>
+              <% } %>
+            </div>
+          </div>
+        </div>
+      <% }); %>
+    <% } else { %>
+      <p>You have no orders yet.</p>
+    <% } %>
+  </div>
+
+  <script>
+    toastr.options = {
+       "closeButton": true,
+       "progressBar": true,
+       "positionClass": "toast-top-right",
+       "timeOut": "4000",
+       "extendedTimeOut": "1000",
+       "showEasing": "swing",
+       "hideEasing": "linear",
+       "showMethod": "slideDown",
+       "hideMethod": "slideUp",
+       "preventDuplicates": true,
+       "newestOnTop": true
+   };
+function retryPayment(orderId) {
+         
+$.ajax({
+url: `/api/orders/retry-payment?orderId=${orderId}`,
+type: 'GET',
+success: function (response) {
+if (response.success) {
+   const options = {
+     key: response.razorpay_key, // Razorpay API key
+     amount: response.order.amount, 
+     currency: response.order.currency,
+     order_id: response.order.id,
+     name: "ZooCart",
+     description: "Retry Payment",
+     handler: function (res) {
+       console.log("Retry Payment ID:", res.razorpay_payment_id);
+
+       // Verify Payment on Server
+       verifyPayment(res, orderId);
+     },
+     modal: {
+       ondismiss: function () {
+         toastr.error("Payment Failed! Please Try Again later.", "Error");
+       },
+     },
+     prefill: {
+       name: response.user.name,
+       email: response.user.email,
+       contact: response.user.phone,
+     },
+   };
+
+   const rzp = new Razorpay(options);
+   rzp.open();
+ } else {
+   toastr.error("Payment Failed! Please Try Again later.", "Error");
+ }
+},
+error: function (err) {
+console.error('Error placing order:', err);
+
+// Ensure err.responseJSON exists and contains a message
+if (err.responseJSON && err.responseJSON.message &&  err.responseJSON.refresh) {
+ Swal.fire({
+       title: 'warning',
+       text: err.responseJSON.message,
+       icon: 'warning',
+       toast: true,
+       position: 'top-end',
+       timer: 3000,
+       showConfirmButton: false,
+   }).then(()=>
+ {
+   location.reload()
+ })
+
+} else {
+   Swal.fire({
+       title: 'Error',
+       text: 'There was an error placing your order. Please try again.',
+       icon: 'error',
+       toast: true,
+       position: 'top-end',
+       timer: 3000,
+       showConfirmButton: false,
+   });
+}
+},
+})
+}
+function verifyPayment(response,orderId) {
+$.ajax({
+url: '/api/orders/verifyPayment',
+type: 'POST',
+contentType: 'application/json',
+data: JSON.stringify({
+ orderId:orderId,
+ razorpay_payment_id: response.razorpay_payment_id,
+ razorpay_order_id: response.razorpay_order_id,
+ razorpay_signature: response.razorpay_signature,
+}),
+success: function (verificationResult) {
+ if (verificationResult.success) {
+   
+   window.location.href = '/order-placed'; // Redirect to success page
+ } else {
+   // Payment verification failed
+  
+ }
+},
+error: function (err) {
+console.error('Error placing order:', err);
+
+// Ensure err.responseJSON exists and contains a message
+if (err.responseJSON && err.responseJSON.message &&  err.responseJSON.refresh) {
+ toastr.warning(err.responseJSON.message, "Warning").then(()=>
+{
+ location.reload();
+})
+
+} else {
+   Swal.fire({
+       title: 'Error',
+       text: 'There was an error placing your order. Please try again.',
+       icon: 'error',
+       toast: true,
+       position: 'top-end',
+       timer: 3000,
+       showConfirmButton: false,
+   });
+}
+},
+})
+}
+     </script>
+     
+<%- include("../../views/partials/user/footer.ejs") %>

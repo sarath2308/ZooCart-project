@@ -3,17 +3,17 @@ const Product=require("../../models/productSchema")
 const path=require('path')
 
 
-const loadBrand=async(req,res)=>
+const loadBrand=async(req,res,next)=>
 {
     try {
         const brands=await Brand.find({}).sort({createdAt:-1})
-        return res.render("brands",{brands})
+        return res.render("brands",{brands,currentPath:req.path})
     } catch (error) {
-        console.log("error occured while redering brands pages");
+     next(error)
         
     }
 }
-const addBrand = async (req, res) => {
+const addBrand = async (req, res,next) => {
     try {
       const { brandName } = req.body;
       const image = path.basename(req.file.path);
@@ -39,11 +39,11 @@ const addBrand = async (req, res) => {
       res.status(200).json({ success: true, message: "Brand added successfully" });
   
     } catch (error) {
-      console.error("Error occurred while adding new Brand:", error);
-      res.status(500).json({ success: false, message: "Internal Server Error" });
+  
+      next(error)
     }
   };
-  const blockBrand = async (req, res) => {
+  const blockBrand = async (req, res,next) => {
     try {
       const { brandId } = req.body;  // Get brand ID from URL
       const brand = await Brand.findById(brandId);
@@ -58,11 +58,11 @@ const addBrand = async (req, res) => {
         message: `Brand has been ${brand.isBlocked ? "blocked" : "unblocked"} successfully`,
       });
     } catch (error) {
-      console.error("Error while blocking/unblocking the brand:", error);
-      res.status(500).json({ success: false, message: "Internal Server Error" });
+      next(error)
     }
   };
- const unblockBrand =async (req, res) => {
+
+ const unblockBrand =async (req, res,next) => {
     try {
       const { brandId } = req.body;  // Get brand ID from URL
       const brand = await Brand.findById(brandId);
@@ -77,12 +77,12 @@ const addBrand = async (req, res) => {
         message: `Brand has been ${brand.isBlocked ? "blocked" : "unblocked"} successfully`,
       });
     } catch (error) {
-      console.error("Error while unblocking the brand:", error);
-      res.status(500).json({ success: false, message: "Internal Server Error" });
+      
+     next(error)
     }
   };
   
-  const removeBrand=async (req, res) => {
+  const removeBrand=async (req, res,next) => {
     try {
       const { brandId } = req.body;  // Get brand ID from URL
       const brand = await Brand.findById(brandId);
@@ -96,10 +96,11 @@ const addBrand = async (req, res) => {
         message: `Brand has been removed successfully`,
       });
     } catch (error) {
-      console.error("Error while blocking/unblocking the brand:", error);
-      res.status(500).json({ success: false, message: "Internal Server Error" });
+      
+     next(error)
     }
   };
+  
 module.exports={
     loadBrand,
     addBrand,

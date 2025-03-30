@@ -140,14 +140,34 @@
         <h3 class="fs-6 mb-3">Sales Report</h3>
         <div class="container mt-4">
           <div class="row mb-3">
-              <div class="col-md-3">
-                  <label style="color:#9ca3af">Start Date:</label>
-                  <input type="date" id="startDate" class="form-control">
-              </div>
-              <div class="col-md-3">
-                  <label style="color:#9ca3af">End Date:</label>
-                  <input type="date" id="endDate" class="form-control">
-              </div>
+            <div class="col-md-3">
+              <label style="color:#9ca3af">Start Date:</label>
+              <input type="date" id="startDate" class="form-control" onchange="updateEndDate()" max="">
+          </div>
+          <div class="col-md-3">
+              <label style="color:#9ca3af">End Date:</label>
+              <input type="date" id="endDate" class="form-control" min="" max="">
+          </div>
+          
+          <script>
+              document.addEventListener("DOMContentLoaded", function () {
+                  let today = new Date().toISOString().split("T")[0];
+          
+                  // Set max attribute to prevent future dates
+                  document.getElementById("startDate").setAttribute("max", today);
+                  document.getElementById("endDate").setAttribute("max", today);
+              });
+          
+              function updateEndDate() {
+                  let startDate = document.getElementById("startDate").value;
+                  let endDate = document.getElementById("endDate");
+          
+                  if (startDate) {
+                      endDate.setAttribute("min", startDate); // Set min date for end date
+                  }
+              }
+          </script>
+          
               <div class="col-md-3 mt-4 ">
                 <div class="dropdown">
                   <button class="btn btn-secondary dropdown-toggle" type="button" id="reportDropdown" data-bs-toggle="dropdown" aria-expanded="false">
@@ -670,12 +690,10 @@ border-radius: 50%;
 }
 
 
-
-
-
 .main-color {
 color: #ffc107
 }
+
 
   </style>
 

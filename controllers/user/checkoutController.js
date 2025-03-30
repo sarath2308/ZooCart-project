@@ -30,12 +30,11 @@ function generateTransactionId() {
 
 
 
-const loadCheckOut = async (req, res) => {
+const loadCheckOut = async (req, res,next) => {
     try {
       const userId = req.session.user || (req.user && req.user._id);
       const userData = await User.findById({ _id: userId });
       const couponsUsed=userData.usedCoupons;
-      console.log("Request arrived at checkout");
       const currentDate = new Date(); // Get the current date and time
 
 const CouponData = await Coupon.find({
@@ -44,7 +43,6 @@ const CouponData = await Coupon.find({
     expiredOn: { $gte: currentDate }, // Coupon is not expired
 });
      const cart=req.query.cart;
-     console.log(cart);
       let sessionAddress=req.session.addressData
       let sessionPaymentMethod=req.session.paymentMethod;
       const oid = new mongoose.Types.ObjectId(userId);
@@ -84,7 +82,6 @@ const CouponData = await Coupon.find({
           }
         ]);
         
-        console.log("Aggregated Cart Data:", cartData);
         
         let items, grandTotal, grandRegularTotal, totalQuantity;
         if (cartData.length > 0) {
@@ -105,9 +102,6 @@ const CouponData = await Coupon.find({
       const handlingFee=7*totalQuantity;
       req.session.grandTotal=grandTotal;
       req.session.totalQuantity=totalQuantity;
-      console.log("items:");
-      console.log(items);
-      
       
        
         return res.render("checkout", {
@@ -133,7 +127,6 @@ const CouponData = await Coupon.find({
         const grandTotal=product.salePrice*quantity;
         const packagingFee=10*quantity;
         const handlingFee=7*quantity;
-           console.log("products"+product);
            req.session.grandTotal=grandTotal;
            req.session.totalQuantity=quantity;
            req.session.product=product;
@@ -157,16 +150,15 @@ const CouponData = await Coupon.find({
 
       }
     } catch (error) {
-      console.error("Error in loadCheckOut:", error);
-      res.redirect("/page-not-found");
+      next(error)
     }
   };
   
 
-const applyCoupon=async(req,res)=>
+const applyCoupon=async(req,res,next)=>
 {
     try {
-      console.log("inside apply coupon");
+   
       
         const {couponCode,cart}=req.body;
                let grandTotal= req.session.grandTotal
@@ -177,7 +169,7 @@ const applyCoupon=async(req,res)=>
                 {
                     return res.staus(400).json({success:false,message:"coupon not found"})
                 }
-                console.log(grandTotal);
+                
                 
                 const appliedCoupon=coupon.code;
                 const couponOfferPrice=coupon.offerPrice;
@@ -191,15 +183,14 @@ const applyCoupon=async(req,res)=>
                 return res.status(200).json({success:true,message:"Coupon added",grandTotal,couponOfferPrice,appliedCoupon})
                
     } catch (error) {
-        console.log(error);
-        return res.status(400).json({success:false,message:"coupon not applied"})
+      next(error)
         
     }
 }
 
-const removeCoupon=async(req,res)=>
+const removeCoupon=async(req,res,next)=>
 {
-  console.log("req arrived at remoeve Coupon");
+  
   
   try{
                let grandTotal= req.session.grandTotal
@@ -214,17 +205,15 @@ const removeCoupon=async(req,res)=>
                 return res.status(200).json({success:true,message:"Coupon removed",grandTotal})
                }
                  catch (error) {
-                        console.log(error);
-                        return res.status(400).json({success:false,messsage:"server error"})
+                  next(error)
                      }
                     }
                       
 
 
-const placeOrder = async (req, res) => {
+const placeOrder = async (req, res,next) => {
   try {
-    console.log("req arrived at place order");
-    
+
     const userId = req.session.user || (req.user && req.user._id);
     const userData = await User.findById({ _id: userId });
 
@@ -254,8 +243,7 @@ const placeOrder = async (req, res) => {
       grandTotal = orderData.grandTotal;
       couponCode = orderData.couponCode;
       const cart=orderData.cart;
-      console.log("cart status "+cart);
-      console.log("coupon code that reached place order"+couponCode);
+   
       //store that to session 
 
       req.session.paymentMethod=paymentMethod;
@@ -272,9 +260,7 @@ if(cart)
 {
       if(paymentMethod==='online payment')
          {
-          console.log("inside online payment in cart");
           
-          console.log(items);
           
           let orderedItems=[]
        let couponVal = 0;
@@ -288,7 +274,6 @@ if(cart)
 
     // Skip out-of-stock products
        if (!productData || productData.status === "Out of Stock" || productData.quantity <= 0) {
-        console.warn(`Skipping out-of-stock product: ${productData ? productData.productName : 'Unknown Product'}`);
         continue;
          }
 
@@ -304,7 +289,6 @@ if(cart)
    
           }
 
-       console.log("unique id got in online payment"+uniqueId);
 
         orderPayload = {
                  orderedItems,                      
@@ -370,7 +354,6 @@ if(cart)
          if (couponCode) {
         let total = grandTotal + couponData.offerPrice;
          couponVal = Math.ceil((item.totalPrice / total) * couponData.offerPrice);
-          console.log("Discount amount: " + couponVal);
 
          adjustedPrice = item.totalPrice - couponVal;
         if (adjustedPrice < 0) {
@@ -420,7 +403,6 @@ if(cart)
 else
 {
 
-  console.log("inside single product");
   let couponVal=0;
   if (couponData) {
     couponVal=couponData.offerPrice
@@ -438,8 +420,7 @@ else
       quantity:totalQuantity,
       price:productData.salePrice*totalQuantity
   }]
-  console.log("checking orderedItems 1");
-  console.log(orderedItems);
+
    orderPayload={
       orderedItems:orderedItems,
       totalPrice: grandRegularTotal,
@@ -463,8 +444,7 @@ else
      
     await User.findByIdAndUpdate(userId, { $push: { orderHistory: savedOrder._id } });
     req.session.order=savedOrder;
-    console.log("checking orderedItems"+savedOrder.orderedItems);
-    console.log("quantity checking "+item.quantity);
+   
     if(paymentMethod!=='online payment')
     {
       await Product.findByIdAndUpdate(
@@ -509,9 +489,6 @@ else
 
   //online payment
     if (paymentMethod === 'online payment') {
-      console.log("printing savedOrder for online");
-      console.log(savedOrder);
-      
       
       const razorpayOrder = await razorpay.orders.create({
         amount: grandTotal * 100, // Amount in paise
@@ -520,8 +497,6 @@ else
       });
       
       razorpayOrder.user_key = process.env.RAZORPAY_KEY_ID;
-      console.log("Saved Order:", savedOrder);
-      console.log("Saved Order ID:", savedOrder?._id);
       
       const paymentInfo=await new Payment({
         orderId:savedOrder._id,
@@ -542,7 +517,6 @@ else
         userData.usedCoupons.push(couponData._id);
         await userData.save();
       }
-      console.log("Order saved:", savedOrder);
       
       delete req.session.grandRegularTotal;
       savedOrder.name = userData.name;
@@ -561,8 +535,7 @@ else
     }
   
   } catch (error) {
-    console.error("Error placing order:", error);
-    res.status(500).json({ success: false, message: error.message });
+   next(error)
   }
 };
 
@@ -571,13 +544,12 @@ else
 
 
 
-const invoiceData=async(req,res)=>
+const invoiceData=async(req,res,next)=>
 {
-  console.log("inside order placed ........................................");
   try {
     const userId = req.session.user || (req.user && req.user._id);
     const orderId=req.query.orderId;
-    console.log("orderId"+orderId);
+   
     
 
     const orderData=await Order.findById({_id:orderId}).populate("orderedItems.product")
@@ -585,9 +557,8 @@ const invoiceData=async(req,res)=>
    const deliveryAddressDoc = await Address.findOne({ userId: userId });
    let deliveryAddress;
 
-   if (!deliveryAddressDoc) {
-       console.log("No address found for this user.");
-   } else {
+   if (deliveryAddressDoc) {
+       
        deliveryAddress = deliveryAddressDoc.address.find(addr => addr._id.toString() === addressId.toString());
        console.log("Delivery Address:", deliveryAddress);
    }
@@ -595,7 +566,6 @@ const invoiceData=async(req,res)=>
     const uuid = orderData.orderId;
     const hexString = uuid.replace(/-/g, '');
     const numericValue = BigInt("0x" + hexString);
-    console.log(numericValue);
     const createdOn = new Date(orderData.createdOn);
     const deliveryDate = new Date(createdOn);
     deliveryDate.setDate(deliveryDate.getDate() + 4);
@@ -624,14 +594,13 @@ const deliveryDateFormatted = deliveryDate.toLocaleDateString('en-US', options);
 
   })
   } catch (error) {
-    console.log(error);
-    return res.redirect("/page-not-found")
+    next(error)
     
   }
 }
 
 
-const orderPlaced=async(req,res)=>
+const orderPlaced=async(req,res,next)=>
 {
   try {
     const orderId=req.session.order._id;
@@ -641,30 +610,13 @@ const orderPlaced=async(req,res)=>
       }
     )
   } catch (error) {
-    console.log("error occured while showing order");
-    console.log(error);
-    
+    next(error)
     
   }
 }
 
-const orderNotPlaced=async(req,res)=>
-  {
-  let cart=req.query.cart;
-try {
-  return res.render('orderFailure',{
-    cart,
-  })
-} catch (error) {
 
-  console.log("error occured while ");
-  console.log(error);
-  
-}
-  }
-
-
-  const verifyPayment=async(req,res)=>
+  const verifyPayment=async(req,res,next)=>
   {
     try {
       const userId= req.session.user || (req.user && req.user._id);
@@ -672,7 +624,6 @@ try {
 
       const savedOrder=await Order.findById({_id:orderId})
       const paymentData=await Payment.findOne({orderId:orderId})
-      console.log("payment Data"+paymentData);
 
       let cartId;
       let uniqueId;
@@ -821,16 +772,15 @@ try {
      }
       
     } catch (error) {
-      console.log("error occured while verifying payment");
-      console.log(error);
-      return res.status(500).json({message:"serevr error"})
+      
+      next(error)
    
     }
   }
 
 
 
-  const getRetryData=async(req,res)=>
+  const getRetryData=async(req,res,next)=>
   {
     try {
       const userId=req.session.user || (req.user && req.user._id);
@@ -838,7 +788,7 @@ try {
       const paymentData=await Payment.findOne({orderId:orderId})
       const orderData=await Order.findById(orderId)
       const userData=await User.findById({_id:orderData.userId})
-      console.log("userData in retry payment"+userData);
+      
       for(let item of orderData.orderedItems)
       {
         let productData=await Product.findById(item.product)
@@ -879,9 +829,8 @@ try {
         },
       });
     } catch (error) {
-      console.log("error occured in retry payment"+error);
       
-      return res.status(500).json({message:"internal server error"})
+      next(error)
     }
   }
 
@@ -892,7 +841,6 @@ module.exports=
     placeOrder,
     invoiceData,
     orderPlaced,
-    orderNotPlaced,
     verifyPayment,
     removeCoupon,
     getRetryData

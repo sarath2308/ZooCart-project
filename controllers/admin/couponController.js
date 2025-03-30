@@ -1,17 +1,17 @@
 const Coupon=require("../../models/couponSchema")
 
-const loadCoupon = async (req, res) => {
+const loadCoupon = async (req, res ,next) => {
     try {
         const coupons = await Coupon.find().sort({createdOn:-1})
 
-        return res.render("coupon", { data: coupons });
+        return res.render("coupon", { data: coupons,currentPath:req.path});
     } catch (error) {
-        console.log("Error occurred while loading the coupon management", error);
+       next(error)
     }
 };
 
-const addCoupon = async (req, res) => {
-    console.log("Coupon function called");
+const addCoupon = async (req, res,next) => {
+
 
     try {
         // Extract data from request body
@@ -28,8 +28,6 @@ const addCoupon = async (req, res) => {
         const parsedStartDate = new Date(startDate + "T00:00:00Z");
         const parsedExpiryOn = new Date(expiryOn + "T00:00:00Z");
 
-        console.log("Parsed Start Date:", parsedStartDate);
-        console.log("Parsed Expiry Date:", parsedExpiryOn);
 
         // Ensure expiry date is after start date
         if (parsedExpiryOn <= parsedStartDate) {
@@ -57,19 +55,16 @@ const addCoupon = async (req, res) => {
 
        return res.status(200).json({success:true,message:"coupon created"})
     } catch (error) {
-        console.error("Error occurred while adding coupon:", error);
-        res.redirect("/admin/pageerror");
+        next(error)
     }
 };
 
 
-const editCoupon=async(req,res)=>
+const editCoupon=async(req,res,next)=>
 {
     try {
         // Extract and validate input
         const { code,couponId, offerPrice, minimumPrice, startDate, expiryOn } = req.body;
-        console.log(code, offerPrice, minimumPrice, startDate, expiryOn);
-       console.log("coupon id for edit:"+couponId);
        
         // Ensure required fields are provided
         if (!code || !offerPrice || !minimumPrice || !startDate || !expiryOn) {
@@ -122,14 +117,14 @@ const editCoupon=async(req,res)=>
         return res.redirect("/admin/coupons");
         }
     } catch (error) {
-        console.error("Error occurred while adding coupon:", error);
-        res.redirect("/admin/pageerror");
+        
+        next(error)
     }
 }
 
-const listCoupon=async(req,res)=>
+const listCoupon=async(req,res,next)=>
 {
-    console.log("req arrived at coupon listing");
+   
     
     try {
         const {cid}=req.body;
@@ -145,12 +140,12 @@ const listCoupon=async(req,res)=>
             res.status(400).json({success:false,message:"coupon not found"})
         }
     } catch (error) {
-        console.log("errror occured while listing");
-        res.redirect("/admin/pageerror")
+        
+        next(error)
     }
 }
 
-const unlistCoupon=async(req,res)=>
+const unlistCoupon=async(req,res,next)=>
 {
     try {
         const {cid}=req.body;
@@ -166,8 +161,8 @@ const unlistCoupon=async(req,res)=>
             res.status(400).json({success:false,message:"coupon not found"})
         }
     } catch (error) {
-        console.log("errror occured while unlisting coupon"+error);
-        res.redirect("/admin/pageerror")
+       
+        next(error)
     }
 }
 module.exports={

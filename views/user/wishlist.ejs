@@ -44,7 +44,7 @@
                     <table class="table shopping-summery text-center clean">
                         <thead>
                             <tr class="main-heading">
-                                <th scope="col">Wishlist(<%=wishlist.length%>)</th>
+                                <th scope="col">Wishlist(<%=total%>)</th>
                             </tr>
                         </thead>
                         <tbody>
@@ -90,6 +90,7 @@
                                     </tr>
                                     
                         <%})%>
+
                             <%}else{%>
                             <tr>
                                 <td class="text-center">
@@ -104,6 +105,27 @@
         </div>
     </div>
     </section>
+    <nav aria-label="Page navigation">
+        <ul class="pagination justify-content-center">
+            <!-- Previous Button -->
+            <li class="page-item <%= currentPage === 1 ? 'disabled' : '' %>">
+                <a class="page-link" href="/wishlist?page=<%= currentPage - 1 %>">Previous</a>
+            </li>
+    
+            <!-- Page Numbers -->
+            <% for(let i = 1; i <= totalPages; i++) { %>
+                <li class="page-item <%= currentPage === i ? 'active' : '' %>">
+                    <a class="page-link" href="/wishlist?page=<%= i %>"><%= i %></a>
+                </li>
+            <% } %>
+    
+            <!-- Next Button -->
+            <li class="page-item <%= currentPage === totalPages ? 'disabled' : '' %>">
+                <a class="page-link" href="/wishlist?page=<%= currentPage + 1 %>">Next</a>
+            </li>
+        </ul>
+    </nav>
+    
 <div style="height:400px"></div>
 </main>
 <script>

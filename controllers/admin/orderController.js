@@ -8,7 +8,7 @@ const Product=require("../../models/productSchema")
 
 
 
-const loadOrders = async (req, res) => {
+const loadOrders = async (req, res,next) => {
     try {
         let userId;
         let orders = await Order.find().populate('orderedItems.product').populate('userId').sort({createdOn:-1}).lean()
@@ -23,17 +23,17 @@ const loadOrders = async (req, res) => {
             return order;
           });
         
-        return res.render("Orders", { data: orders });
+        return res.render("Orders", { data: orders,currentPath:req.path });
 
     } catch (error) {
-        console.log("Error occurred while loading orders:", error);
+        next(error)
     }
 };
     
-    const orderDetails=async(req,res)=>
+    const orderDetails=async(req,res,next)=>
         {
            try {
-               console.log("req arrived at order Details");
+              
                const orderId=req.query.orderId;
                const orderData=await Order.findById({_id:orderId}).populate("orderedItems.product").populate("userId")
                const addressId=orderData.address;
@@ -41,15 +41,11 @@ const loadOrders = async (req, res) => {
                const addressData=await Address.findOne({userId:userId})
                let deliveryAddress;
             
-               if (!addressData) {
-                   console.log("No address found for this user.");
-               } else {
+               if (addressData) {
                    deliveryAddress = addressData.address.find(addr => addr._id.toString() === addressId.toString());
                    console.log("Delivery Address:", deliveryAddress);
                }
                
-               
-               console.log(orderData);
                if(!orderData)
                {
                    return res.status(401).json({success:false,message:"error occured"
@@ -71,17 +67,16 @@ const loadOrders = async (req, res) => {
                )
                
            } catch (error) {
-               console.log("error occured while rendering orderDetails"+error);
                
-               return res.redirect("/admin/pageerror")
+            next(error)
            }
         }
 
-        const changeStatus = async (req, res) => {
+        const changeStatus = async (req, res,next) => {
             try {
                 const { orderId, status, cancelReason } = req.body;
         
-                console.log("Request received to update order status");
+            
         
                 // Find the order by ID
                 const orderData = await Order.findById(orderId);
@@ -160,8 +155,7 @@ const loadOrders = async (req, res) => {
         
                 return res.status(200).json({ success: true, message: "Order status updated successfully" });
             } catch (error) {
-                console.error("Error occurred while changing the status:", error);
-                return res.status(500).json({ success: false, message: "Internal server error" });
+                next(error)
             }
         };
         

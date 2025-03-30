@@ -13,10 +13,9 @@ const bcrypt=require("bcrypt")
 const Wallet=require("../../models/walletSchema.js")
 const Banner=require("../../models/bannerSchema.js")
 
-const loadHomePage=async(req,res)=>
+const loadHomePage=async(req,res,next)=>
 {
     try{
-        console.log(req.session.user);
         
         const category=await Category.find({isListed:true})
         const banners = await Banner.find().sort({ position: 1 });
@@ -36,7 +35,7 @@ const loadHomePage=async(req,res)=>
             }
         });
         
-        console.log(bannerData);
+       
         
         const products= await Product.find({
             isBlocked:false,
@@ -62,24 +61,26 @@ const loadHomePage=async(req,res)=>
 }
     catch(err)
     {
-        console.log("couldn't load home page");
-        res.status(500).send("Server Error")
+        next(err)
     }
 }
-const pageNotFound=async(req,res)=>
+const pageNotFound=async(req,res,next)=>
 {
     try{
         return res.render("page-not-found")
     }
     catch(err)
     {
-       console.log("could not load page not found ");
-       res.status(500).send("Server Error")
+       
+        next(err)
        
     }
 }
-const signupPage=async(req,res)=>
+
+
+const signupPage=async(req,res,next)=>
 {
+    try{
     if (req.query.message === 'blocked')
         {
             return res.render("signup",{success:false,message:"Your account has been blocked by the admin. Please contact support for further assistance"})
@@ -90,16 +91,16 @@ const signupPage=async(req,res)=>
     }
     else
     {
-    try{
+    
         return res.render('signup',{success:'',message:''})
     }
+}
     catch(err)
     {
-        console.log("can't load sign up page");
-        res.status(500).redirect("/page-not-found");
+       
+        next(err)
         
     }
-}
 }
 //function to generate otp
 function generateOtp()
@@ -138,13 +139,14 @@ async function sendVerificationEmail(email, otp,name) {
         // Check if the email was accepted by the recipient's server
         return info.accepted.length > 0;
     } catch (error) {
-        console.error("Error sending email:", error);
+        
         return false;
     }
 }
 
-const signup=async(req,res)=>
+const signup=async(req,res,next)=>
 {
+    try{
     const userId = req.session.user || (req.user && req.user._id);
     if(userId)
     {
@@ -153,7 +155,6 @@ const signup=async(req,res)=>
     else
     {
     const {name,email,phone,password}=req.body;
-    try{
       const findUser=await User.findOne({email})
        if(findUser)
          {
@@ -170,18 +171,17 @@ const signup=async(req,res)=>
             req.session.userOtp=otp;
             req.session.userData={name,email,phone,password};
             res.render("verify-otp");
-              console.log("Otp sent",otp);
 }
+    }
     catch(err)
     {
-        console.error("signup error",err);
-        res.redirect("/page-not-found");
+       
+        next(err)
     }
 }
-}
-const loginPage = async (req, res) => {
+const loginPage = async (req, res,next) => {
     const { email, password } = req.body;
-    console.log(email, password);
+   
 
     try {
         // Find user that is not an admin (isAdmin: 0) and has the given email
@@ -210,9 +210,8 @@ const loginPage = async (req, res) => {
             return res.status(401).render("signup", { success:false,message: "Incorrect Password!" });
         }
     } catch (error) {
-        // If any error occurs during the process, log it and return a general error message
-        console.error(error);
-        return res.status(500).render("signup", {success:false, message: "An error occurred. Please try again later." });
+    
+        next(error)
     }
 }
 
@@ -222,9 +221,9 @@ const securePassword=async(password)=>
     return passwordHash;
 }
 
-const verifyOtp = async (req, res) => {
+const verifyOtp = async (req, res,next) => {
     try {
-        console.log("Inside verify OTP");
+        
 
         // Validate input
         const { otp } = req.body;
@@ -239,11 +238,7 @@ const verifyOtp = async (req, res) => {
         if (Date.now() > req.session.otpExpiry) {
             return res.status(400).json({ success: false, message: "OTP has expired. Please request a new one." });
         }
-        // Log session and received OTP for debugging
-        console.log("Session OTP:", req.session.userOtp);
-        console.log("Received OTP:", otp);
-        console.log("Session OTP Type:", typeof req.session.userOtp);
-        console.log("Received OTP Type:", typeof otp);
+    
 
         // Trim and normalize OTP
         const receivedOtp = otp.trim();
@@ -279,19 +274,12 @@ const verifyOtp = async (req, res) => {
             return res.status(400).json({ success: false, message: "Invalid OTP. Please try again." });
         }
     } catch (error) {
-        console.error("Error verifying OTP:", error);
-
-        // Handle specific errors
-        if (error.name === 'ValidationError') {
-            return res.status(400).json({ success: false, message: "Validation error. Please check your input." });
-        }
-
-        // Generic error response
-        return res.status(500).json({ success: false, message: "An error occurred. Please try again later." });
+       
+        next(error)
     }
 };
 
-const resendOtp=async(req,res)=>
+const resendOtp=async(req,res,next)=>
 {
     if (!req.session.userData) {
         return res.status(400).json({
@@ -300,7 +288,6 @@ const resendOtp=async(req,res)=>
         });
     }
     const { name, email } = req.session.userData;
-    console.log(email);
     if(!email)
     {
         res.json({success:false,message:"Email Not in the Session,Try again"})
@@ -311,7 +298,7 @@ const resendOtp=async(req,res)=>
         const resendMail=await sendVerificationEmail(email,newOtp,name)
         if (resendMail)
         {
-            console.log("Resend Otp:"+newOtp);
+            
             res.status(200).json({success:true,message:"Otp resend Successfully"}) 
         }
         else{
@@ -319,13 +306,13 @@ const resendOtp=async(req,res)=>
         }
 
     } catch (error) {
-        console.error("couldn't send Resend Email",error);
-        res.status(500).json({success:false,message:"Internal Server Error,Please Try again"}) 
-    }
+       
+        next(error)
+}
 }
 
 
-const logout=async(req,res)=>
+const logout=async(req,res,next)=>
 {
     try
     {
@@ -333,7 +320,7 @@ const logout=async(req,res)=>
     {
         if(err)
         {
-            console.log("errpr occured while distroying the session"+err); 
+           
              return res.redirect("/page-not-found")
         }
         else
@@ -344,20 +331,19 @@ const logout=async(req,res)=>
 }
 catch(error)
 {
-    console.log("logout error",error);
-    res.redirect("/page-not-found");
+    next(error)
     
 }
 }
 
 
-const loadforgot=async(req,res)=>
+const loadforgot=async(req,res,next)=>
 {
     try {
         return res.render("forgotpassword",{success:'',message:''});
     } catch (error) {
-        console.log("error occured while loading the forgot password"+error);
-        return res.redirect("/page-not-found")
+        
+        next(error)
         
     }
 }
@@ -397,18 +383,18 @@ async function forgotEmail(email, otp) {
         // Check if the email was accepted by the recipient's server
         return info.accepted.length > 0;
     } catch (error) {
-        console.error("Error sending email:", error);
+        
         return false;
     }
 }
 
-const forgotPassword=async(req,res)=>
+const forgotPassword=async(req,res,next)=>
 {
     try {
 
         const {email}=req.body;
         const findUser=await User.findOne({email:email})
-        console.log(findUser);
+       
         
         if(findUser)
         {
@@ -422,7 +408,6 @@ const forgotPassword=async(req,res)=>
          req.session.otpExpiry=expiry;
          req.session.forgotOtp=otp;
          req.session.userData=email;
-         console.log("Otp sent",otp);
          return res.render("forgotOtp",{otpSuccess:true});
         }
         else
@@ -430,12 +415,11 @@ const forgotPassword=async(req,res)=>
          return res.render("forgotpassword",{success:false,message:"User does not exist,please signup"})
         }
     } catch (error) {
-        console.log("error occured while sending otp for forgot user");
-        return res.redirect("/page-not-found")
+        next(error)
     }
 }
 
-const verifyforgotOtp=async(req,res)=>
+const verifyforgotOtp=async(req,res,next)=>
 {
     try {
    
@@ -452,11 +436,7 @@ const verifyforgotOtp=async(req,res)=>
         if (Date.now() > req.session.otpExpiry) {
             return res.status(400).json({ success: false, message: "OTP has expired. Please request a new one." });
         }
-        // Log session and received OTP for debugging
-        console.log("Session OTP:", req.session.userOtp);
-        console.log("Received OTP:", otp);
-        console.log("Session OTP Type:", typeof req.session.userOtp);
-        console.log("Received OTP Type:", typeof otp);
+      
 
         // Trim and normalize OTP
         const receivedOtp = otp.trim();
@@ -475,20 +455,13 @@ const verifyforgotOtp=async(req,res)=>
             return res.status(400).json({ success: false, message: "Invalid OTP. Please try again." });
         }
     } catch (error) {
-        console.error("Error forgot verifying OTP:", error);
-
-        // Handle specific errors
-        if (error.name === 'ValidationError') {
-            return res.status(400).json({ success: false, message: "Validation error. Please check your input." });
-        }
-
-        // Generic error response
-        return res.status(500).json({ success: false, message: "An error occurred. Please try again later." });
+    
+        next(error)
     }
 };
 
 
-const forgotResendOtp = async (req, res) => {
+const forgotResendOtp = async (req, res,next) => {
     try {
         if (!req.session.userData) {
             return res.status(400).json({
@@ -498,7 +471,7 @@ const forgotResendOtp = async (req, res) => {
         }
 
         const  email= req.session.userData;
-        console.log(`Resending OTP to email: ${email}`);
+        
 
         const newOtp = generateOtp();
         req.session.userOtp = newOtp;
@@ -506,41 +479,36 @@ const forgotResendOtp = async (req, res) => {
         const resendMail = await forgotEmail(email, newOtp);
         
         if (resendMail) {
-            console.log(`Resend OTP: ${newOtp}`);
+           
             return res.status(200).json({ success: true, message: "OTP resent successfully." });
         } else {
             return res.status(500).json({ success: false, message: "Failed to send OTP." });
         }
     } catch (error) {
-        console.error("Error resending OTP:", error);
-        return res.status(500).json({ success: false, message: "Internal server error. Please try again." });
+       
+        next(error)
     }
 };
 
-const loadNewPassword=async(req,res)=>
+const loadNewPassword=async(req,res,next)=>
 {
-    console.log("req arrived at load new password");
-    
+   
     try {
         return res.render("newPassword",{success:'',message:''})
     } catch (error) {
-        console.log("error occured while loading new Password page"+error);
-        return res.redirect("/page-not-found")
+        
+        next(error)
         
     }
 }
 
-const updatePassword=async(req,res)=>
+const updatePassword=async(req,res,next)=>
 {
-    console.log("req arrived at update password");
     
     try {
         const{password}=req.body;
         const email=req.session.userData;
         const userData=await User.find({email:email})
-        console.log(password);
-        console.log(email);
-        console.log(userData);
         
         if(userData)
         {
@@ -553,85 +521,29 @@ const updatePassword=async(req,res)=>
            }
            else
            {
-            console.log("could not update password");
+          
             return res.render("newPassword",{success:false,message:"somthing went wrong can not update password try again later!"})
             
            }
         }
-        else
-        {
-            console.log("while updating password email not found");
-            
-        }
     } catch (error) {
-       console.log("error occured while updating password"+error);
-        
+        next(error)
     }
 }
 
 //user progile loading
-const loadUserProfile = async (req, res) => {
+const loadUserProfile = async (req, res,next) => {
     try {
-      const userId = req.session.user || req.user._id;
-  
-      // Fetch user details
-      const data = await User.findOne({ _id: userId });
-      
-  
-      const addressDoc = await Address.findOne({ userId: userId });
-      const userWallet = await Wallet.findOne({ userId: userId }).lean();
-
-if (userWallet && userWallet.paymentHistory) {
-    userWallet.paymentHistory.sort((a, b) => new Date(b.date) - new Date(a.date));
-}
-
-console.log(userWallet);
-
-      
-      console.log("wallet data");
-      console.log(userWallet);
-      
-      
-      
-      
-    console.log("address Data");
-    console.log(addressDoc);
-    
-      const orders = await Order.find({ _id: { $in: data.orderHistory } })
-        .populate("address") 
-        .populate({
-          path: "orderedItems.product", 
-          model: "Product",
-        }).sort({createdOn:-1})
-        let ordersWithReadableId =[]
-      if(orders!==null)
-      {
-      ordersWithReadableId = orders.map((order) => {
-        if (order.orderId) {
-          const hexString = order.orderId.replace(/-/g, "");
-      
-          order.readableOrderId = BigInt("0x" + hexString).toString();
-        }
-        return order;
-      });
-    }
-  
-      return res.render("UserProfile", {
-        data,
-        addressData: addressDoc ? addressDoc.address : null,
-        orders: ordersWithReadableId ?  ordersWithReadableId :null,
-        wallet:userWallet,
-      });
+      return res.render("UserProfile");
     } catch (error) {
-      console.error("Error loading user profile:", error);
-      return res.redirect("/page-not-found");
+        next(error)
     }
   };
   
   
   
 
-  const loadShoppingPage = async (req, res) => {
+  const loadShoppingPage = async (req, res,next) => {
     try {
       const userId = req.session.user || req.user._id;
       const userData = await User.findById(userId);
@@ -643,10 +555,9 @@ console.log(userWallet);
       if(cartData)
       {
        cartItems=cartData.items;
-      console.log("cart itemss");
+     
       }
-      
-  console.log(cartItems);
+
   
       // Extract and validate query parameters
       let page =  1;
@@ -695,23 +606,22 @@ console.log(userWallet);
         });
       }
     } catch (error) {
-      console.log(error);
-      res.status(500).send("Internal Server Error");
+        next(error)
     }
   };
   
 
 
-  const fetchProducts = async (req, res) => {
+  const fetchProducts = async (req, res,next) => {
     try {
       const { query, priceRanges, sort, categories, brands, page = 1 } = req.query;
-      console.log("price range:" + priceRanges);
+   
       let parsedPriceRanges = [];
       if (priceRanges) {
         try {
           parsedPriceRanges = typeof priceRanges === 'string' ? JSON.parse(priceRanges) : priceRanges;
         } catch (e) {
-          console.error("Error parsing priceRanges:", e);
+         
           parsedPriceRanges = [];
         }
       }
@@ -762,23 +672,40 @@ console.log(userWallet);
         totalPages,
       });
     } catch (err) {
-      console.error('Error fetching products:', err);
-      res.status(500).send('Server error');
+        next(error)
     }
   };
   
 
 
-const productDetails=async(req,res)=>
+const productDetails=async(req,res,next)=>
     {
       try {
           return res.render("productDetails")
       } catch (error) {
-          console.log("error occured");
-          console.log(error);
           
+        next(error)  
           
       }
+    }
+
+
+const loadAbout=async(req,res,next)=>
+{
+    try {
+        return res.status(200).render("about")
+    } catch (error) {
+        next(error)
+    }
+}
+
+const loadContact=async(req,res,next)=>
+    {
+        try {
+            return res.status(200).render("contact")
+        } catch (error) {
+            next(error)
+        }
     }
 
 module.exports={
@@ -800,4 +727,6 @@ module.exports={
     productDetails,
     fetchProducts,
     forgotResendOtp,
+    loadAbout,
+    loadContact
 }

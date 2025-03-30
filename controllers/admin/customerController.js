@@ -1,15 +1,16 @@
 const express=require('express')
 const User=require("../../models/userSchema")
-const loadUsers = async (req, res) => {
+
+const loadUsers = async (req, res,next) => {
     try {
         const users = await User.find({ isAdmin: false }).sort({CreatedOn:-1})
-        return res.render("users", { users }); 
+        return res.render("users", { users,currentPath:req.path }); 
     } catch (error) {
-        console.error("Error in showing all users:", error);
-        return res.status(500).send("Internal Server Error"); 
+
+        next(error)
     }
 };
-const blockUser =  async(req,res)=>
+const blockUser =  async(req,res,next)=>
 {
  try {
     const userId = req.params.id;
@@ -23,11 +24,11 @@ const blockUser =  async(req,res)=>
     await user.save();
     return res.redirect('/admin/users')
 } catch (error) {
-    console.error(error);
-    return res.json({ success: false, message: 'Error while blocking the user.' });
+    
+    next(error)
 }
 }
-const unblockUser =  async(req,res)=>
+const unblockUser =  async(req,res,next)=>
     {
      try {
         const userId = req.params.id;
@@ -41,16 +42,16 @@ const unblockUser =  async(req,res)=>
         await user.save();
         return res.redirect('/admin/users')
     } catch (error) {
-        console.error(error);
-        return res.json({ success: false, message: 'Error while blocking the user.' });
+        
+        next(error)
     }
     }
-const ShowCategory=async(req,res)=>
+const ShowCategory=async(req,res,next)=>
 {
     try {
         return res.render("category")
     } catch (error) {
-       console.log("Error occured while rendering the category page");
+        next(error)
         
     }
 }

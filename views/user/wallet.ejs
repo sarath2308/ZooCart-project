@@ -1,0 +1,156 @@
+<%- include("../../views/partials/user/header.ejs") %>
+    <style>
+        /* Scoped styles to prevent conflicts */
+        .wallet-container {
+            --primary-color: #6200ea;
+            --success-color: #4caf50;
+            --danger-color: #f44336;
+            --text-color: #333;
+            --light-gray: #f5f5f5;
+            --border-color: #ddd;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            max-width: 1200px;
+            margin: 20px auto;
+            padding: 0 15px;
+        }
+        
+        .wallet-card {
+            background: white;
+            border-radius: 8px;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.05);
+            padding: 20px;
+            margin-bottom: 20px;
+        }
+        
+        .wallet-header {
+            color: var(--primary-color);
+            margin-bottom: 15px;
+            margin-top: 0;
+        }
+        
+        .wallet-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 15px;
+        }
+        
+        .wallet-table th, 
+        .wallet-table td {
+            padding: 12px 15px;
+            text-align: left;
+            border-bottom: 1px solid var(--border-color);
+        }
+        
+        .wallet-table th {
+            background-color: var(--light-gray);
+            font-weight: 600;
+        }
+        
+        .wallet-balance {
+            font-size: 24px;
+            font-weight: bold;
+            color: var(--success-color);
+            margin: 10px 0;
+        }
+        
+        .wallet-credit {
+            color: var(--success-color);
+            font-weight: 500;
+        }
+        
+        .wallet-debit {
+            color: var(--danger-color);
+            font-weight: 500;
+        }
+        
+        .wallet-btn {
+            background-color: var(--light-gray);
+            border: none;
+            border-radius: 4px;
+            padding: 5px 10px;
+            cursor: pointer;
+        }
+        
+        .wallet-btn:hover {
+            background-color: #e0e0e0;
+        }
+        
+        @media (max-width: 768px) {
+            .wallet-table {
+                display: block;
+                overflow-x: auto;
+            }
+            
+            .wallet-card {
+                padding: 15px;
+            }
+            
+            .wallet-table th, 
+            .wallet-table td {
+                padding: 8px 10px;
+            }
+        }
+    </style>
+
+    <div class="wallet-container">
+        <section id="wallet">
+            <!-- User Details -->
+            <div class="wallet-card">
+                <h2 class="wallet-header">User Details</h2>
+                <p><strong>Name:</strong> <%=data.name%></p>
+                <p><strong>Email:</strong> <%=data.email%></p>
+                <p><strong>Phone:</strong> <%=data.phone%></p>
+            </div>
+        
+            <!-- Wallet Balance -->
+            <div class="wallet-card">
+                <h3 class="wallet-header">Wallet Balance</h3>
+                <% if(wallet) { %>
+                    <div class="wallet-balance">₹<%=wallet.balance%>.0</div>
+                <% } else { %>
+                    <div class="wallet-balance">₹0.0</div>
+                <% } %>
+            </div>
+        
+            <!-- Payment History -->
+            <div class="wallet-card">
+                <h2 class="wallet-header">Payment History</h2>
+                
+                <table class="wallet-table">
+                    <thead>
+                        <tr>
+                            <th>Date</th>
+                            <th>Description</th>
+                            <th>Amount</th>
+                            <th>Status</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <% if(wallet && wallet.paymentHistory && wallet.paymentHistory.length > 0) { %>
+                            <% wallet.paymentHistory.forEach((pay) => { %>
+                            <tr>
+                                <td><%= new Date(pay.date).toISOString().split('T')[0] %></td>
+                                <td><%= pay.description %></td>
+                                <td>
+                                    <% if(pay.paymentFlow) { %>
+                                        <span style="color: green;">+<%= pay.amount %></span>
+                                    <% } else { %>
+                                        <span style="color: red;">-<%= pay.amount %></span> 
+                                    <% } %>
+                                </td>
+                                <td class="<%= pay.paymentFlow ? 'wallet-credit' : 'wallet-debit' %>">
+                                    <%= pay.paymentFlow ? 'Completed' : 'Debited' %>
+                                </td>
+                            </tr>
+                            <% }) %>
+                        <% } else { %>
+                            <tr>
+                                <td colspan="5" style="text-align: center;">No payment history available</td>
+                            </tr>
+                        <% } %>
+                    </tbody>
+                </table>
+            </div>
+        </section>
+    </div>
+    <%- include("../../views/partials/user/footer.ejs") %>

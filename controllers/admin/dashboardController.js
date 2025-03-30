@@ -8,8 +8,8 @@ const PdfPrinter = require("pdfmake");
 
 
 
-const filterOrder = async (req, res) => {
-  console.log("req in filter order");
+const filterOrder = async (req, res,next) => {
+ 
 
   try {
       let { startDate, endDate, currentPage, limit } = req.query;
@@ -22,8 +22,7 @@ const filterOrder = async (req, res) => {
           status: { $in: ['delivered'] }
       };
 
-      console.log("start date:", startDate);
-      console.log("end date:", endDate);
+    
 
       // Check if startDate and endDate are the same
       if (startDate && endDate && startDate === endDate) {
@@ -51,7 +50,7 @@ const filterOrder = async (req, res) => {
     }
 
       const totalOrders = await Order.countDocuments(query);
-      console.log("Total Orders:", totalOrders);
+     
 
       let filteredOrders = await Order.find(query)
           .populate('userId')
@@ -66,12 +65,12 @@ const filterOrder = async (req, res) => {
           orders: filteredOrders
       });
   } catch (error) {
-      console.log("Error:", error);
-      res.status(500).json({ message: "Error fetching data", error });
+     
+    next(error)
   }
 };
 
-const downloadExcel = async (req, res) => {
+const downloadExcel = async (req, res,next) => {
     try {
       const { startDate, endDate} = req.query;
       let query = {
@@ -143,26 +142,23 @@ const downloadExcel = async (req, res) => {
   
       // Write workbook to file
       await workbook.xlsx.writeFile(filePath);
-      console.log("Excel file created:", filePath);
+      
   
       // Send the file for download
       res.download(filePath, `Orders_${timestamp}.xlsx`, (err) => {
         if (err) {
-          console.error("Error downloading file:", err);
+             
           return res.status(500).send("Error downloading file");
         }
   
         fs.unlink(filePath, (unlinkErr) => {
           if (unlinkErr) {
-            console.error("Error deleting file:", unlinkErr);
-          } else {
-            console.log("File deleted:", filePath);
+            return res.status(500).send("Error downloading file");
           }
         });
       });
     } catch (error) {
-      console.error("Error generating Excel:", error);
-      res.status(500).send("Error generating Excel");
+        next(error)
     }
   };
 
@@ -171,7 +167,7 @@ const downloadExcel = async (req, res) => {
   
 
 
-  const downloadPdf = async (req, res) => {
+  const downloadPdf = async (req, res,next) => {
       try {
           const { startDate, endDate } = req.query;
   
@@ -260,8 +256,8 @@ const downloadExcel = async (req, res) => {
           pdfDoc.pipe(res);
           pdfDoc.end();
       } catch (error) {
-          console.error("Error generating PDF:", error);
-          res.status(500).send("Error generating PDF");
+           
+        next(error)
       }
   };
   

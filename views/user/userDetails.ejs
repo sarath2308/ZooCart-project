@@ -1,0 +1,212 @@
+<%- include("../../views/partials/user/header.ejs") %>
+  <style>
+    .detail-card {
+      border-left: 3px solid #4361ee;
+      transition: transform 0.2s;
+    }
+    .detail-card:hover {
+      transform: translateY(-2px);
+    }
+    .customer-name {
+      color: #4361ee;
+      border-bottom: 2px solid #f0f0f0;
+      padding-bottom: 10px;
+    }
+    .back-btn {
+      transition: all 0.3s;
+    }
+    .back-btn:hover {
+      transform: translateX(-3px);
+    }
+  </style>
+</head>
+<body>
+  <div class="container py-4">
+    <!-- Back Button -->
+    <div class="mb-4">
+      <a href="/userProfile" class="btn btn-outline-primary back-btn">
+        <i class="fas fa-arrow-left me-2"></i>Back to Customers
+      </a>
+    </div>
+
+    <!-- Profile Card -->
+    <div class="card shadow-sm mb-4">
+      <!-- Simplified Header -->
+      <div class="card-header bg-white">
+        <div class="d-flex justify-content-between align-items-center">
+          <h3 class="customer-name mb-0">
+            <i class="fas fa-user-circle me-2"></i>
+           <%=userData.name%>
+          </h3>
+          <span class="badge bg-success">Active Customer</span>
+        </div>
+      </div>
+
+      <!-- Body with details -->
+      <div class="card-body">
+        <div class="row g-3">
+          <!-- Personal Info -->
+          <div class="col-md-6">
+            <div class="p-3 detail-card bg-light rounded h-100">
+              <h5 class="d-flex align-items-center gap-2">
+                <i class="fas fa-id-card text-primary"></i>
+                Account Details
+              </h5>
+              <hr class="my-2">
+              <ul class="list-unstyled">
+                <li class="mb-2"><strong><i class="fas fa-envelope me-2"></i>Email:</strong> <%=userData.email%></li>
+                <li class="mb-2"><strong><i class="fas fa-phone me-2"></i>Phone:</strong> 
+                <%if(userData.phone){%>
+                    <%=userData.phone%>
+                    <%}else{%>
+                        <span style="color:red">Phone Number not added</span>
+                        <%}%>
+                </li>
+                <li class="mb-2"><strong><i class="fas fa-calendar-alt me-2"></i>Member Since:</strong> 
+                    <%= new Date(userData.CreatedOn).toLocaleDateString("en-US", {
+                        weekday: "long", // e.g., Monday
+                        year: "numeric", // e.g., 2024
+                        month: "long", // e.g., March
+                        day: "numeric" // e.g., 29
+                    }) %>
+                    
+                </li>
+                <li class="mb-2"><strong><i class="fas fa-id-badge me-2"></i>Customer ID:</strong> CUST-789456</li>
+              </ul>
+            </div>
+          </div>
+
+          <!-- Address -->
+          <div class="col-md-6">
+            <div class="p-3 detail-card bg-light rounded h-100">
+              <h5 class="d-flex align-items-center gap-2">
+                <i class="fas fa-map-marked-alt text-primary"></i>
+                Shipping Address
+              </h5>
+              <hr class="my-2">
+              <address class="mb-0">
+                <%if(defaultAddress){%>
+                    <%defaultAddress.address.forEach((ad)=>{%>
+                <strong><i class="fas fa-home me-2"></i>Primary:</strong><br>
+                <%=ad.city%>, <%=ad.landMark%><br>
+                <%=ad.state%>, <%=ad.pincode%><br>
+                <%=ad.phone%>,<%=ad.altPhone%><br>
+                India
+                <%})%>
+              </address>
+            </div>
+            <%}else{%>
+                <p>No Address</p>
+                <%}%>
+          </div>
+
+          <!-- Order Stats -->
+          <div class="col-12">
+            <div class="p-3 detail-card bg-light rounded">
+              <h5 class="d-flex align-items-center gap-2">
+                <i class="fas fa-chart-line text-primary"></i>
+                Purchase Summary
+              </h5>
+              <hr class="my-2">
+              <div class="row text-center">
+                <div class="col-md-3 col-6 mb-3 mb-md-0">
+                  <div class="p-2 border rounded bg-white">
+                    <h4 class="text-primary mb-0"><%=TotalOrder%></h4>
+                    <small class="text-muted">Total Orders</small>
+                  </div>
+                </div>
+                <div class="col-md-3 col-6 mb-3 mb-md-0">
+                  <div class="p-2 border rounded bg-white">
+                    <h4 class="text-success mb-0">₹<%=totalSpent%></h4>
+                    <small class="text-muted">Total Spent</small>
+                  </div>
+                </div>
+                <div class="col-md-3 col-6">
+                  <div class="p-2 border rounded bg-white">
+                    <h4 class="text-warning mb-0"><%=pendingCount%></h4>
+                    <small class="text-muted">Pending</small>
+                  </div>
+                </div>
+                <div class="col-md-3 col-6">
+                  <div class="p-2 border rounded bg-white">
+                    <h4 class="text-danger mb-0"><%=returnCount%></h4>
+                    <small class="text-muted">Returns</small>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Recent Orders -->
+     <%if(latestOrder){%>
+    <div class="card shadow-sm">
+      <div class="card-header bg-white">
+        <h5 class="mb-0">
+          <i class="fas fa-clipboard-list me-2"></i>
+          Recent Orders
+        </h5>
+      </div>
+      <div class="card-body p-0">
+        <div class="table-responsive">
+          <table class="table table-hover mb-0">
+            <thead class="table-light">
+              <tr>
+                <th>Order #</th>
+                <th>Date</th>
+                <th>Status</th>
+                <th class="text-end">Amount</th>
+              </tr>
+            </thead>
+            <tbody>
+                <%latestOrder.forEach((order)=>{%>
+              <tr>
+                <td>OD-<%=order.cartId?order.cartId:order.uniqueId%></td>
+                <td>
+                    <%= new Date(order.createdOn).toLocaleDateString("en-US", {
+                        weekday: "long", // e.g., Monday
+                        year: "numeric", // e.g., 2024
+                        month: "long", // e.g., March
+                        day: "numeric" // e.g., 29
+                    }) %>
+                </td>
+                <td>
+                    <% let statusClass = ""; %>
+
+<% if (order.status === "pending") { %>
+    <% statusClass = "bg-warning text-dark"; %>
+<% } else if (order.status === "processing") { %>
+    <% statusClass = "bg-primary"; %>
+<% } else if (order.status === "shipped") { %>
+    <% statusClass = "bg-info"; %>
+<% } else if (order.status === "delivered") { %>
+    <% statusClass = "bg-success"; %>
+<% } else if (order.status === "cancelled") { %>
+    <% statusClass = "bg-danger"; %>
+<% } else if (order.status === "Return Request") { %>
+    <% statusClass = "bg-secondary"; %>
+<% } else if (order.status === "Returned") { %>
+    <% statusClass = "bg-dark"; %>
+<% } else if (order.status === "Return Rejected") { %>
+    <% statusClass = "bg-danger text-light"; %>
+<% } %>
+
+<span class="badge <%= statusClass %>"><%= order.status %></span>
+
+                </td>
+                <td class="text-end">₹<%=order.finalAmount%></td>
+              </tr>
+              <%})%>
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+    <%}else{%>
+        <p>No orders found</p>
+        <%}%>
+  </div>
+  <%- include("../../views/partials/user/footer.ejs") %>
+  

@@ -20,7 +20,6 @@ router.get('/pageerror',adminController.pageerror)
 router.get('/login',adminController.loginPage)
 router.post('/login',adminController.login)
 router.get("/logout",adminController.logout)
-router.get("/demoAdmin",adminController.demoAdmin)
 
 //dashboard management
 router

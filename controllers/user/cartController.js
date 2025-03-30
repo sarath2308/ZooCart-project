@@ -7,7 +7,7 @@ const mongodb=require("mongodb")
 const Category = require("../../models/CategorySchema")
 
 
-const loadCart = async (req, res) => {
+const loadCart = async (req, res,next) => {
   try {
     const userId = req.session.user || (req.user && req.user._id);
     const userData=await User.findById({_id:userId})
@@ -70,8 +70,7 @@ const loadCart = async (req, res) => {
     const handlingFee=7*totalQuantity;
      const packagingFee=10*totalQuantity;
      grandTotal+=handlingFee+packagingFee;
-     console.log("items means cart data ");
-     console.log(items);
+
      
      
      req.session.cartProducts=items;
@@ -87,15 +86,14 @@ const loadCart = async (req, res) => {
 
     });
   } catch (error) {
-    console.error(error);
-    res.redirect("/page-not-found");
+    next(error)
   }
 };
 
 
-    const addToCart = async (req, res) => {
+    const addToCart = async (req, res,next) => {
       try {
-        console.log("req arrived at addToCart ");
+  
         
         const { pid } = req.body;
         const userId = req.session.user || (req.user && req.user._id);
@@ -103,8 +101,6 @@ const loadCart = async (req, res) => {
         const checkProduct=await Product.findById({_id:pid})
         const checkCategory=checkProduct.category;
         const findCategory=await Category.findOne({_id:checkCategory,isListed:true})
-        console.log("check Product"+checkProduct);
-        console.log("find Category"+findCategory);
         
         if(checkProduct.isBlocked || !findCategory)
         {
@@ -153,17 +149,15 @@ const loadCart = async (req, res) => {
  
         return res.status(200).json({ success: true, message: "Added to cart" });
       } catch (error) {
-        console.error(error);
-        return res.status(500).json({ success: false, message: "Server error occurred" });
+       next(error)
       }
     };
     
 
 
 
-    const updateCart = async (req, res) => {
+    const updateCart = async (req, res,next) => {
       try {
-        console.log("Request arrived at updateCart");
         let itemId=req.params.itemId;
         let { quantity } = req.body;
         const itemObjId = new mongoose.Types.ObjectId(itemId);
@@ -254,7 +248,6 @@ const loadCart = async (req, res) => {
         req.session.totalQuantity=totalQuantity;
         const handlingFee =7*totalQuantity;
         const packagingFee =10*totalQuantity;
-         console.log(grandTotal);
          
         return res.status(200).json({
           success: true,
@@ -268,15 +261,13 @@ const loadCart = async (req, res) => {
           packagingFee
         });
       } catch (error) {
-        console.log(error);
-        
-         res.status(500).json({ success: false, message: "Error updating cart" });
+         next(error)
       }
     };
     
 //remove item from cart
 
-const removeItem=async(req,res)=>
+const removeItem=async(req,res,next)=>
 {
   try {
     const {itemId}=req.body;
@@ -360,8 +351,7 @@ if (foundItemIndex === -1) {
 }
 
   } catch (error) {
-    console.log("error occured while removing item from cart");
-    console.log(error);
+    next(error)
   }
 }
 

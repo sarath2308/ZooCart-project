@@ -4,22 +4,22 @@ const Products=require("../../models/productSchema")
 
 
 
-const ShowCategory=async(req,res)=>
+const ShowCategory=async(req,res,next)=>
     {
         try {
             const categoryData=await category.find({}).sort({ createdAt: -1 });
-            return res.render("category",{categoryData})
+            return res.render("category",{categoryData,currentPath:req.path})
         } catch (error) {
-           console.log("Error occured while rendering the category page");
-           res.redirect("/pageerror")
+        
+           next(error)
             
         }
     }
-    const addCategory = async (req, res) => {
-        console.log("Request received for adding a category");
+    const addCategory = async (req, res,next) => {
+       
     
         const { name, description } = req.body;
-        console.log(name, description);
+      
         try {
             // Check for duplicate category using case-insensitive regex
             const checkDuplicate = await category.findOne({
@@ -39,14 +39,14 @@ const ShowCategory=async(req,res)=>
     
             return res.status(201).json({ success: true,id:newCategory._id, message: "Category added successfully" });
         } catch (error) {
-            console.error("Error adding category:", error);
-            return res.json({ success: false, message: "Internal Server Error" });
+       
+            next(error)
         }
     };
     
     const updateCategory=async(req,res)=>
     {
-        console.log("req reached update");
+       
         
         const {id,name,discription}=req.body;
 
@@ -67,14 +67,14 @@ const ShowCategory=async(req,res)=>
     }
     catch(error)
     {
-        console.log("error occured while updating category");
-      res.status(401).json({ success: false, message: "Internal Server Error" });
+  
+      next(error)
         
     }
     }
-    const deleteCategory=async(req,res)=>
+
+    const deleteCategory=async(req,res,next)=>
     {
-        console.log("delete function Working");
         
         const {id}=req.body;
         try
@@ -89,13 +89,14 @@ const ShowCategory=async(req,res)=>
         }
         catch(error)
         {
-       console.log("Error Ocuured while deleting Category");
-       res.status(403).json({message:"Internal Server Error"})
+    next(error)
         }
     }
-    const listCategory=async(req,res)=>
+
+
+    const listCategory=async(req,res,next)=>
     {
-        console.log("req arrived at listing category");
+       
         
         const {id}=req.body;
         try {
@@ -117,14 +118,15 @@ const ShowCategory=async(req,res)=>
                 }
             }
         } catch (error) {
-          console.log("Error occured while listing category");
-          res.json({message:"Internal Server Error"})
+       next(error)
             
         }
     }
-    const unlistCategory=async(req,res)=>
+
+
+    const unlistCategory=async(req,res,next)=>
     {
-        console.log("req arrived at unlisting category");
+       
         
         const {id}=req.body;
         try {
@@ -146,12 +148,13 @@ const ShowCategory=async(req,res)=>
                 }
             }
         } catch (error) {
-          console.log("Error occured while unlisting category");
-          res.json({message:"Internal Server Error"})
+        
+         next(error)
             
         }
     }  
-    const addOffer = async (req, res) => {
+
+    const addOffer = async (req, res,next) => {
         try {
           const { id, amount } = req.body;
           const categoryfind = await category.findById(id); // Find the category by ID
@@ -179,12 +182,12 @@ const ShowCategory=async(req,res)=>
       
           return res.json({ success: true, message: "Successfully added category offer" });
         } catch (error) {
-          console.log("Error while adding category offer", error);
-          res.status(500).json({ success: false, message: "Internal Server Error" });
+          
+      next(error)
         }
       };
       
-      const removeOffer = async (req, res) => {
+      const removeOffer = async (req, res,next) => {
         try {
           const { id } = req.body;
           const categoryfind = await category.findById(id);
@@ -209,8 +212,8 @@ const ShowCategory=async(req,res)=>
       
           return res.json({ success: true, message: "Successfully removed category offer" });
         } catch (error) {
-          console.log("Error while removing category offer", error);
-          res.status(500).json({ success: false, message: "Internal Server Error" });
+          
+         next(error)
         }
       };
       

@@ -21,7 +21,7 @@ function generateOtp()
     return Math.floor(100000+Math.random()*900000).toString();
 }
 
-async function sendVerificationEmail(email, otp,name) {
+async function sendVerificationEmail(email, otp) {
     try {
         // Create a transporter object using Gmail
         const transporter = nodemailer.createTransport({
@@ -40,8 +40,8 @@ async function sendVerificationEmail(email, otp,name) {
             from: process.env.NODEMAILER_EMAIL,
             to: email, // Corrected: 'to' should be lowercase
             subject: `Verify Your Account using this OTP: ${otp}`,
-            text: `hello,${name}We received a request to change your email with a One-Time Password (OTP). Please use the following OTP to complete the verification process,`,
-            html:`<p>Dear ${name},</p>
+            text: `hello,User We received a request to change your email with a One-Time Password (OTP). Please use the following OTP to complete the verification process,`,
+            html:`<p>Dear User,</p>
                <p>We received a request to verify your identity with a One-Time Password (OTP). Please use the following OTP to complete the verification process:</p>
                <p><strong>Your OTP is: ${otp}</strong></p>
                <p>This OTP will expire in 1 minute, so please enter it promptly. If you did not request this OTP, please ignore this email.</p>
@@ -52,92 +52,65 @@ async function sendVerificationEmail(email, otp,name) {
         // Check if the email was accepted by the recipient's server
         return info.accepted.length > 0;
     } catch (error) {
-        console.error("Error sending email:", error);
+      
         return false;
     }
 }
 
-const updateProfile=async(req,res)=>
-{
+const updateProfile = async (req, res,next) => {
     try {
-        const id=req.session.user;
-        const {name,email,phone}=req.body;
-        const user=await User.findOne({_id:id});
-       if(user)
-       {
-        const updateUser= await User.updateOne({_id:id},{$set:{name:name,phone:phone}})
-        if(updateUser.modifiedCount >0)
-        {
-            res.json({success:true,message:"updated"})
-        }
-        else
-        {
-            res.json({success:false,message:"could not update"})
-        }
-       }
-       else
-       {
-        res.json({success:false,message:"user Not found"})
-       }
-      
-    } catch (error) {
-        console.log("error occured while updating user"+error);
-        
-    }
-}
+        // Get userId from session or req.user
+        const userId = req.session.user || (req.user && req.user._id);
 
-const addPhone=async(req,res)=>
-{
-    try {
-        const {phone}=req.body;
-        const id=req.session.user ||req.user._id;
-        const findUser=await User.findOne({_id:id})
-        if(findUser)
-        {
-            findUser.phone=phone;
-            await findUser.save();
-            return res.status(201).json({success:true,message:"phone Number added"})
+        if (!userId || !mongoose.Types.ObjectId.isValid(userId)) {
+            return res.status(400).json({ success: false, message: "Invalid user ID" });
         }
-        else
-        {
-            return res.status(401).json({success:false,message:"We could not find Your details"})
+
+        const { fullName, mobile } = req.body;
+
+        // Validate input fields
+        if (!fullName || !mobile) {
+            return res.status(400).json({ success: false, message: "Full name and mobile are required" });
         }
+
+        // Update user profile
+        const updateUser = await User.findByIdAndUpdate(
+            userId,
+            { $set: { name: fullName, phone: mobile } },
+            { new: true } // Return updated document
+        );
+
+        if (!updateUser) {
+            return res.status(404).json({ success: false, message: "User not found" });
+        }
+
+        res.json({ success: true, message: "Profile updated", user: updateUser });
+
     } catch (error) {
-        console.log("error occured while adding phone"+error);
-       return res.redirect("/page-not-found") 
-       
+        next(error)
     }
 }
 
 
-const sendOtp=async(req,res)=>
+
+const sendOtp=async(req,res,next)=>
 {
-    console.log("req inside sendOtp");
+
     
     try {
         const userId = req.session.user || (req.user && req.user._id);
         const userData=await User.findById({_id:userId})
-        const {email}=req.body;
-        const otpType=req.params.otpType;
+        let {email}=req.body;
+        if(!email)
+        {
+            email=userData.email;
+        }
+
             const Otp=generateOtp()
-            if(otpType==='existingEmail')
-                {
+           
                     if(userData)
                     {
-                        proceed(email,Otp,userData.name)
-                    }
-                }
-                else if(otpType ==='newEmail')
-                {
-                    proceed(email,Otp,"User")   
-                }
-                else
-                {
-                    proceed(email,Otp,userData.name)
-                }
-                function proceed(email,Otp,name)
-                {
-                    const emailSent=sendVerificationEmail(email,Otp,name)
+                    const emailSent=sendVerificationEmail(email,Otp)
                     if(emailSent)
                     {
                         console.log("Otp:"+Otp);
@@ -148,22 +121,25 @@ const sendOtp=async(req,res)=>
                     }
                     else
                     {
-                        return res.json({success:false,message:"couldn't send Email please try after some time"})
+                        return res.status(400).json({success:false,message:"couldn't send Email please try after some time"})
                     }
                 }
         } catch (error) {
-       console.log("error occured while sending "+error);
+      
+            next(error)
         
     }
 }
 
-const verifyOtp=async(req,res)=>
+const verifyOtp=async(req,res,next)=>
 {
-        try {
-            console.log("Inside verify OTP");
-            const otpType=req.params.otpType;
+    try{
+    const userId = req.session.user || (req.user && req.user._id);
+        const userData=await User.findById({_id:userId})
+        
+       
             // Validate input
-            const { otp} = req.body;
+            const { otp,email,password} = req.body;
             if (!otp || typeof otp !== 'string' || otp.length !== 6) {
                 return res.status(400).json({ success: false, message: "Invalid OTP format" });
             }
@@ -175,141 +151,54 @@ const verifyOtp=async(req,res)=>
             if (Date.now() > req.session.otpExpiry) {
                 return res.status(402).json({ success: false, message: "OTP has expired. Please request a new one." });
             }
-            // Log session and received OTP for debugging
-            console.log("Session OTP:", req.session.userOtp);
-            console.log("Received OTP:", otp);
-            console.log("Session OTP Type:", typeof req.session.userOtp);
-            console.log("Received OTP Type:", typeof otp);
+         
     
-            // Trim and normalize OTP
             const receivedOtp = otp.trim();
             const sessionOtp = req.session.userOtp.trim();
     
-            // Verify OTP
+
             if (receivedOtp === sessionOtp) {
+               if(password)
+               {
+                const hashPassword=await bcrypt.hash(password,10)
+                const updatePassword=await User.updateOne({_id:userId},{$set:{password:hashPassword}})
+                if(updatePassword.modifiedCount>0)
+                {
+                    res.status(200).json({success:true,message:"pasword changed"})
+                }
+                else
+                {
+                    res.staus(400).json({success:false,message:"pasword change unsuccess"})
+                }
+               }
+               else
+               {
+                userData.email=email;
+                await userData.save();
+                return res.status(200).json({ success: true, message: "email updated." });
+               }
                
-                delete req.session.userOtp;
-                  if(otpType==='existingEmail')
-                  {
-                      return res.status(200).json({success:"true",message:"otp verification success"})
-                  }
-                  else if(otpType ==='newEmail')
-                  {
-                        return res.status(200).json({success:true,message:"new Email verification success"})
-                  }
-                  else
-                  {
-                         return res.status(200).json({success:true,message:"otp for new password verification success"})
-                  }
+                
             } else {
                 // Invalid OTP
                 return res.status(403).json({ success: false, message: "Invalid OTP. Please try again." });
             }
         } catch (error) {
-            console.error("Error verifying OTP:", error);
-            return res.status(500).json({ success: false, message: "An error occurred. Please try again later." });
+           
+            next(error)
         }
     };
-    const updateEmail = async (req, res) => {
-        try {
-          // Get the userId from either session or Passport's req.user
-          const userId = req.session.user || (req.user && req.user._id);
-          const { newEmail } = req.body;
-          
-          if (!newEmail) {
-            return res.status(400).json({ success: false, message: "New email is required." });
-          }
-          
-          // Update the user's email
-          const result = await User.findByIdAndUpdate(
-            userId,
-            { $set: { email: newEmail } },
-            { new: true }  // Return the updated document
-          );
-          
-          // Check if update was successful
-          if (result) {
-            return res.status(200).json({ success: true, message: "Email updated successfully." });
-          } else {
-            return res.status(400).json({ success: false, message: "Email not updated." });
-          }
-        } catch (error) {
-          console.error("Error occurred while updating email:", error);
-          return res.status(500).json({ success: false, message: "Internal Server Error" });
-        }
-      };
+  
       
-      
-    const resendOtp = async (req, res) => {
-        console.log("inside resend otp");
-        const {email}=req.body;
-        console.log("email:"+email);
-        try {
-
-            const userId = req.session.user || (req.user && req.user._id);
-            const userData=await User.findById({_id:userId})
-            
-                const Otp=generateOtp()
-                
-                        const emailSent=sendVerificationEmail(email,Otp,userData.name)
-                        if(emailSent)
-                        {
-                            console.log("Otp:"+Otp);
-                            console.log(email);
-                            
-                            
-                            req.session.userOtp=Otp;
-                            req.session.otpExpiry= Date.now() + 60 * 1000;
-                            return res.status(200).json({success:true,message:"Otp sent"})
-                        }
-                        else
-                        {
-                            return res.json({success:false,message:"couldn't send Email please try after some time"})
-                        }
-                    }
-               catch (error) {
-            console.error("Error resending OTP:", error);
-            return res.status(500).json({ success: false, message: "Internal server error. Please try again." });
-        }
-    };
 
 
 
-const newPassword=async(req,res)=>
-{
+
+const addAddress = async (req, res,next) => {
     try {
-        const {newPassword}=req.body;
-        const userId = req.session.user || (req.user && req.user._id);
-        const findUser=await User.findOne({_id:userId})
-        if(findUser)
-        {
-            const hashPassword=await bcrypt.hash(newPassword,10)
-            const updatePassword=await User.updateOne({_id:userId},{$set:{password:hashPassword}})
-            if(updatePassword.modifiedCount>0)
-            {
-                res.json({success:true,message:"pasword changed"})
-            }
-            else
-            {
-                res.staus(400).json({success:false,message:"pasword change unsuccess"})
-            }
-        }
-        else
-        {
-            res.status(400).json({success:false,message:"user not found in the session"})
-        }
-
-    } catch (error) {
-        console.log("errror occured while updating  Password"+error);
+       
         
-    }
-}
-
-const addAddress = async (req, res) => {
-    try {
-        console.log("req arrived at add address");
-        
-        const userId = req.session.user || req.user._id; // Get user ID from the session
+        const userId = req.session.user || (req.user && req.user._id); // Get user ID from the session
         const { addressData } = req.body; // Get the address data from the request body
 
         addressData.userId = userId; // Add the userId to the address data
@@ -346,15 +235,14 @@ const addAddress = async (req, res) => {
             return res.status(400).json({ success: false, message: "User not found" });
         }
     } catch (error) {
-        console.log("Error occurred while adding address: " + error);
-        return res.status(500).json({ success: false, message: "Internal Server Error" });
+        next(error)
     }
 };
 
 
 
-const changeDefault = async (req, res) => {
-    console.log("Inside change default");
+const changeDefault = async (req, res,next) => {
+    
 
     try {
         const { addressId } = req.body;
@@ -387,16 +275,16 @@ const changeDefault = async (req, res) => {
         return res.json({ success: true, message: "Default address updated successfully" });
 
     } catch (error) {
-        console.error("Error while updating default address:", error);
-        res.status(500).json({ success: false, message: "Internal server error" });
+        
+        next(error)
     }
 };
 
-const editAddress = async (req, res) => {
-    console.log("inside edit address");
+const editAddress = async (req, res,next) => {
+  
     
     try {
-        const userId = req.session.user; // Get user ID from session
+        const userId = req.session.user || (req.user && req.user._id); // Get user ID from session
         const { addressData } = req.body; // Get updated address data from request body
         const  {addressId} = addressData; // Extract addressId from addressData
 
@@ -445,8 +333,8 @@ const editAddress = async (req, res) => {
 
         return res.json({ success: true, message: "Address updated successfully" });
     } catch (error) {
-        console.error("Error while updating address:", error);
-        return res.status(500).json({ success: false, message: "Internal Server Error" });
+       
+        next(error)
     }
 };
 
@@ -454,9 +342,10 @@ const editAddress = async (req, res) => {
 
 
 
-const deleteAddress = async (req, res) => {
+const deleteAddress = async (req, res,next) => {
     try {
-        const userId = req.session.user; // Get user ID from session
+        const userId = req.session.user || (req.user && req.user._id);
+         // Get user ID from session
         const { addressId } = req.body; // Extract addressId from request body
 
         if (!addressId) {
@@ -490,35 +379,30 @@ const deleteAddress = async (req, res) => {
         return res.json({ success: true, message: "Address deleted successfully" });
 
     } catch (error) {
-        console.error("Error deleting address:", error);
-        res.status(500).json({ success: false, message: "Internal Server Error" });
+       
+        next(error)
     }
 };
- const orderDetails=async(req,res)=>
+ const orderDetails=async(req,res,next)=>
  {
     try {
-        console.log("req arrived at order Details");
+      
         
         const userId= req.session.user || (req.user && req.user._id);
         const userData=await User.findById({_id:userId})
         const orderId=req.query.orderId;
         const orderData=await Order.findById({_id:orderId}).populate("orderedItems.product")
-        console.log("order Data is"+orderData);
+       
         const reviewData=await Review.findOne({orderId})
         
         const addressId=orderData.address;
         const addressData=await Address.findOne({userId:userId})
         let deliveryAddress;
      
-        if (!addressData) {
-            console.log("No address found for this user.");
-        } else {
+        if (addressData) {
             deliveryAddress = addressData.address.find(addr => addr._id.toString() === addressId.toString());
-            console.log("Delivery Address:", deliveryAddress);
         }
         
-        
-        console.log(orderData);
         if(!orderData)
         {
             return res.status(401).json({success:false,message:"error occured"
@@ -542,13 +426,12 @@ const deleteAddress = async (req, res) => {
         )
         
     } catch (error) {
-        console.log("error occured while rendering orderDetails"+error);
         
-        return res.redirect("/page-not-found")
+        next(error)
     }
  }
 
- const cancelOrder=async(req,res)=>
+ const cancelOrder=async(req,res,next)=>
  {
 
     try {
@@ -557,7 +440,7 @@ const deleteAddress = async (req, res) => {
         const wallet=await Wallet.findOne({userId:userId})
         let uniqueId;
 
-        console.log("Request received to update order status");
+        
 
         // Find the order by ID
         const orderData = await Order.findById(orderId).populate("orderedItems.product");
@@ -621,18 +504,18 @@ const deleteAddress = async (req, res) => {
 
         return res.status(200).json({ success: true, message: "Order cancelled" });
     } catch (error) {
-        console.error("Error occurred while changing the status:", error);
-        return res.status(500).json({ success: false, message: "Internal server error" });
+        
+        next(error)
     }
  }
 
- const returnOrder=async(req,res)=>
+ const returnOrder=async(req,res,next)=>
  {
    
     try {
         const { orderId,reason} = req.body;
 
-        console.log("Request received to return Ordrer");
+      
 
         // Find the order by ID
         const orderData = await Order.findById(orderId).populate("orderedItems.product");
@@ -651,15 +534,15 @@ const deleteAddress = async (req, res) => {
 
         return res.status(200).json({ success: true, message: "Return request accepted" });
     } catch (error) {
-        console.error("Error occurred while changing the status:", error);
-        return res.status(500).json({ success: false, message: "Internal server error" });
+        
+        next(error)
     }
 
  }
 
 
 
- const addReview=async(req,res)=>
+ const addReview=async(req,res,next)=>
  {
   try {
     const userId= req.session.user || (req.user && req.user._id);
@@ -683,14 +566,14 @@ const deleteAddress = async (req, res) => {
     return res.status(200).json({success:true,message:"review added"})
 
   } catch (error) {
-    console.log("error occured in review adding"+error);
-    return res.status(500).json({success:false,message:"server error occured"})
+   
+    next(error)
     
   }
  }
 
 
- const editReview=async(req,res)=>
+ const editReview=async(req,res,next)=>
  {
     try {
         const {orderId,rating,review,id}=req.body;
@@ -706,30 +589,223 @@ const deleteAddress = async (req, res) => {
 
         return res.status(200).json({success:true,message:"review edited"})
     } catch (error) {
-        console.log("error occured while editing review"+error);
-        return res.status(500).json({message:"server error"})
-        
-        
+      next(error)
     }
  }
+const userDetails=async(req,res,next)=>
+{
+    try {
+        const userId= req.session.user || (req.user && req.user._id);
+        const userData=await User.findById(userId)
+        const defaultAddress = await Address.findOne(
+            { userId, "address.default": true },
+            { address: { $elemMatch: { default: true } } } // Fetch only the first matching address
+          );
+          
+          const TotalOrder=await Order.countDocuments({userId})
 
+          const totalAmountSpent = await Order.aggregate([
+            {
+              $match: { userId: new mongoose.Types.ObjectId(userId), paymentStatus: true }
+            },
+            {
+              $group: {
+                _id: "$userId",
+                totalSpent: { $sum: "$finalAmount" }
+              }
+            }
+          ]);
+          let totalSpent = totalAmountSpent.length > 0 ? totalAmountSpent[0].totalSpent : 0;
+          totalSpent=Math.ceil(totalSpent)
 
+          const pendingOrders = await Order.countDocuments({
+            userId,
+            status: "processing",
+          });
+          
+          const returnedOrders = await Order.countDocuments({
+            userId,
+            status: "Returned",
+          });
+          
+        
+          
+          
+      const latestOrder=await Order.find({userId}).limit(3)
+                    
+        return res.status(200).render("userDetails",
+            {
+                userData,
+                defaultAddress,
+                TotalOrder,
+                totalSpent,
+                pendingCount:pendingOrders?pendingOrders:0,
+                returnCount:returnedOrders?returnedOrders:0,
+                latestOrder
+            }
+        )
+    } catch (error) {
+      
+        next(error)
+        
+    }
+}
+
+const editUserDetails=async(req,res,next)=>
+{
+    try {
+        const userId= req.session.user || (req.user && req.user._id);
+        const userData=await User.findById(userId)
+    
+        return res.status(200).render("editUserDetails",
+            {
+                userData
+    })
+    } catch (error) {
+       
+        next(error)
+        
+    }
+}
+
+const changeEmail=async(req,res,next)=>
+{
+    try {
+        const userId= req.session.user || (req.user && req.user._id);
+        const userData=await User.findById(userId)
+      if(!userData)
+      {
+        throw new Error("user not found")
+      }
+        return res.status(200).render("updateEmail",{
+            userData
+        })
+    } catch (error) {
+      
+        next(error)
+        
+    }
+}
+
+const changePassword=async(req,res,next)=>
+    {
+        try {
+            const userId= req.session.user || (req.user && req.user._id);
+            const userData=await User.findById(userId)
+          if(!userData)
+          {
+            throw new Error("user not found")
+          }
+            return res.status(200).render("changePassword",{
+                userData
+            })
+        } catch (error) {
+         
+            next(error)
+            
+        }
+    }
+    
+
+    const loadOrders=async(req,res,next)=>
+    {
+        try {
+            const userId= req.session.user || (req.user && req.user._id);
+            const data=await User.findById(userId)
+            const orders = await Order.find({ _id: { $in: data.orderHistory } })
+            .populate("address") 
+            .populate({
+              path: "orderedItems.product", 
+              model: "Product",
+            }).sort({createdOn:-1})
+            let ordersWithReadableId =[]
+          if(orders!==null)
+          {
+          ordersWithReadableId = orders.map((order) => {
+            if (order.orderId) {
+              const hexString = order.orderId.replace(/-/g, "");
+          
+              order.readableOrderId = BigInt("0x" + hexString).toString();
+            }
+            return order;
+          });
+        }
+        return res.status(200).render("orders",
+            {
+                orders: ordersWithReadableId ?  ordersWithReadableId :null,
+                userData:data,
+            }
+        )
+        } catch (error) {
+            next(error)
+        }
+    }
+
+const loadWallet=async(req,res,next)=>
+{
+    try {
+        const userId= req.session.user || (req.user && req.user._id);
+  
+        // Fetch user details
+        const data = await User.findOne({ _id: userId });
+
+        const userWallet = await Wallet.findOne({ userId: userId }).lean();
+  
+  if (userWallet && userWallet.paymentHistory) {
+      userWallet.paymentHistory.sort((a, b) => new Date(b.date) - new Date(a.date));
+  }
+      
+     return res.status(200).render("wallet",
+        {
+           wallet:userWallet,
+           data 
+        }
+     )
+    
+    } catch (error) {
+        next(error)
+    }
+}
+
+const loadAddress = async (req, res, next) => {
+    try {
+      const userId = req.session.user || (req.user && req.user._id);
+      if (!userId) {
+        const error = new Error("User not authenticated");
+        error.status = 401;
+        return next(error);
+      }
+  
+      const addressData = await Address.findOne({ userId: userId });
+  
+      return res.status(200).render("address", {
+        addressData
+      });
+  
+    } catch (error) {
+      next(error); // Passes error to the error-handling middleware
+    }
+  };
+  
 module.exports=
 {
     updateProfile,
-    addPhone,
     sendOtp,
     verifyOtp,
-    newPassword,
     addAddress,
     changeDefault,
     editAddress,
     deleteAddress,
-    updateEmail,
     orderDetails,
     cancelOrder,
-    resendOtp,
     returnOrder,
     addReview,
-    editReview
+    editReview,
+    userDetails,
+    editUserDetails,
+    changeEmail,
+    changePassword,
+    loadOrders,
+    loadWallet,
+    loadAddress
 };

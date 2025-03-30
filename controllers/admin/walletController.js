@@ -2,7 +2,7 @@ const Wallet=require("../../models/walletSchema")
 const User=require("../../models/userSchema")
 const Order=require("../../models/orderSchema")
 
-const loadWallet=async(req,res)=>
+const loadWallet=async(req,res,next)=>
 {
     try {
         async function getAllTransactions() {
@@ -36,23 +36,22 @@ const loadWallet=async(req,res)=>
         
                 return transactions;
             } catch (error) {
-                console.error("Error fetching transactions:", error);
                 throw error;
             }
         }
         
         return res.render("wallet",{
-            transactions:await getAllTransactions()
+            transactions:await getAllTransactions(),
+            currentPath:req.path
         })
         
     } catch (error) {
-        console.log("error occured while loading the wallet"+error);
-        return res.redirect("/admin/pageerror")
+        next(error)
         
     }
 }
 
-const paymentDetails = async (req, res) => {
+const paymentDetails = async (req, res,next) => {
     try {
         const orderDataId = Number(req.query.orderId); 
         const amount=Number(req.query.amount)
@@ -60,7 +59,6 @@ const paymentDetails = async (req, res) => {
         let orders;
 
         if (isNaN(orderDataId)) {
-            console.error("Invalid orderId:", req.query.orderId);
             return res.redirect("/admin/pageerror");
         }
 if(status==='debited')
@@ -86,10 +84,7 @@ else
     orders = data.filter(order => order.finalAmount === amount);
     
 }
-      console.log("orders in in payment details"+orders);
-      console.log(orders);
-      
-      
+    
         if (orders.length === 0) {
             return res.render("paymentDetails", { orders: [], message: "No matching orders found" });
         }
@@ -97,8 +92,7 @@ else
         res.render("paymentDetails", { orders, message: null ,status});
 
     } catch (error) {
-        console.error("Error occurred in payment details:", error);
-        return res.redirect("/admin/pageerror");
+        next(error)
     }
 };
 

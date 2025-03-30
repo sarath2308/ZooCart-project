@@ -6,7 +6,7 @@ const cloudinary=require("../../config/cloudinary")
 const multer=require("../../helpers/multer")
 
 
-const loadBannerPage=async(req,res)=>
+const loadBannerPage=async(req,res,next)=>
 {
     try {
         const products=await Product.find({status:{$nin:["Out of Stock","Discontinued"]},isBlocked:false})
@@ -16,17 +16,17 @@ const loadBannerPage=async(req,res)=>
             {
                 products,
                 data:banners,
+                currentPath:req.path
             }
         )
     } catch (error) {
-        console.log("error occured while laoding the banner page"+error);
-        return res.redirect("/admin/pageerror")
+       next(error)
         
     }
 }
 
 
-const addBanner = async (req, res) => {
+const addBanner = async (req, res,next) => {
     try {
         const { startDate, endDate, title, productId, bannerPosition } = req.body;
 
@@ -51,7 +51,7 @@ const addBanner = async (req, res) => {
 
        // Image Upload for single file
 if (!req.file) {
-    return res.status(400).send("Image not found");
+    return res.redirect("/admin/pageerror")
 }
 
 const uploadResult = await cloudinary.uploader.upload(req.file.path, { folder: "uploads" });
@@ -63,14 +63,13 @@ bannerData.image = uploadResult.secure_url;
         res.status(201).redirect("/admin/banners")
 
     } catch (error) {
-        console.error("Error adding banner:", error);
-        res.status(201).redirect("/admin/banners")
+       next(error)
     }
 };
 
-const deleteBanner=async(req,res)=>
+const deleteBanner=async(req,res,next)=>
 {
-    console.log("req reached at delete Banner");
+  
     
     try {
         const id=req.query.id;
@@ -84,8 +83,8 @@ const deleteBanner=async(req,res)=>
             return res.status(400).json({success:false,message:"not deleted"})
         }
     } catch (error) {
-        console.log("error occured while deleting banner"+error);
-        return res.status(400).json({success:false,message:"not deleted"})
+       
+       next(error)
     }
 }
 

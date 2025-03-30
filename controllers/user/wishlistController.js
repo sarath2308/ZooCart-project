@@ -3,29 +3,45 @@ const Products=require("../../models/productSchema")
 const mongoose=require("mongoose")
 const User=require("../../models/userSchema")
 
-const loadWishlist=async(req,res)=>
-{
+const loadWishlist = async (req, res,next) => {
     try {
-        const id=req.session.user ||req.user._id;
-        const user=await User.findById({_id:id})
-        const products=await Products.find({_id:{$in:user.wishlist}}).populate('category').populate('brand')
-        return res.render("wishlist",
-            {
-                user,
-                wishlist:products,
-            }
-        )
+        const id = req.session.user || req.user._id;
+        const user = await User.findById({ _id: id });
+
+        // Get current page from query params (default: 1)
+        let page = parseInt(req.query.page) || 1;
+        let limit = 5; // Number of products per page
+        let skip = (page - 1) * limit;
+
+        // Get total count of wishlist items
+        const totalWishlistItems = await Products.countDocuments({ _id: { $in: user.wishlist } });
+
+        // Fetch paginated wishlist products
+        const products = await Products.find({ _id: { $in: user.wishlist } })
+            .populate('category')
+            .populate('brand')
+            .skip(skip)
+            .limit(limit);
+
+        // Calculate total pages
+        let totalPages = Math.ceil(totalWishlistItems / limit);
+
+        return res.render("wishlist", {
+            user,
+            wishlist: products,
+            currentPage: page,
+            totalPages,
+            total:totalWishlistItems
+        });
+
     } catch (error) {
-        console.log("error occured while loading the page");
-        
-        console.log(error);
-        return res.redirect("/page-not-found")
-        
+      next(error)
     }
-}
-const addToWishlist = async (req, res) => {
+};
+
+const addToWishlist = async (req, res,next) => {
     try {
-        console.log("req arrived at add to Wishlist");
+       
         
       const { pid } = req.body;
       const userId = req.session.user || (req.user && req.user._id);
@@ -51,14 +67,14 @@ const addToWishlist = async (req, res) => {
   
       return res.status(200).json({ success: true, message: "Added to wishlist" });
     } catch (error) {
-      console.error(error);
-      return res.status(500).json({ success: false, message: "Server error occurred" });
+     
+      next(error)
     }
   };
 
-  const removeFromWishlist = async (req, res) => {
+  const removeFromWishlist = async (req, res,next) => {
     try {
-        console.log("Request arrived at remove from Wishlist");
+       
 
         const { pid } = req.body;
         const userId = req.session.user || (req.user && req.user._id);
@@ -86,8 +102,7 @@ const addToWishlist = async (req, res) => {
 
         return res.status(200).json({ success: true, message: "Removed from wishlist" });
     } catch (error) {
-        console.error(error);
-        return res.status(500).json({ success: false, message: "Server error occurred" });
+      next(error)
     }
 };
 

@@ -11,22 +11,19 @@ const pageerror=async(req,res)=>
    return res.render("pageerror");
 }
 
-const loginPage = async (req, res) => {
+const loginPage = async (req, res,next) => {
     try {
       if (req.session.admin) {
         return res.redirect('/admin');  // If session exists, redirect to admin page
       }
   
-      console.log("Inside login");
       res.render('adminlogin', { message: '' });  // Render login page with an empty message
     } catch (error) {
-      console.error("Error occurred: Can't render admin login", error);
-      res.status(500).send("Internal Server Error");
+      next(error)
     }
   };
   
-const login = async (req, res) => {
-    console.log("inside post login");
+const login = async (req, res,next) => {
     
     const { email, password } = req.body;
     console.log(email, password);
@@ -36,11 +33,11 @@ const login = async (req, res) => {
         const findAdmin = await User.findOne({ email: email, isAdmin: true });
 
         if (findAdmin) {
-            console.log("find admin true");
+            
             
             const passwordCheck = await bcrypt.compare(password, findAdmin.password);
             if (passwordCheck) {
-                console.log("password check true");
+               
                 
                 req.session.admin = findAdmin._id;
                 return res.redirect('/admin');
@@ -51,17 +48,16 @@ const login = async (req, res) => {
             return res.status(401).render("adminlogin", { message: "Incorrect Email" });
         }
     } catch (error) {
-        console.log("Error occurred while validating Admin login");
-        console.error(error);
-        return res.status(500).render("adminlogin", { message: "An error occurred, please try again later." });
+      
+       next(error)
     }
 };
 
-const loadDashboard=async(req,res)=>
+const loadDashboard=async(req,res,next)=>
 {
  
     try {
-    console.log("inside dashboard");
+   
     const orderData = await Order.find({
       status: { $in: ["delivered"] }, // Filter by status
       paymentStatus: true // Filter by paymentStatus
@@ -95,13 +91,6 @@ const loadDashboard=async(req,res)=>
             }
           ]);
           
-          // Access the result
-          if (totalRefund.length > 0) {
-            console.log("Total Refund Amount:", totalRefund[0].totalRefund);
-          } else {
-            console.log("No refunds found.");
-          }
-        console.log(totalRefund);
         
         const totalRevenue = await Order.aggregate([
             {
@@ -120,16 +109,9 @@ const loadDashboard=async(req,res)=>
             }
           ]);
           
-          // Access the result
-          if (totalRevenue.length > 0) {
-            console.log("Total Revenue:", totalRevenue[0].totalRevenue);
-          } else {
-            console.log("No revenue found.");
-          }
+
         
-        console.log("Total Revenue:", totalRevenue[0]?.totalRevenue || 0);
         const formattedRevenue = (totalRevenue[0]?.totalRevenue || 0).toLocaleString("en-IN");
-console.log("Total Revenue:", formattedRevenue);
 
 const totalOnlineRevenue = await Order.aggregate([
     { 
@@ -146,7 +128,7 @@ const totalOnlineRevenue = await Order.aggregate([
         } 
     }
 ]);
-console.log(totalOnlineRevenue);
+
 
 const salesData = await Order.aggregate([
     {
@@ -180,18 +162,17 @@ monthlyOrderCount.forEach(({ _id, totalOrders }) => {
     ordersArray[_id - 1] = totalOrders; // _id is month (1 = Jan), so adjust index
 });
 
-console.log(ordersArray);
 
 // Convert data to array with missing months filled as 0
 const monthlySales = new Array(12).fill(0); // Initialize with 0 for all months
 salesData.forEach(({ _id, totalSales }) => {
     monthlySales[_id - 1] = totalSales; // Assign sales to corresponding month index
 });
-console.log(monthlySales);
+
 
 //most ordred product 
 const getTopTwoOrderedProducts = async () => {
-  try {
+
     const result = await Order.aggregate([
       { $unwind: "$orderedItems" }, // Unwind orderedItems array
       {
@@ -225,11 +206,8 @@ const getTopTwoOrderedProducts = async () => {
       }
     ]);
 
-    console.log("Top Two Ordered Products by Total Quantity:", result);
     return result;
-  } catch (error) {
-    console.error("Error finding top two ordered products by total quantity:", error);
-  }
+  
 };
 
     
@@ -251,51 +229,28 @@ const getTopTwoOrderedProducts = async () => {
                   totalPages,
                   totalSales,
                   topTwo: await getTopTwoOrderedProducts(),
+                  currentPath:req.path
 
                 }
             )
 
     }catch (error) {
-        console.log(error);
         
-    res.redirect("/admin/pageerror");
+    next(error)
 }
 }
 const logout=async(req,res)=>
 {
     req.session.destroy((err)=>
-    {
-        if(err)
-        {
-            console.log("couldn't destroy the admin session");
-        }
-        else{
+    {  
             return res.redirect("/admin/login")
-        }
     })
 }
-const demoAdmin = async (req, res) => {
-    try {
-        const email = "zoocartofficial@gmail.com";
-        const admin = await User.findOne({ email: email,isAdmin:true}); // Use findOne instead of find
 
-        if (admin) {
-            req.session.admin = admin._id; // Store user ID in session
-            return res.redirect("/admin");
-        } else {
-            console.log("Error: addmin not found for demo login.");
-            res.status(404).send("admin not found");
-        }
-    } catch (error) {
-        console.log("Error occurred while using demo admin:", error);
-        res.status(500).send("Internal Server Error");
-    }
-};
 module.exports={
     loginPage,
     login,
     loadDashboard,
     pageerror,
     logout,
-    demoAdmin
 }
