@@ -5,7 +5,6 @@ const Brand=require("../../models/BrandSchema")
 const User=require("../../models/userSchema")
 const fs=require("fs");
 const path=require("path");
-const sharp=require("sharp");
 const cloudinary =require("../../config/cloudinary");  
 const multer=require("../../helpers/multer")
 

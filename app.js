@@ -116,7 +116,7 @@ app.use((err, req, res, next) => {
 });
 
 
-const PORT=8080||process.env.PORT;
+const PORT=process.env.PORT || 3000;
 app.listen(PORT,()=>
 {
     console.log("Sever Running......");
