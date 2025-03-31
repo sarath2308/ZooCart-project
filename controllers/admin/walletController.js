@@ -40,12 +40,13 @@ const loadWallet=async(req,res,next)=>
             }
         }
         
-        return res.render("wallet",{
+        return res.render("adminWallet",{
             transactions:await getAllTransactions(),
             currentPath:req.path
         })
         
     } catch (error) {
+        
         next(error)
         
     }

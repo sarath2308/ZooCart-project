@@ -64,6 +64,7 @@ const loadHomePage=async(req,res,next)=>
         next(err)
     }
 }
+
 const pageNotFound=async(req,res,next)=>
 {
     try{

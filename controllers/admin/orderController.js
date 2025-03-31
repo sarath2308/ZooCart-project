@@ -10,7 +10,6 @@ const Product=require("../../models/productSchema")
 
 const loadOrders = async (req, res,next) => {
     try {
-        let userId;
         let orders = await Order.find().populate('orderedItems.product').populate('userId').sort({createdOn:-1}).lean()
         // Convert each Mongoose document to a plain object and add readableId
         orders = orders.map(order => {
@@ -23,9 +22,9 @@ const loadOrders = async (req, res,next) => {
             return order;
           });
         
-        return res.render("Orders", { data: orders,currentPath:req.path });
+        return res.render("adminOrders", { data: orders,currentPath:req.path });
 
-    } catch (error) {
+    } catch (error) {    
         next(error)
     }
 };
@@ -75,8 +74,6 @@ const loadOrders = async (req, res,next) => {
         const changeStatus = async (req, res,next) => {
             try {
                 const { orderId, status, cancelReason } = req.body;
-        
-            
         
                 // Find the order by ID
                 const orderData = await Order.findById(orderId);

@@ -12,7 +12,45 @@ const mongoose=require("mongoose")
 const helmet = require("helmet");
 
 //middlewars
-app.use(helmet());
+app.use(
+  helmet({
+    contentSecurityPolicy: {
+      directives: {
+        defaultSrc: ["'self'"],
+        scriptSrc: [
+          "'self'",
+          "cdnjs.cloudflare.com",
+          "cdn.jsdelivr.net",
+          "code.jquery.com",
+          "cdn.datatables.net",
+          "'unsafe-inline'",
+        ],
+        styleSrc: [
+          "'self'",
+          "fonts.googleapis.com",
+          "cdnjs.cloudflare.com",
+          "cdn.jsdelivr.net",
+          "unicons.iconscout.com",
+          "cdn.datatables.net",
+          "'unsafe-inline'",
+        ],
+        fontSrc: [
+          "'self'",
+          "fonts.googleapis.com",
+          "fonts.gstatic.com",
+          "cdnjs.cloudflare.com",
+          "cdn.jsdelivr.net",
+          "unicons.iconscout.com",
+        ],
+        imgSrc: ["'self'", "data:", "https://res.cloudinary.com"],
+        connectSrc: ["'self'", "*"], // ✅ Fix for AJAX requests
+        frameSrc: ["'self'", "https://www.google.com"], // ✅ Allows embedding Google
+      },
+    },
+  })
+);
+
+
 app.use(express.json());
 app.use(express.urlencoded({extended:true}))
 app.set("view engine","ejs")
@@ -78,7 +116,7 @@ app.use((err, req, res, next) => {
 });
 
 
-const PORT=3000||process.env.PORT;
+const PORT=8080||process.env.PORT;
 app.listen(PORT,()=>
 {
     console.log("Sever Running......");

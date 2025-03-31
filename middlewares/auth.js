@@ -16,12 +16,10 @@ const userAuth = async (req, res, next) => {
         next(); // Proceed if the user exists and is not blocked
       }
     } else {
-      console.log("User does not exist");
       res.redirect('/logout');
     }
   } catch (error) {
-    console.error("Error in user auth middleware:", error);
-    res.status(500).send("Internal Server Error");
+    res.status(500).redirect("/page-not-found");
   }
 };
 
@@ -48,10 +46,7 @@ const adminAuth= async(req,res,next)=>
     }
     ).catch(error=>
     {
-      console.log(error);
-      
-        console.log("Error in admin auth middleware");
-        res.status(500).send("Internal Server Error")
+        res.status(500).redirect("/admin/pageerror")
     }
     )
 }
