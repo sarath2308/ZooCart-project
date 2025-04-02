@@ -11,7 +11,6 @@ const MongoStore = require("connect-mongo");
 const mongoose=require("mongoose")
 const helmet = require("helmet");
 
-//middlewars
 app.use(
   helmet({
     contentSecurityPolicy: {
@@ -43,13 +42,18 @@ app.use(
           "unicons.iconscout.com",
         ],
         imgSrc: ["'self'", "data:", "https://res.cloudinary.com"],
-        connectSrc: ["'self'", "*"], // ✅ Fix for AJAX requests
-        frameSrc: ["'self'", "https://www.google.com"], // ✅ Allows embedding Google
+        connectSrc: ["'self'", "*"],
+        frameSrc: ["'self'", "https://www.google.com"],
+        baseUri: ["'self'"],
+        formAction: ["'self'"],
+        frameAncestors: ["'self'"],
+        objectSrc: ["'none'"],
+        scriptSrcAttr: ["'unsafe-inline'"], // Allow inline event handlers
+        upgradeInsecureRequests: [] // Already enforced by HTTPS
       },
     },
   })
 );
-
 
 app.use(express.json());
 app.use(express.urlencoded({extended:true}))
