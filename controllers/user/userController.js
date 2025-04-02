@@ -165,7 +165,7 @@ const signup=async(req,res,next)=>
            const emailSent=await sendVerificationEmail(email,otp,name)
             if(!emailSent)
               {
-             res.json('email.error')
+                return res.render("signup",{success:false,message:"Sorry Try after someTimes.."})
               }
             const expiry= Date.now() + 60 * 1000;
             req.session.otpExpiry=expiry;
