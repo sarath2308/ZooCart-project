@@ -98,6 +98,8 @@ const signupPage=async(req,res,next)=>
 }
     catch(err)
     {
+        console.log(err);
+        
        
         next(err)
         
@@ -109,13 +111,13 @@ function generateOtp()
     return Math.floor(100000+Math.random()*900000).toString();
 }
 //sending mail to the user
-async function sendVerificationEmail(email, otp,name) {
+async function sendVerificationEmail(email, otp, name) {
+    console.log("Sending verification email to:", email, "with OTP:", otp); // Log input
     try {
-        // Create a transporter object using Gmail
         const transporter = nodemailer.createTransport({
             service: 'gmail',
             port: 587,
-            secure: false, // Use `true` for port 465, `false` for all other ports
+            secure: false, // Use STARTTLS on port 587
             requireTLS: true,
             auth: {
                 user: process.env.NODEMAILER_EMAIL,
@@ -123,30 +125,35 @@ async function sendVerificationEmail(email, otp,name) {
             }
         });
 
-        // Send the email
+        // Verify transporter configuration
+        await transporter.verify();
+        console.log("Transporter is ready");
+
         const info = await transporter.sendMail({
             from: process.env.NODEMAILER_EMAIL,
-            to: email, // Corrected: 'to' should be lowercase
+            to: email,
             subject: `Verify Your Account using this OTP: ${otp}`,
-            text: `hello,${name}We received a request to verify your identity with a One-Time Password (OTP). Please use the following OTP to complete the verification process,`,
-            html:`<p>Dear ${name},</p>
-               <p>We received a request to verify your identity with a One-Time Password (OTP). Please use the following OTP to complete the verification process:</p>
-               <p><strong>Your OTP is: ${otp}</strong></p>
-               <p>This OTP will expire in 1 minute, so please enter it promptly. If you did not request this OTP, please ignore this email.</p>
-               <p>Thank you for using ZooCart.</p>
-               <p>Best regards,<br>The ZooCart Team<br>[Company Address]<br>9526847469<br>zoocart.com</p>`,
+            text: `Hello, ${name}, we received a request to verify your identity with a One-Time Password (OTP). Please use the following OTP to complete the verification process: ${otp}`,
+            html: `<p>Dear ${name},</p><p>We received a request to verify your identity with a One-Time Password (OTP). Please use the following OTP to complete the verification process:</p><p><strong>Your OTP is: ${otp}</strong></p><p>This OTP will expire in 1 minute, so please enter it promptly. If you did not request this OTP, please ignore this email.</p><p>Thank you for using ZooCart.</p><p>Best regards,<br>The ZooCart Team<br>[Company Address]<br>9526847469<br>zoocart.com</p>`
         });
 
-        // Check if the email was accepted by the recipient's server
+        console.log("Email sent successfully:", info.response);
         return info.accepted.length > 0;
     } catch (error) {
-        
+        console.error("Email sending error:", error);
+        if (error.response) {
+            console.error("SMTP response:", error.response);
+        } else if (error.code) {
+            console.error("Error code:", error.code);
+        }
         return false;
     }
 }
 
 const signup=async(req,res,next)=>
 {
+    console.log("req arrived");
+    
     try{
     const userId = req.session.user || (req.user && req.user._id);
     if(userId)
@@ -156,6 +163,7 @@ const signup=async(req,res,next)=>
     else
     {
     const {name,email,phone,password}=req.body;
+    
       const findUser=await User.findOne({email})
        if(findUser)
          {
@@ -275,6 +283,7 @@ const verifyOtp = async (req, res,next) => {
             return res.status(400).json({ success: false, message: "Invalid OTP. Please try again." });
         }
     } catch (error) {
+       console.log(error);
        
         next(error)
     }
