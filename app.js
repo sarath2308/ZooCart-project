@@ -10,7 +10,6 @@ const passport=require('./config/passport')
 const MongoStore = require("connect-mongo");
 const mongoose=require("mongoose")
 const helmet = require("helmet");
-
 app.use(
   helmet({
     contentSecurityPolicy: {
@@ -22,7 +21,8 @@ app.use(
           "cdn.jsdelivr.net",
           "code.jquery.com",
           "cdn.datatables.net",
-          "'unsafe-inline'",
+          "https://checkout.razorpay.com",
+          "'unsafe-inline'", // Needed for inline scripts
         ],
         styleSrc: [
           "'self'",
@@ -41,15 +41,25 @@ app.use(
           "cdn.jsdelivr.net",
           "unicons.iconscout.com",
         ],
-        imgSrc: ["'self'", "data:", "https://res.cloudinary.com"],
-        connectSrc: ["'self'", "*"],
-        frameSrc: ["'self'", "https://www.google.com"],
+        imgSrc: [
+          "'self'",
+          "data:",
+          "https://res.cloudinary.com",
+          "https://razorpay.com",
+        ],
+        connectSrc: [
+          "'self'",
+          "*", 
+          "https://api.razorpay.com", // Razorpay API requests
+          "https://checkout.razorpay.com",
+        ],
+        frameSrc: ["'self'", "https://www.google.com", "https://api.razorpay.com"],
         baseUri: ["'self'"],
         formAction: ["'self'"],
         frameAncestors: ["'self'"],
         objectSrc: ["'none'"],
-        scriptSrcAttr: ["'unsafe-inline'"], // Allow inline event handlers
-        upgradeInsecureRequests: [] // Already enforced by HTTPS
+        scriptSrcAttr: ["'unsafe-inline'"],
+        upgradeInsecureRequests: [],
       },
     },
   })
