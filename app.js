@@ -22,7 +22,7 @@ app.use(
           "code.jquery.com",
           "cdn.datatables.net",
           "https://checkout.razorpay.com",
-          "'unsafe-inline'", // Needed for inline scripts
+          "'unsafe-inline'",
         ],
         styleSrc: [
           "'self'",
@@ -49,11 +49,16 @@ app.use(
         ],
         connectSrc: [
           "'self'",
-          "*", 
-          "https://api.razorpay.com", // Razorpay API requests
+          "*",
+          "https://api.razorpay.com",
           "https://checkout.razorpay.com",
         ],
-        frameSrc: ["'self'", "https://www.google.com", "https://api.razorpay.com"],
+        frameSrc: [
+          "'self'",
+          "https://www.google.com",
+          "https://api.razorpay.com",
+          "https://checkout.razorpay.com", // Add this
+        ],
         baseUri: ["'self'"],
         formAction: ["'self'"],
         frameAncestors: ["'self'"],
