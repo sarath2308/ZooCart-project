@@ -1,218 +1,91 @@
 <!DOCTYPE html>
 <html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Signup</title>
-    <link href="css/signup.css" rel="stylesheet">
-	<script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
-	</head>
-<body>
-	<%if(message&&success===false){%>
-		<script>
-          Swal.fire({
-            title:'<%=message%>',
-            icon: 'error',
-            toast: true,
-            position: 'top-end',
-            showConfirmButton: false,
-            timer: 3000
-        });
-		</script>
-		<%}else if(message&&success===true){%>
-			<script>
-				Swal.fire({
-				  title:'<%=message%>',
-				  icon: 'success',
-				  toast: true,
-				  position: 'top-end',
-				  showConfirmButton: false,
-				  timer: 3000
-			  });
-			  </script>
-			  <%}%>
-<div class="container" id="container">
-	<div class="form-container sign-up-container">
-		<form action="/signup" method="post" onsubmit="return validateSignup()">
-			<h1>Create Account</h1>
-		
-			<!-- Social login option (Google) -->
-			<div class="social-container">
-				<a href="/auth/google" class="social"><i class="fab fa-google-plus-g"></i></a>
-			</div>
-			<span>or use your email for registration</span>
-		
-			<!-- Name Input -->
-			<input type="text" id="name" name="name" placeholder="Enter your name"  />
-		
-			<!-- Email Input -->
-			<input type="text" id="email" name="email" placeholder="Enter your email"/>
-		
-			<!-- Phone Number Input -->
-			<input type="text" id="phone" name="phone" placeholder="Enter your phone number" />
-		
-			<!-- Password Input -->
-			<div class="password-container">
-				<input type="password" id="password" name="password" placeholder="Enter password"/>
-				<i id="togglePassword" class="fas fa-eye" onclick="togglePassword()"></i>
-			</div>
-		
-			<!-- Confirm Password Input -->
-			<input type="password" id="confirmPassword" name="confirmPassword" placeholder="Confirm your password"/>
-		
-			<!-- Submit Button -->
-			<button type="submit">Sign Up</button>
-		</form>		 
-	</div>
-	<div class="form-container sign-in-container">
-		<form action="/login" method="post" onsubmit="return validateLogin()">
-			<h1>Sign in</h1>
-			<div class="social-container">
-				<a href="/auth/google" class="social"><i class="fab fa-google-plus-g"></i></a>
-			</div>
-			<span>or use your account</span>
-			<input type="text" id="loginEmail" name="email" placeholder="Email" />
-			<input type="password" id="loginpassword" name="password" placeholder="Password" />
-			<a href="/forgotpassword">Forgot your password?</a>
-			<button type="submit">Sign In</button>
-		</form>
-	</div>
-	<div class="overlay-container">
-		<div class="overlay">
-			<div class="overlay-panel overlay-left">
-				<h1>Welcome Back!</h1>
-				<p>To keep connected with us please login with your personal info</p>
-				<button class="ghost" id="signIn">Sign In</button>
-			</div>
-			<div class="overlay-panel overlay-right">
-				<h1>Hello, Friend!</h1>
-				<p>Enter your personal details and start journey with us</p>
-				<button class="ghost" id="signUp">Sign Up</button>
-			</div>
-		</div>
-	</div>
-</div>
-<p class="hide" id="refer">Do you have a referral code?<a class="referBtn" id="referBtn">Click here</a></p>
-<input type="text" class="referalCode hide" id="referalCode" name="referalCode">
-<style>
-	.hide
-	{
-		display: none;
-	}
-</style>
-<script>
-	function validateSignup() {
-    const name = document.getElementById("name").value;
-    const email = document.getElementById("email").value;
-    const phone = document.getElementById("phone").value;
-    const password = document.getElementById("password").value;
-    const confirmPassword = document.getElementById("confirmPassword").value;
-console.log("inside validation");
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <link href="/css/signup.css" rel="stylesheet">
+    <link
+      rel="stylesheet"
+      href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css"
+    />
+    <title>zoocart signup</title>
+  </head>
+  <body>
+    <div class="container">
+      <div class="forms-container">
+        <div class="signin-signup">
+          <form name="form" class="sign-in-form">
+            <h2 class="title">Sign in</h2>
+            <div class="input-field">
+              <i class="bi bi-person"></i>
+              <input type="text" name="user" id="signin-email" placeholder="Email Address" />
+            </div>
+            <div class="input-field">
+              <i class="bi bi-lock"></i>
+              <input type="password" name="password" id="signin-password" placeholder="Password" />
+              <i class="bi bi-eye toggle-password" onclick="togglePassword('signin-password')"></i>
+            </div>
+            <button id="login" class="btn solid">
+               Login
+            </button>
+           <p style="color:grey">Or</p>
+              <a href="/auth/google" class="btn google-btn">
+                <i class="bi bi-google"></i> Google Sign in
+              </a><br>
+              <a href="/forgotpassword">Forgot your password?</a>
+          </form>
 
-    if (name === '' || email === '' || phone === '' || password === '' || confirmPassword === '') {
-        Swal.fire({
-            title: 'All fields are required!',
-            icon: 'error',
-            toast: true,
-            position: 'top-end',
-            showConfirmButton: false,
-            timer: 3000
-        });
-        
-        return false;
-    }
+          <form name="myform" class="sign-up-form" >
+            <h2 class="title">Sign up</h2>
+            <div class="input-field">
+              <i class="bi bi-person"></i>
+              <input type="text" name="name" id="name" placeholder="Name" />
+            </div>
+            <div class="input-field">
+              <i class="bi bi-envelope"></i>
+              <input type="email" name="email" id="email" placeholder="Email" />
+            </div>
+            <div class="input-field">
+              <i class="bi bi-telephone"></i>
+              <input type="tel" name="mobile" id="phone" placeholder="Mobile Number" />
+            </div>
+            <div class="input-field">
+              <i class="bi bi-lock"></i>
+              <input type="password" name="password" id="signup-password" placeholder="Password" />
+              <i class="bi bi-eye toggle-password" onclick="togglePassword('signup-password')"></i>
+            </div>
+            <button id="signup" class="btn">
+              Sign up
+            </button>
+            <p style="color:rgb(119, 115, 115)">Or</p>
+              <a href="/auth/google" class="btn google-btn">
+                <i class="bi bi-google"></i> Sign up With Google
+              </a>
+          </form>
+        </div>
+      </div>
 
-    // Email validation
-    const regex = /^[a-zA-Z0-9._-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/;
-    if (!regex.test(email)) {
-        Swal.fire({
-            title: 'Invalid Email!',
-            icon: 'error',
-            toast: true,
-            position: 'top-end',
-            showConfirmButton: false,
-            timer: 3000
-        });
-        return false;
-    }
+      <div class="panels-container">
+        <div class="panel left-panel">
+          <div class="content">
+            <h3>New here ?</h3>
+            <p>Signup Here If You Don't Have Account.</p>
+            <button class="btn transparent" id="sign-up-btn">Sign up</button>
+          </div>
+        </div>
+        <div class="panel right-panel">
+          <div class="content">
+            <h3>One of us ?</h3>
+            <p>If You Already Have Account Signin Here.</p>
+            <button class="btn transparent" id="sign-in-btn">Sign in</button>
+          </div>
+        </div>
+      </div>
+    </div>
+   
 
-    // Phone number validation
-    const phonePattern = /^(\+?[0-9]{1,4})?[-\s]?[0-9]{10}$/;
-    if (!phonePattern.test(phone)) {
-        Swal.fire({
-            title: 'invalid phoneNumber!',
-            icon: 'error',
-            toast: true,
-            position: 'top-end',
-            showConfirmButton: false,
-            timer: 3000
-        });
-        return false;
-    }
-
-    // Password validation (strong password check)
-    const regexpass = /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&])[A-Za-z\d@$!%*?&]{8,}$/;
-    if (!regexpass.test(password)) {
-        Swal.fire({
-            title: 'Choose a Strong Password!(Example@123)',
-            icon: 'error',
-            toast: true,
-            position: 'top-end',
-            showConfirmButton: false,
-            timer: 3000
-        });
-        return false;
-    }
-
-    // Check if passwords match
-    if (password !== confirmPassword) {
-        Swal.fire({
-            title: 'Password Not Matching!',
-            icon: 'error',
-            toast: true,
-            position: 'top-end',
-            showConfirmButton: false,
-            timer: 3000
-        });
-        return false;
-    }
-
-    return true; // If all validation passes
-}
-function validateLogin()
-{
-    console.log("validating Login");
-    
-    const email=document.getElementById("loginEmail").value;
-    const password=document.getElementById("loginpassword").value;
-    if(email === ''||password ==='')
-    {
-        Swal.fire({
-            title: 'All fields are required!',
-            icon: 'error',
-            toast: true,
-            position: 'top-start',
-            showConfirmButton: false,
-            timer: 3000
-        });
-        return false;
-    }
-    const regex = /^[a-zA-Z0-9._-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/;
-    if (!regex.test(email)) {
-        Swal.fire({
-            title: 'Invalid Email!',
-            icon: 'error',
-            toast: true,
-            position: 'top-start',
-            showConfirmButton: false,
-            timer: 3000
-        });
-        return false;
-    }
-    return true;
-}
-</script>
-    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.3/css/all.min.css" rel="stylesheet">
-<script src="/js/signup.js"></script>
-</body>
+<script src="https://code.jquery.com/jquery-3.7.1.slim.min.js"></script>
+<script src="https://code.jquery.com/jquery-3.7.1.min.js"></script>
+<script src="public/js/signup.js"></script>
+  </body>
 </html>

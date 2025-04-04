@@ -12,6 +12,7 @@ const env=require("dotenv").config();
 const bcrypt=require("bcrypt")
 const Wallet=require("../../models/walletSchema.js")
 const Banner=require("../../models/bannerSchema.js")
+const EmailSend=require("../../helpers/emailSent.js")
 
 const loadHomePage=async(req,res,next)=>
 {
@@ -111,44 +112,6 @@ function generateOtp()
     return Math.floor(100000+Math.random()*900000).toString();
 }
 //sending mail to the user
-async function sendVerificationEmail(email, otp, name) {
-    console.log("Sending verification email to:", email, "with OTP:", otp); // Log input
-    try {
-        const transporter = nodemailer.createTransport({
-            service: 'gmail',
-            port: 587,
-            secure: false, // Use STARTTLS on port 587
-            requireTLS: true,
-            auth: {
-                user: process.env.NODEMAILER_EMAIL,
-                pass: process.env.NODEMAILER_PASSWORD
-            }
-        });
-
-        // Verify transporter configuration
-        await transporter.verify();
-        console.log("Transporter is ready");
-
-        const info = await transporter.sendMail({
-            from: process.env.NODEMAILER_EMAIL,
-            to: email,
-            subject: `Verify Your Account using this OTP: ${otp}`,
-            text: `Hello, ${name}, we received a request to verify your identity with a One-Time Password (OTP). Please use the following OTP to complete the verification process: ${otp}`,
-            html: `<p>Dear ${name},</p><p>We received a request to verify your identity with a One-Time Password (OTP). Please use the following OTP to complete the verification process:</p><p><strong>Your OTP is: ${otp}</strong></p><p>This OTP will expire in 1 minute, so please enter it promptly. If you did not request this OTP, please ignore this email.</p><p>Thank you for using ZooCart.</p><p>Best regards,<br>The ZooCart Team<br>[Company Address]<br>9526847469<br>zoocart.com</p>`
-        });
-
-        console.log("Email sent successfully:", info.response);
-        return info.accepted.length > 0;
-    } catch (error) {
-        console.error("Email sending error:", error);
-        if (error.response) {
-            console.error("SMTP response:", error.response);
-        } else if (error.code) {
-            console.error("Error code:", error.code);
-        }
-        return false;
-    }
-}
 
 const signup=async(req,res,next)=>
 {
@@ -167,19 +130,19 @@ const signup=async(req,res,next)=>
       const findUser=await User.findOne({email})
        if(findUser)
          {
-          return res.render("signup",{success:false,message:"User With This Email Already Exists"})
+          return res.status(400).json({success:false,message:"User With This Email Already Exists"})
          } 
           const otp=generateOtp();
-           const emailSent=await sendVerificationEmail(email,otp,name)
+           const emailSent=await EmailSend.sendVerificationEmail(email,otp,name)
             if(!emailSent)
               {
-                return res.render("signup",{success:false,message:"Sorry Try after someTimes.."})
+                return res.status(400).json({success:false,message:"Otp not send,try after sometimes"})
               }
             const expiry= Date.now() + 60 * 1000;
             req.session.otpExpiry=expiry;
             req.session.userOtp=otp;
             req.session.userData={name,email,phone,password};
-            res.render("verify-otp");
+            return res.status(200).json({message:"otp sent"})
 }
     }
     catch(err)
@@ -188,6 +151,25 @@ const signup=async(req,res,next)=>
         next(err)
     }
 }
+
+const loadVerifyOtp=async(req,res,next)=>
+{
+    try {
+        if(!req.session.userOtp)
+        {
+            return res.redirect("/signup")
+        }
+        else
+        {
+            return res.status(200).render("verify-otp")
+        }
+    } catch (error) {
+        next(error)
+    }
+}
+
+
+
 const loginPage = async (req, res,next) => {
     const { email, password } = req.body;
    
@@ -198,12 +180,12 @@ const loginPage = async (req, res,next) => {
 
         // If user not found, return incorrect credentials message
         if (!findUser) {
-            return res.status(401).render("signup", { success:false,message: "Incorrect Email or Password" });
+            return res.status(401).json({ success:false,message: "Incorrect Email or Password" });
         }
 
         // If the user is blocked, show the blocked account message
         if (findUser.isBlocked) {
-            return res.status(403).render("signup", {success:false, message: "Your account has been blocked by the admin. Please contact support for further assistance" });
+            return res.status(403).json( {success:false, message: "Your account has been blocked by the admin. Please contact support for further assistance" });
         }
 
         // Compare the entered password with the stored hashed password
@@ -212,11 +194,11 @@ const loginPage = async (req, res,next) => {
         // If passwords don't match, return incorrect password message
         if (passwordMatch) {
             req.session.user = findUser._id;
-            return res.redirect("/");
+            return res.status(201).json({ success:true,message: "login success" });
         }
         else
         {
-            return res.status(401).render("signup", { success:false,message: "Incorrect Password!" });
+            return res.status(401).json( { success:false,message: "Incorrect Password!" });
         }
     } catch (error) {
     
@@ -738,5 +720,6 @@ module.exports={
     fetchProducts,
     forgotResendOtp,
     loadAbout,
-    loadContact
+    loadContact,
+    loadVerifyOtp
 }
