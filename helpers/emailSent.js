@@ -1,5 +1,9 @@
-const nodemailer=require("nodemailer")
 require("dotenv").config()
+const nodemailer=require("nodemailer")
+
+
+console.log(process.env.NODEMAILER_EMAIL)
+console.log(process.env.NODEMAILER_PASSWORD)
 
 async function sendVerificationEmail(email, otp, name) {
     console.log("Sending verification email to:", email, "with OTP:", otp); // Log input
@@ -10,8 +14,8 @@ async function sendVerificationEmail(email, otp, name) {
             secure: false, // Use STARTTLS on port 587
             requireTLS: true,
             auth: {
-                user: process.env.NODEMAILER_EMAIL,
-                pass: process.env.NODEMAILER_PASSWORD
+                user:'zoocartofficial@gmail.com',
+                pass: 'txrbszgnvzgfgpay'
             }
         });
 
@@ -21,7 +25,7 @@ async function sendVerificationEmail(email, otp, name) {
 
         const info = await transporter.sendMail({
             from: process.env.NODEMAILER_EMAIL,
-            to: email,
+            to:email,
             subject: `Verify Your Account using this OTP: ${otp}`,
             text: `Hello, ${name}, we received a request to verify your identity with a One-Time Password (OTP). Please use the following OTP to complete the verification process: ${otp}`,
             html: `<p>Dear ${name},</p><p>We received a request to verify your identity with a One-Time Password (OTP). Please use the following OTP to complete the verification process:</p><p><strong>Your OTP is: ${otp}</strong></p><p>This OTP will expire in 1 minute, so please enter it promptly. If you did not request this OTP, please ignore this email.</p><p>Thank you for using ZooCart.</p><p>Best regards,<br>The ZooCart Team<br>[Company Address]<br>9526847469<br>zoocart.com</p>`

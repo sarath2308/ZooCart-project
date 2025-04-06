@@ -8,7 +8,6 @@ const Brand=require("../../models/BrandSchema.js")
 const Address=require("../../models/addressSchema.js")
 const Order=require("../../models/orderSchema.js")
 const Cart=require("../../models/cartSchema.js")
-const env=require("dotenv").config();
 const bcrypt=require("bcrypt")
 const Wallet=require("../../models/walletSchema.js")
 const Banner=require("../../models/bannerSchema.js")
@@ -394,7 +393,8 @@ const forgotPassword=async(req,res,next)=>
         const emailSent=await forgotEmail(email,otp)
          if(!emailSent)
            {
-          res.json('email.error')
+           return res.render("forgotpassword",{success:false,message:"Email not send try after sometimes"})
+
            }
          const expiry= Date.now() + 60 * 1000;
          req.session.otpExpiry=expiry;

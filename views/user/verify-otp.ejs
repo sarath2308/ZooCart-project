@@ -323,16 +323,16 @@ function validateOtp(otp) {
                 });
             }
         },
-        error: function() {
-            Swal.fire({
-                title: "Invalid OTP!",
-                icon: 'error',
-                toast: true,
-                position: 'top-end',
-                showConfirmButton: false,
-                timer: 3000
-            });
-        }
+            error: function(xhr) {
+    Swal.fire({
+        title: xhr.responseJSON?.message || "Something went wrong!",
+        icon: 'error',
+        toast: true,
+        position: 'top-end',
+        showConfirmButton: false,
+        timer: 3000
+    });
+}
     });
 
     return false;

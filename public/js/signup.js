@@ -40,7 +40,7 @@ login.addEventListener("click",()=>
                 title: 'All fields are required!',
                 icon: 'error',
                 toast: true,
-                position: 'top-start',
+                position: 'top-end',
                 showConfirmButton: false,
                 timer: 3000
             });
@@ -51,7 +51,7 @@ login.addEventListener("click",()=>
                 title: 'Invalid Email!',
                 icon: 'error',
                 toast: true,
-                position: 'top-start',
+                position: 'top-end',
                 showConfirmButton: false,
                 timer: 3000
             });
@@ -62,18 +62,18 @@ login.addEventListener("click",()=>
             url: "/login",
             type: "POST",
             contentType: "application/json",
-            data: JSON.stringify({ fullName, mobile }),
+            data: JSON.stringify({ email, password }),
             success: function (response) {
                 Swal.fire({
                     title: 'Login success',
                     icon: 'success',
                     toast: true,
-                    position: 'top-center',
+                    position: 'top-end',
                     showConfirmButton: false,
                     timer: 3000
                 }).then(()=>
                 {
-                    window.href="/"
+                    window.location.href="/"
                 })
             },
             error: function (err) {
@@ -82,7 +82,7 @@ login.addEventListener("click",()=>
                         title: err.responseJSON.message,
                         icon: 'error',
                         toast: true,
-                        position: 'top-start',
+                        position: 'top-end',
                         showConfirmButton: false,
                         timer: 3000
                     });
@@ -91,7 +91,7 @@ login.addEventListener("click",()=>
                         title: 'Something went wrong!',
                         icon: 'error',
                         toast: true,
-                        position: 'top-center',
+                        position: 'top-end',
                         showConfirmButton: false,
                         timer: 3000
                     });
@@ -119,7 +119,7 @@ signup.addEventListener('click',()=>
                 title: 'All fields are required!',
                 icon: 'error',
                 toast: true,
-                position: 'top-end',
+                position: 'top-start',
                 showConfirmButton: false,
                 timer: 3000
             });
@@ -132,7 +132,7 @@ signup.addEventListener('click',()=>
                 title: 'Invalid Email!',
                 icon: 'error',
                 toast: true,
-                position: 'top-end',
+                position: 'top-start',
                 showConfirmButton: false,
                 timer: 3000
             });
@@ -144,7 +144,7 @@ signup.addEventListener('click',()=>
                 title: 'invalid phoneNumber!',
                 icon: 'error',
                 toast: true,
-                position: 'top-end',
+                position: 'top-start',
                 showConfirmButton: false,
                 timer: 3000
             });
@@ -156,11 +156,10 @@ signup.addEventListener('click',()=>
                 title: 'Choose a Strong Password!(Example@123)',
                 icon: 'error',
                 toast: true,
-                position: 'top-end',
+                position: 'top-start',
                 showConfirmButton: false,
                 timer: 3000
             });
-            return false;
         }
         else
           {
@@ -175,12 +174,12 @@ signup.addEventListener('click',()=>
                     title: 'Otp sent',
                     icon: 'success',
                     toast: true,
-                    position: 'top-center',
+                    position: 'top-start',
                     showConfirmButton: false,
                     timer: 3000
                 }).then(()=>
                 {
-                    window.href="/verify-otp"
+                    window.location.href="/verify-otp"
                 })
             },
             error: function (err) {
@@ -198,7 +197,7 @@ signup.addEventListener('click',()=>
                         title: 'Something went wrong!',
                         icon: 'error',
                         toast: true,
-                        position: 'top-center',
+                        position: 'top-start',
                         showConfirmButton: false,
                         timer: 3000
                     });

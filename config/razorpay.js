@@ -1,5 +1,4 @@
 const Razorpay = require('razorpay');
-require('dotenv').config()
 console.log(process.env.RAZORPAY_KEY_ID)
 console.log(process.env.RAZORPAY_KEY_SECRET)
 const razorpay = new Razorpay({

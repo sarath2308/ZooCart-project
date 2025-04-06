@@ -16,7 +16,7 @@ router.get("/signup",userController.signupPage)
 //after form submission
 router.post("/signup",userController.signup)
 router.post("/login",userController.loginPage)
-router.get("/verfiy-otp",userController.loadVerifyOtp)
+router.get("/verify-otp",userController.loadVerifyOtp)
 router.post("/verify-otp",userController.verifyOtp)
 router.post("/resend-otp",userController.resendOtp)
 router.get("/logout",userController.logout)

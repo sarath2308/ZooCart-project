@@ -1,6 +1,6 @@
 const express=require("express")
 const app=express()
-const env=require("dotenv").config()
+require("dotenv").config()
 const db=require("./config/db")
 const path=require("path")
 const userRouter=require("./routes/userRoutes")
@@ -10,6 +10,8 @@ const passport=require('./config/passport')
 const MongoStore = require("connect-mongo");
 const mongoose=require("mongoose")
 const helmet = require("helmet");
+
+
 app.use(
   helmet({
     contentSecurityPolicy: {
@@ -17,29 +19,29 @@ app.use(
         defaultSrc: ["'self'"],
         scriptSrc: [
           "'self'",
-          "cdnjs.cloudflare.com",
-          "cdn.jsdelivr.net",
-          "code.jquery.com",
-          "cdn.datatables.net",
-          "https://checkout.razorpay.com",
-          "'unsafe-inline'",
+          "https://checkout.razorpay.com", // Razorpay Checkout script
+          "https://cdnjs.cloudflare.com",
+          "https://cdn.jsdelivr.net",
+          "https://code.jquery.com",
+          "https://cdn.datatables.net",
+          "'unsafe-inline'", // Only if needed
         ],
         styleSrc: [
           "'self'",
-          "fonts.googleapis.com",
-          "cdnjs.cloudflare.com",
-          "cdn.jsdelivr.net",
-          "unicons.iconscout.com",
-          "cdn.datatables.net",
-          "'unsafe-inline'",
+          "https://fonts.googleapis.com",
+          "https://cdnjs.cloudflare.com",
+          "https://cdn.jsdelivr.net",
+          "https://unicons.iconscout.com",
+          "https://cdn.datatables.net",
+          "'unsafe-inline'", // Only if needed
         ],
         fontSrc: [
           "'self'",
-          "fonts.googleapis.com",
-          "fonts.gstatic.com",
-          "cdnjs.cloudflare.com",
-          "cdn.jsdelivr.net",
-          "unicons.iconscout.com",
+          "https://fonts.googleapis.com",
+          "https://fonts.gstatic.com",
+          "https://cdnjs.cloudflare.com",
+          "https://cdn.jsdelivr.net",
+          "https://unicons.iconscout.com",
         ],
         imgSrc: [
           "'self'",
@@ -49,24 +51,25 @@ app.use(
         ],
         connectSrc: [
           "'self'",
-          "*",
-          "https://api.razorpay.com",
-          "https://checkout.razorpay.com",
+          "https://api.razorpay.com", // Razorpay API
+          "https://checkout.razorpay.com", // Razorpay Checkout
+          "https://lumberjack.razorpay.com", // Razorpay telemetry
         ],
         frameSrc: [
           "'self'",
+          "https://checkout.razorpay.com", // Razorpay payment iframe
+          "https://api.razorpay.com", // Razorpay API iframe
           "https://www.google.com",
-          "https://api.razorpay.com",
-          "https://checkout.razorpay.com", // Add this
         ],
         baseUri: ["'self'"],
         formAction: ["'self'"],
         frameAncestors: ["'self'"],
         objectSrc: ["'none'"],
-        scriptSrcAttr: ["'unsafe-inline'"],
+        scriptSrcAttr: ["'unsafe-inline'"], // Only if needed
         upgradeInsecureRequests: [],
       },
     },
+    crossOriginEmbedderPolicy: { policy: "credentialless" }, // Already fixed COEP
   })
 );
 
