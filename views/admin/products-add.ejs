@@ -1,3 +1,4 @@
+
 <%- include("../../views/partials/admin/header") %>
 <head>
   <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/cropperjs/dist/cropper.min.css">
@@ -12,7 +13,7 @@
 </div>
 <br>
 
-<% if (message &&success === false) { %>
+<% if (message && success === false) { %>
   <script>
     Swal.fire({
       title: '<%= message %>',
@@ -23,30 +24,26 @@
       timer: 3000
     });
   </script>
-<% } else if(message && succcess===true){%>
+<% } else if (message && success === true) { %>
   <script>
     Swal.fire({
       title: '<%= message %>',
-      icon: 'succcess',
+      icon: 'success',
       toast: true,
       position: 'top-end',
       showConfirmButton: false,
       timer: 3000
     });
-    </script>
-    <%}%>
+  </script>
+<% } %>
+
 <style>
   .error-message { color: red; }
   .thumbnails-container { display: flex; overflow-x: auto; }
   .thumbnail { margin-right: 10px; }
   .cropped-image { width: 150px; height: 150px; object-fit: cover; display: block; margin-top: 10px; }
-  .space {
-    height: 100vh;
-    width: 300px;
-  }
-  .products {
-    color: black !important;
-  }
+  .space { height: 100vh; width: 300px; }
+  .products { color: black !important; }
   .cropped-image-container { 
     display: none; 
     margin-top: 20px;
@@ -154,6 +151,7 @@
   <h5>Cropped Image:</h5>
   <img id="finalCroppedImage" style="max-width: 300px;" />
 </div>
+
 <script>
   let croppers = {};
 
@@ -170,6 +168,11 @@
 
       if (croppers[index]) croppers[index].destroy();
 
+      if (typeof Cropper === 'undefined') {
+        console.error('Cropper.js is not loaded. Check script inclusion.');
+        return;
+      }
+
       croppers[index] = new Cropper(image, {
         aspectRatio: 1,
         viewMode: 1,
@@ -182,15 +185,25 @@
   }
 
   function saveCroppedImage(index) {
+    if (!croppers[index]) {
+      console.error(`Cropper instance for index ${index} is not initialized`);
+      return;
+    }
+
     let croppedCanvas = croppers[index].getCroppedCanvas({
-      width: 300, // Set desired width
-      height: 300, // Set desired height
+      width: 300,
+      height: 300,
     });
+
+    if (!croppedCanvas) {
+      console.error('Failed to get cropped canvas');
+      return;
+    }
 
     let croppedImageContainer = document.getElementById('croppedImageContainer');
     let finalCroppedImage = document.getElementById('finalCroppedImage');
-    finalCroppedImage.src = croppedCanvas.toDataURL('image/jpeg', 0.8);  // Set quality to 80% for compression
-    croppedImageContainer.style.display = 'block';  // Show the container
+    finalCroppedImage.src = croppedCanvas.toDataURL('image/jpeg', 0.8);
+    croppedImageContainer.style.display = 'block';
 
     croppedCanvas.toBlob(blob => {
       let fileName = `cropped-img-${index}.jpg`;
@@ -222,43 +235,38 @@
 
   function validateForm() {
     let valid = true;
-    // Reset previous error messages
     document.querySelectorAll('.error-message').forEach(error => error.textContent = '');
 
-    // Validate Product Name
     if (document.getElementById('product_name').value.trim() === '') {
       document.getElementById('productName-error').textContent = 'Product Name is required!';
       valid = false;
     }
 
-    // Validate Regular Price
     if (document.querySelector('[name="regularPrice"]').value.trim() === '') {
       document.getElementById('regularPrice-error').textContent = 'Regular Price is required!';
       valid = false;
     }
 
-    // Validate Quantity
     if (document.querySelector('[name="quantity"]').value.trim() === '') {
       document.getElementById('quantity-error').textContent = 'Quantity is required!';
       valid = false;
     }
 
-    // Validate Description
     if (document.getElementById('descriptionid').value.trim() === '') {
       document.getElementById('description-error').textContent = 'Description is required!';
       valid = false;
     }
-    if (document.querySelector('input[name="color"]').value.trim()==='') {
-      // Show SweetAlert for invalid or empty color
+
+    if (document.querySelector('input[name="color"]').value.trim() === '') {
       Swal.fire({
         title: 'Color required',
         text: 'Please enter a color name',
         icon: 'error',
         showConfirmButton: true
       });
-      isValid = false;
+      valid = false; // Ensure valid is updated
     }
-    // Validate Image Upload
+
     let imageUploaded = false;
     for (let i = 1; i <= 4; i++) {
       let input = document.getElementById('input' + i);
@@ -269,13 +277,13 @@
     }
     if (!imageUploaded) {
       Swal.fire({
-      title: 'At least 1 image is required',
-      icon: 'error',
-      toast: true,
-      position: 'top-end',
-      showConfirmButton: false,
-      timer: 3000
-    });
+        title: 'At least 1 image is required',
+        icon: 'error',
+        toast: true,
+        position: 'top-end',
+        showConfirmButton: false,
+        timer: 3000
+      });
       valid = false;
     }
 
