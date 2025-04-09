@@ -62,7 +62,7 @@ const loadOrders = async (req, res,next) => {
                        data:orderData,
                        readableId:readableOrderId,
                        deliveryAddress,
-                   }
+                       currentPath:'/orders'                  }
                )
                
            } catch (error) {

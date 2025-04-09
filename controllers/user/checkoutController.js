@@ -605,12 +605,7 @@ const deliveryDateFormatted = deliveryDate.toLocaleDateString('en-US', options);
 const orderPlaced=async(req,res,next)=>
 {
   try {
-    const orderId=req.session.order._id;
-    return res.render("orderSuccess",
-      {
-        orderId,
-      }
-    )
+    return res.render("orderSuccess")
   } catch (error) {
     next(error)
     

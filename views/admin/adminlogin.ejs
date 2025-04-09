@@ -23,7 +23,7 @@
         });
 		</script>
 		<%}%>
-        <a href="/admin/demoAdmin" style="text-decoration: none;" class="btn btn-danger">Demo login</a>
+
     <div class="container">
         <form id="loginForm" action="/admin/login" method="post">
             <h1>Admin Sign In</h1>
@@ -46,18 +46,17 @@
             padding: 0;
         }
 
-        body {
-    background-image: url('/img/admin/loginimage.webp');
-    background-size: cover; /* Ensures the image covers the entire viewport */
-    background-position: center center; /* Centers the image */
-    background-attachment: fixed; /* Makes the image stay in place when scrolling */
+body {
+background-color:rgb(0, 0, 0);
     display: flex;
     justify-content: center;
     align-items: center;
     font-family: 'Montserrat', sans-serif;
     min-height: 100vh;
     margin: 0;
+    overflow: hidden; /* Optional: prevents scrollbars from showing */
 }
+
 
         h1 {
             font-weight: bold;

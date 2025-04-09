@@ -1,5 +1,4 @@
 const mongoose=require("mongoose")
-const env=require("dotenv").config()
 const connectdb=async()=>
 {
     try{

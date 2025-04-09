@@ -56,7 +56,7 @@
 
             <!--banner 2-->
             <%if(bannerData.banner2){%>
-                <div class="hero__items set-bg" data-setbg="<%=bannerData.banner2.image%>" style="background-size: cover; background-position: center center;"></div>
+                <div class="hero__items set-bg" data-setbg="<%=bannerData.banner2.image%>" style="background-size: cover; background-position: center center;">
             <div class="container">
                 <div class="row">
                     <div class="col-xl-5 col-lg-7 col-md-8">
@@ -79,9 +79,10 @@
                     </div>
                 </div>
             </div>
+              </div>
             <%}else{%>
-                <div class="hero__items set-bg" data-setbg="img/image2.jpg" style="background-size: cover; background-position: center center;"></div>
-                <div class="container">
+                <div class="hero__items set-bg" data-setbg="https://res.cloudinary.com/dlel7tyzq/image/upload/v1743941181/hero2_dr2hmp.jpg" style="background-size: cover; background-position: center center;">
+                 <div class="container">
                   
                     <div class="row">
                         <div class="col-xl-5 col-lg-7 col-md-8">
@@ -100,6 +101,7 @@
                         </div>
                     </div>
                 </div>
+</div>
                 <%}%>
 
         </div>

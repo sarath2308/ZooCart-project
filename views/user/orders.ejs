@@ -148,17 +148,26 @@ success: function (verificationResult) {
  if (verificationResult.success) {
    
    window.location.href = '/order-placed'; // Redirect to success page
- } else {
-   // Payment verification failed
-  
  }
+else
+{
+  Swal.fire({
+       title: 'Payment Failed',
+       text: 'PaymentFailed. Please try again.',
+       icon: 'warning',
+       toast: true,
+       position: 'top-end',
+       timer: 3000,
+       showConfirmButton: false,
+   });
+
 },
 error: function (err) {
 console.error('Error placing order:', err);
 
 // Ensure err.responseJSON exists and contains a message
 if (err.responseJSON && err.responseJSON.message &&  err.responseJSON.refresh) {
- toastr.warning(err.responseJSON.message, "Warning").then(()=>
+ toastr.warning(err.responseJSON.message || "Payment Failed", "Warning").then(()=>
 {
  location.reload();
 })

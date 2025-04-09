@@ -52,7 +52,8 @@ const loadAddProducts=async(req,res,next)=>
     cat:category,
     brands:brands,
     message:'',
-    success:''
+    success:'',
+    currentPath:'/products'
  });
 }
 catch(error)
@@ -266,7 +267,8 @@ const loadEditProducts = async (req, res,next) => {
         data: product,  // Pass the single product
         cat: category,  // Pass categories for use in the view
         brands: brands, // Pass brands for use in the view
-        message: ''     // Empty message initially
+        message: '',
+        currentPath:'/products'
       });
   
     } catch (error) {

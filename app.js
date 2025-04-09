@@ -19,21 +19,21 @@ app.use(
         defaultSrc: ["'self'"],
         scriptSrc: [
           "'self'",
-          "https://checkout.razorpay.com", // Razorpay Checkout script
-          "https://cdnjs.cloudflare.com",
+          "https://checkout.razorpay.com", // Razorpay
+          "https://cdnjs.cloudflare.com", // ✅ Cropper.js & others
           "https://cdn.jsdelivr.net",
           "https://code.jquery.com",
           "https://cdn.datatables.net",
-          "'unsafe-inline'", // Only if needed
+          "'unsafe-inline'", // ✅ only if absolutely needed
         ],
         styleSrc: [
           "'self'",
           "https://fonts.googleapis.com",
-          "https://cdnjs.cloudflare.com",
+          "https://cdnjs.cloudflare.com", // ✅ Cropper.js CSS
           "https://cdn.jsdelivr.net",
           "https://unicons.iconscout.com",
           "https://cdn.datatables.net",
-          "'unsafe-inline'", // Only if needed
+          "'unsafe-inline'", // ✅ Cropper sometimes needs this for styles
         ],
         fontSrc: [
           "'self'",
@@ -51,27 +51,28 @@ app.use(
         ],
         connectSrc: [
           "'self'",
-          "https://api.razorpay.com", // Razorpay API
-          "https://checkout.razorpay.com", // Razorpay Checkout
-          "https://lumberjack.razorpay.com", // Razorpay telemetry
+          "https://api.razorpay.com",
+          "https://checkout.razorpay.com",
+          "https://lumberjack.razorpay.com",
         ],
         frameSrc: [
           "'self'",
-          "https://checkout.razorpay.com", // Razorpay payment iframe
-          "https://api.razorpay.com", // Razorpay API iframe
+          "https://checkout.razorpay.com",
+          "https://api.razorpay.com",
           "https://www.google.com",
         ],
         baseUri: ["'self'"],
         formAction: ["'self'"],
         frameAncestors: ["'self'"],
         objectSrc: ["'none'"],
-        scriptSrcAttr: ["'unsafe-inline'"], // Only if needed
+        scriptSrcAttr: ["'unsafe-inline'"], // optional
         upgradeInsecureRequests: [],
       },
     },
-    crossOriginEmbedderPolicy: { policy: "credentialless" }, // Already fixed COEP
+    crossOriginEmbedderPolicy: { policy: "credentialless" },
   })
 );
+
 
 app.use(express.json());
 app.use(express.urlencoded({extended:true}))
@@ -117,7 +118,7 @@ app.use('/admin',adminRouter)
 
 app.use((err, req, res, next) => {
   const statusCode = err.status || 500;
-
+      console.error("Error caught by middleware:", err);
   // Check if the request expects JSON (API request)
   if (req.xhr || req.headers.accept?.includes("application/json")) {
     return res.status(statusCode).json({ 
