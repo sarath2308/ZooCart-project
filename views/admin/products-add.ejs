@@ -135,7 +135,7 @@
                                 <% for (let i = 1; i <= 4; i++) { %>
                                     <div class="card-body-img">
                                         <label class="form-label">Image <%= i %></label>
-                                        <input class="form-control mb-2" type="file" name="images" id="input<%= i %>" accept="image/*" onchange="initCropper(event, <%= i %>)">
+                                        <input class="form-control mb-2" type="file" name="images" id="input<%= i %>" accept="image/*" data-index="<%= i %>" onchange="initCropper(event, this.getAttribute('data-index'))">
                                         
                                         <div class="image-cropper-container" id="cropperContainer<%= i %>">
                                             <img id="imgView<%= i %>">
@@ -143,7 +143,7 @@
                                         
                                         <img id="croppedImg<%= i %>" class="img-preview">
                                         
-                                        <button type="button" id="saveButton<%= i %>" class="btn btn-sm btn-primary mt-2" style="display:none" onclick="saveCrop(<%= i %>)">
+                                        <button type="button" id="saveButton<%= i %>" class="btn btn-sm btn-primary mt-2" style="display:none" data-index="<%= i %>" onclick="saveCrop(this.getAttribute('data-index'))">
                                             Confirm Crop
                                         </button>
                                     </div>

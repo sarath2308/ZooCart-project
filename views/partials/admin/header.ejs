@@ -453,42 +453,41 @@ $('.sidebar .categories').addEventListener('click', function (event) {
   if (event.target.tagName === 'A') {
     return; // Let <a> work normally
   }
-});
 
+  const item = event.target.closest('.has-dropdown')
 
-const item = event.target.closest('.has-dropdown')
-
-if (! item) {
-  return
-}
-
-item.classList.toggle('opened')
-
-siblings(item).forEach(sibling => {
-  sibling.classList.remove('opened')
-})
-
-if (item.classList.contains('opened')) {
-  const toOpen = find(item, '.sidebar-dropdown')
-
-  if (toOpen) {
-    toOpen.classList.add('active')
+  if (! item) {
+    return
   }
 
-  siblings(item).forEach(sibling => {
-    const toClose = find(sibling, '.sidebar-dropdown')
+  item.classList.toggle('opened')
 
-    if (toClose) {
-      toClose.classList.remove('active')
-    }
+  siblings(item).forEach(sibling => {
+    sibling.classList.remove('opened')
   })
-} else {
-  find(item, '.sidebar-dropdown').classList.toggle('active')
-}
+
+  if (item.classList.contains('opened')) {
+    const toOpen = find(item, '.sidebar-dropdown')
+
+    if (toOpen) {
+      toOpen.classList.add('active')
+    }
+
+    siblings(item).forEach(sibling => {
+      const toClose = find(sibling, '.sidebar-dropdown')
+
+      if (toClose) {
+        toClose.classList.remove('active')
+      }
+    })
+  } else {
+    find(item, '.sidebar-dropdown').classList.toggle('active')
+  }
 })
 
 $('.sidebar .close-aside').addEventListener('click', function () {
 $(`#${this.dataset.close}`).classList.add('show-sidebar')
 wrapper.classList.remove('margin')
+})
 })
 </script>
