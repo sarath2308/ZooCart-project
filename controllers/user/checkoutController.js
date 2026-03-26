@@ -491,7 +491,7 @@ else
     if (paymentMethod === 'online payment') {
       
       const razorpayOrder = await razorpay.orders.create({
-        amount: grandTotal * 100, // Amount in paise
+        amount: Math.round(grandTotal * 100), // Amount in paise, rounded to prevent JS floating point crash
         currency: 'INR',
         receipt: `order_${uniqueId}`,
       });

@@ -17,24 +17,29 @@ app.use(
     contentSecurityPolicy: {
       directives: {
         defaultSrc: ["'self'"],
+
         scriptSrc: [
           "'self'",
-          "https://checkout.razorpay.com", // Razorpay
-          "https://cdnjs.cloudflare.com", // ✅ Cropper.js & others
+          "https://checkout.razorpay.com",
+          "https://cdn.razorpay.com",
+          "https://*.razorpay.com", // ✅ covers all Razorpay scripts
+          "https://cdnjs.cloudflare.com",
           "https://cdn.jsdelivr.net",
           "https://code.jquery.com",
           "https://cdn.datatables.net",
-          "'unsafe-inline'", // ✅ only if absolutely needed
+          "'unsafe-inline'",
         ],
+
         styleSrc: [
           "'self'",
           "https://fonts.googleapis.com",
-          "https://cdnjs.cloudflare.com", // ✅ Cropper.js CSS
+          "https://cdnjs.cloudflare.com",
           "https://cdn.jsdelivr.net",
           "https://unicons.iconscout.com",
           "https://cdn.datatables.net",
-          "'unsafe-inline'", // ✅ Cropper sometimes needs this for styles
+          "'unsafe-inline'",
         ],
+
         fontSrc: [
           "'self'",
           "https://fonts.googleapis.com",
@@ -43,36 +48,38 @@ app.use(
           "https://cdn.jsdelivr.net",
           "https://unicons.iconscout.com",
         ],
+
         imgSrc: [
           "'self'",
           "data:",
           "https://res.cloudinary.com",
-          "https://razorpay.com",
+          "https://*.razorpay.com", // ✅ safer than just razorpay.com
         ],
+
         connectSrc: [
           "'self'",
-          "https://api.razorpay.com",
-          "https://checkout.razorpay.com",
-          "https://lumberjack.razorpay.com",
+          "https://*.razorpay.com", // ✅ THIS is what you were missing
         ],
+
         frameSrc: [
           "'self'",
-          "https://checkout.razorpay.com",
-          "https://api.razorpay.com",
+          "https://*.razorpay.com", // ✅ required for checkout iframe
           "https://www.google.com",
         ],
+
         baseUri: ["'self'"],
         formAction: ["'self'"],
         frameAncestors: ["'self'"],
         objectSrc: ["'none'"],
-        scriptSrcAttr: ["'unsafe-inline'"], // optional
+        scriptSrcAttr: ["'unsafe-inline'"],
         upgradeInsecureRequests: [],
       },
     },
-    crossOriginEmbedderPolicy: { policy: "credentialless" },
+
+    // ⚠️ This can break third-party integrations
+    crossOriginEmbedderPolicy: false, // ✅ safer for Razorpay
   })
 );
-
 
 app.use(express.json());
 app.use(express.urlencoded({extended:true}))
@@ -110,6 +117,31 @@ app.use((req,res,next)=>
 app.use(passport.initialize())
 app.use(passport.session());
 
+app.use((req, res, next) => {
+    // Exclude API, static paths, auth routes
+    if (req.method === 'GET' && !req.xhr && !req.originalUrl.startsWith('/api') && !req.originalUrl.startsWith('/fetch') && !req.originalUrl.match(/\.(css|js|png|jpg|jpeg|gif|ico)$/i)) {
+        if (!['/signup', '/login', '/logout', '/auth/google', '/auth/google/callback','/verify-otp'].includes(req.originalUrl.split('?')[0])) {
+            req.session.returnTo = req.originalUrl;
+        }
+    }
+    next();
+});
+
+const User = require("./models/userSchema.js");
+app.use(async(req, res, next) => {
+    try {
+        const userId = req.session.user || (req.user && req.user._id);
+        if (userId) {
+            res.locals.user = await User.findById(userId);
+        } else {
+            res.locals.user = null;
+        }
+        next();
+    } catch (err) {
+        next(err);
+    }
+});
+
 //handling user requests
 app.use("/",userRouter)
 //admin requests handling
@@ -139,6 +171,17 @@ app.use((err, req, res, next) => {
 });
 
 
+
+app.use((err,req,res,next)=>
+{
+  if(err)
+  {
+    if(err instanceof AggregateError)
+    {
+      
+    }
+  }
+})
 const PORT=process.env.PORT || 3000;
 app.listen(PORT,()=>
 {

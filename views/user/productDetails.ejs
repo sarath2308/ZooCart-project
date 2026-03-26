@@ -331,6 +331,10 @@ function addToCart(pid) {
             });
         },
         error: function (xhr) {
+            if (xhr.status === 401) {
+                window.location.href = '/signup';
+                return;
+            }
             let errorMessage = "Something went wrong!";
             if (xhr.responseJSON && xhr.responseJSON.message) {
                 errorMessage = xhr.responseJSON.message;
@@ -366,10 +370,14 @@ function addToWishlist(pid)
         });
     }
             },
-            error: function (response) {
+            error: function (xhr) {
+                if (xhr.status === 401) {
+                    window.location.href = '/signup';
+                    return;
+                }
                 Swal.fire({
-            title:response.message,
-            icon: 'success',
+            title: xhr.responseJSON?.message || "Something went wrong!",
+            icon: 'error',
             toast: true,
             position: 'top-end',
             showConfirmButton: false,
@@ -380,25 +388,33 @@ function addToWishlist(pid)
 
 const placeOrder=function()
 {
-  
     var quantityValue = $('.pro-qty input').val();
     const currentAvailability='<%=product.quantity%>'
     const pid='<%=product._id%>'
     if( quantityValue>currentAvailability)
-{
-    Swal.fire({
-            title:"Insufficient stock available. Please reduce the quantity and try again.",
-            icon: 'warning',
-            toast: true,
-            position: 'top-end',
-            showConfirmButton: false,
-            timer: 2000
-        });
-        return;
-}
-    window.location.href=`/checkout?pid=${pid}&quantity=${quantityValue}`
+    {
+        Swal.fire({
+                title:"Insufficient stock available. Please reduce the quantity and try again.",
+                icon: 'warning',
+                toast: true,
+                position: 'top-end',
+                showConfirmButton: false,
+                timer: 2000
+            });
+            return;
+    }
 
+    // Check if user is logged in
+    const isLoggedIn = "<%= locals.user ? 'true' : 'false' %>" === "true";
+    if (!isLoggedIn) {
+        window.location.href = '/signup';
+        return;
+    }
+
+    window.location.href=`/checkout?pid=${pid}&quantity=${quantityValue}`
 }
+
+
 </script>
 
     
@@ -799,15 +815,14 @@ const placeOrder=function()
             <%relatedProduct.forEach((rel)=>{%>
             <div class="col-lg-3 col-md-6 col-sm-6 col-sm-6">
                 <div class="product__item">
-                    <div class="product__item__pic set-bg" data-setbg="<%=rel.productImage[0]%>">
+                    <div class="product__item__pic set-bg" data-setbg="<%=rel.productImage[0]%>" onclick="window.location.href='/productDetails?id=<%=rel._id%>'" style="cursor: pointer;">
                         <ul class="product__hover">
-                            <li><a  onclick="addToWishlist('<%=product._id%>')"><img src="img/icon/heart.png" alt=""></a></li>
-                            <li><a href="/productDetails?id=<%=rel._id%>"><img src="img/icon/search.png" alt=""></a></li>
+                            <li><a onclick="event.preventDefault(); event.stopPropagation(); addToWishlist('<%=rel._id%>')"><img src="img/icon/heart.png" alt=""></a></li>
                         </ul>
                     </div>
                     <div class="product__item__text">
                         <h6><%=rel.productName%></h6>
-                        <a onclick="addToCart('<%=product._id%>')" class="add-cart btn">+ Add To Cart</a>
+                        <a onclick="addToCart('<%=rel._id%>')" class="add-cart btn">+ Add To Cart</a>
                         <div class="rating">
                             <i class="fa fa-star-o"></i>
                             <i class="fa fa-star-o"></i>

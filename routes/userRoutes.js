@@ -30,14 +30,15 @@ router.post("/newpassword",userController.updatePassword)
 router.get('/auth/google',passport.authenticate('google',{scope:['profile','email']}));
 router.get('/auth/google/callback',passport.authenticate('google',{failureRedirect:'/signup?message=blocked'}),(req,res)=>
 {
-    res.redirect('/')
+    const returnUrl = req.session.returnTo || '/';
+    res.redirect(returnUrl);
 });
 //products page-all products 
-router.get("/shop",userAuth,userController.loadShoppingPage)
-router.get('/fetchProducts',userAuth,userController.fetchProducts)
+router.get("/shop",userController.loadShoppingPage)
+router.get('/fetchProducts',userController.fetchProducts)
 
 //product details
-router.get("/productDetails",userAuth,productController.productDetails)
+router.get("/productDetails",productController.productDetails)
 
 
 //user Profile

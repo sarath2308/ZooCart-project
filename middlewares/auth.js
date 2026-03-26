@@ -2,8 +2,11 @@ const User=require('../models/userSchema')
 const userAuth = async (req, res, next) => {
   const id = req.session.user || (req.user && req.user._id);
   try {
-    if (!req.session.user && !req.user) {
-      return res.redirect('/signup'); // No session, redirect to signup
+    if (!id) {
+        if (req.xhr || (req.headers.accept && req.headers.accept.includes('application/json'))) {
+            return res.status(401).json({ success: false, message: "Please login to continue" });
+        }
+        return res.redirect('/signup'); // No session, redirect to signup
     }
     
     const user = await User.findById(id);

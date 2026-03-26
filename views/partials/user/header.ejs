@@ -9,14 +9,8 @@
     <meta http-equiv="X-UA-Compatible" content="ie=edge">
     <title>ZooCart Mobiles</title>
     <link rel="icon" href="/img/logo.png" type="image/png">
-<style>
- 
-</style>
 
-
-    <!-- Google Font -->
-    <link href="https://fonts.googleapis.com/css2?family=Nunito+Sans:wght@300;400;600;700;800;900&display=swap"
-    rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Nunito+Sans:wght@300;400;600;700;800;900&display=swap" rel="stylesheet">
     <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons/font/bootstrap-icons.css" rel="stylesheet">
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js" integrity="sha384-YvpcrYf0tY3lHB60NNkmXc5s9fDVZLESaAA55NDzOxhy9GkcIdslK1eN7N6jIeHz" crossorigin="anonymous"></script>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-QWTKZyjpPEjISv5WaRU9OFeRpok6YctnYmDr5pNlyT2bRjXh0JMhjY6hW+ALEwIH" crossorigin="anonymous">
@@ -25,15 +19,10 @@
     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
     <link href="https://cdnjs.cloudflare.com/ajax/libs/toastr.js/latest/toastr.min.css" rel="stylesheet">
    
-    <!-- Toastr JS CDN -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/toastr.js/latest/toastr.min.js"></script>
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/toastify-js/src/toastify.min.css">
     <script src="https://cdn.jsdelivr.net/npm/toastify-js"></script>
 
-    <!-- Font Awesome for Icons -->
-
-
-    <!-- Css Styles -->
     <link rel="stylesheet" href="/css/bootstrap.min.css" type="text/css">
     <link rel="stylesheet" href="/css/font-awesome.min.css" type="text/css">
     <link rel="stylesheet" href="/css/elegant-icons.css" type="text/css">
@@ -45,36 +34,134 @@
 </head>
 
 <body>
-    <!-- Page Preloder -->
     <div id="preloder">
         <div class="loader"></div>
     </div>
 
-    <!-- Offcanvas Menu Begin -->
     <div class="offcanvas-menu-overlay"></div>
     <div class="offcanvas-menu-wrapper">
         <div class="offcanvas__option">
             <div class="offcanvas__links">
-                <a href="/signup">Sign up/Log in</a>
+                <% if (locals.user) { %>
+                    <a href="/logout">Logout</a>
+                <% } else { %>
+                    <a href="/signup">Log in</a>
+                    <a href="/signup">Sign up</a>
+                <% } %>
                 <a href="#">FAQs</a>
             </div>
         </div>
-        <div class="offcanvas__nav__option">
-            <a href="/shop" class="search-switch"><img src="img/icon/search.png" alt=""></a>
-            <a href="/wishlist"><img src="img/icon/heart.png" alt=""></a>
-            <a href="/cart"><img src="img/icon/cart.png" alt=""></a>
-            <a class="profile" href="/userProfile"><img src="img/icon/profile.jpeg" alt=""></a>
+        
+<style>
+    /* 1. Kill the global template padding for the menu */
+    .header__menu {
+        padding: 0 !important; /* Force zero padding */
+        line-height: normal !important;
+    }
+
+    /* 2. Target the UL specifically to remove browser/template margins */
+    .header__menu ul {
+        margin: 0 !important;
+        padding: 0 !important;
+        display: inline-block;
+        vertical-align: middle;
+    }
+
+    /* 3. Tighten the individual links */
+    .header__menu ul li {
+        margin-right: 35px !important;
+        padding: 15px 0 !important; /* This controls the header height now */
+    }
+
+    /* 4. Fix the row alignment for PC/Laptop */
+    @media (min-width: 992px) {
+        .header .container > .row {
+            display: flex;
+            align-items: center; /* Forces Logo, Menu, and Icons into one tight line */
+            height: 70px; /* Forces the entire header to be exactly this height */
+        }
+    }
+
+    /* 5. Remove the gap from the content below */
+    .hero {
+        margin-top: 0 !important;
+        padding-top: 0 !important;
+    }
+    
+    .spad {
+        padding-top: 40px !important; /* Standard template spad is usually 100px, we cut it to 40 */
+    }
+</style>
+
+<header class="header">
+    <div class="header__top">
+        <div class="container">
+            <div class="row">
+                <div class="col-lg-6 col-md-7">
+                    <div class="header__top__left">
+                        <p>Free shipping guarantee.</p>
+                    </div>
+                </div>
+                <div class="col-lg-6 col-md-5">
+                    <div class="header__top__right">
+                        <div class="header__top__links">
+                            <% if (!locals.user) { %>
+                                <a href="/signup">Log in</a>
+                                <a href="/signup">Sign up</a>
+                            <% } else { %>
+                                <a href="/logout">Logout</a>
+                            <% } %>
+                        </div>
+                    </div>
+                </div>
+            </div>
         </div>
+    </div>
+    <div class="container">
+        <div class="row align-items-center">
+            <div class="col-lg-3 col-md-3">
+                <div class="header__logo" style="padding: 0;">
+                    <a href="/"><img src="/img/logo.png" alt="ZooCart" style="max-height: 35px;"></a>
+                </div>
+            </div>
+            <div class="col-lg-6 col-md-6">
+                <nav class="header__menu" style="text-align: center;">
+                    <ul>
+                        <li class="active"><a href="/">Home</a></li>
+                        <li><a href="/shop">Shop</a></li>
+                        <li><a href="/about">About Us</a></li>
+                        <li><a href="/contact">Contacts</a></li>
+                    </ul>
+                </nav>
+            </div>
+            <div class="col-lg-3 col-md-3">
+                <div class="header__nav__option" style="padding: 0; text-align: right;">
+                    <% if (locals.user) { %>
+                        <a href="/wishlist"><img src="img/icon/heart.png" alt=""></a>
+                        <a href="/cart"><img src="img/icon/cart.png" alt=""></a>
+                        <a href="/userProfile"><img src="img/icon/profile.jpeg" style="width: 25px; border-radius: 50%;"></a>
+                    <% } %>
+                </div>
+            </div>
+        </div>
+    </div>
+</header>
+        <% if (locals.user) { %>
+            <div class="offcanvas__nav__option">
+                <a href="/shop" class="search-switch"><img src="img/icon/search.png" alt="Search"></a>
+                <a href="/wishlist"><img src="img/icon/heart.png" alt="Wishlist"></a>
+                <a href="/cart"><img src="img/icon/cart.png" alt="Cart"></a>
+                <a class="profile" href="/userProfile"><img src="img/icon/profile.jpeg" alt="Profile"></a>
+            </div>
+        <% } %>
+
         <div id="mobile-menu-wrap"></div>
         <div class="offcanvas__text">
             <p>Free shipping, 30-day return or refund guarantee.</p>
         </div>
     </div>
-    <!-- Offcanvas Menu End -->
-
-    <!-- Header Section Begin -->
     <header class="header">
-        <div class="header__top" >
+        <div class="header__top">
             <div class="container">
                 <div class="row">
                     <div class="col-lg-6 col-md-7">
@@ -85,20 +172,22 @@
                     <div class="col-lg-6 col-md-5">
                         <div class="header__top__right">
                             <div class="header__top__links">
-                                <a href="/signup">Sign up/Log in</a>
+                                <% if (!locals.user) { %>
+                                    <a href="/signup">Log in</a>
+                                    <a href="/signup">Sign up</a>
+                                <% } %>
                                 <a href="#">FAQs</a>
                             </div>
-                    
                         </div>
                     </div>
                 </div>
             </div>
         </div>
-        <div class="container" >
+        <div class="container">
             <div class="row">
                 <div class="col-lg-3 col-md-3">
                     <div class="header__logo">
-                        <!-- <a class="logo" href="./index.html"><img src="img/logo.png" alt=""></a> -->
+                        <a href="/"><img src="/img/logo.png" alt="ZooCart" style="max-height: 40px;"></a>
                     </div>
                 </div>
                 <div class="col-lg-6 col-md-6">
@@ -106,24 +195,23 @@
                         <ul>
                             <li class="active navs"><a href="/">Home</a></li>
                             <li class="navs shop"><a href="/shop">Shop</a></li>
-                            <li class="navs about"> 
-                            <a href="/about">About Us</a>
-                            </li>
-                        
+                            <li class="navs about"><a href="/about">About Us</a></li>
                             <li class="navs contact"><a href="/contact">Contacts</a></li>
                         </ul>
                     </nav>
                 </div>
                 <div class="col-lg-3 col-md-3">
                     <div class="header__nav__option">
-                        <a href="/shop" class="search-switch"><img src="img/icon/search.png" alt=""></a>
-                        <a href="/wishlist"><img src="img/icon/heart.png" alt=""></a>
-                        <a href="/cart"><img src="img/icon/cart.png" alt=""></a>
-                            <a class="profile" href="/userProfile"><img src="img/icon/profile.jpeg" alt=""></a>
-                            <br>
-
+                        <% if (locals.user) { %>
+                            <a href="/shop" class="search-switch"><img src="img/icon/search.png" alt="Search"></a>
+                            <a href="/wishlist"><img src="img/icon/heart.png" alt="Wishlist"></a>
+                            <a href="/cart"><img src="img/icon/cart.png" alt="Cart"></a>
+                            <a class="profile" href="/userProfile">
+                                <img src="img/icon/profile.jpeg" alt="Profile" style="width: 20px; border-radius: 50%;">
+                            </a>
+                        <% } %>
                     </div>
-               </div>
+                </div>
             </div>
             <div class="canvas__open"><i class="fa fa-bars"></i></div>
         </div>

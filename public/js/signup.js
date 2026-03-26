@@ -73,7 +73,7 @@ login.addEventListener("click",()=>
                     timer: 3000
                 }).then(()=>
                 {
-                    window.location.href="/"
+                    window.location.href = response.redirectUrl || "/";
                 })
             },
             error: function (err) {

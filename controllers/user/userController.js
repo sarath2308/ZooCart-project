@@ -193,7 +193,9 @@ const loginPage = async (req, res,next) => {
         // If passwords don't match, return incorrect password message
         if (passwordMatch) {
             req.session.user = findUser._id;
-            return res.status(201).json({ success:true,message: "login success" });
+            const redirectUrl = req.session.returnTo || "/";
+            delete req.session.returnTo;
+            return res.status(201).json({ success:true, message: "login success", redirectUrl: redirectUrl });
         }
         else
         {
@@ -256,9 +258,11 @@ const verifyOtp = async (req, res,next) => {
 
             // Clear OTP and user data from session
             delete req.session.userOtp;
+            const redirectUrl = req.session.returnTo || "/";
+            delete req.session.returnTo;
 
             // Respond with success
-            return res.json({ success: true, redirectUrl: "/" });
+            return res.json({ success: true, redirectUrl: redirectUrl });
         } else {
             // Invalid OTP
             return res.status(400).json({ success: false, message: "Invalid OTP. Please try again." });
@@ -537,18 +541,19 @@ const loadUserProfile = async (req, res,next) => {
 
   const loadShoppingPage = async (req, res,next) => {
     try {
-      const userId = req.session.user || req.user._id;
-      const userData = await User.findById(userId);
+      const userId = req.session.user || (req.user && req.user._id);
+      let userData = null;
+      let cartItems = [];
+      if (userId) {
+          userData = await User.findById(userId);
+          const cartData = await Cart.findOne({userId:userId});
+          if(cartData) {
+             cartItems = cartData.items;
+          }
+      }
       const categories = await Category.find({ isListed: true });
       const categoryIds = categories.map(category => category._id.toString());
       const brands = await Brand.find({ isBlocked: false });
-      const cartData=await Cart.findOne({userId:userId})
-      let cartItems=[];
-      if(cartData)
-      {
-       cartItems=cartData.items;
-     
-      }
 
   
       // Extract and validate query parameters
@@ -658,13 +663,23 @@ const loadUserProfile = async (req, res,next) => {
       const totalProducts = await Product.countDocuments(filter);
       const totalPages = Math.ceil(totalProducts / itemsPerPage);
   
+      const userIdFetch = req.session.user || (req.user && req.user._id);
+      let cartItems = [];
+      if (userIdFetch) {
+          const cartData = await Cart.findOne({ userId: userIdFetch });
+          if (cartData) {
+              cartItems = cartData.items;
+          }
+      }
+  
       res.json({
         products,
         currentPage: parseInt(page),
         totalPages,
+        cartItems
       });
     } catch (err) {
-        next(error)
+        next(err)
     }
   };
   

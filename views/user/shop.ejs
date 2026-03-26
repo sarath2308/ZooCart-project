@@ -149,16 +149,11 @@
           <% products.forEach(product => { %>
             <div class="col-lg-4 col-md-6 col-sm-6">
               <div class="product__item">
-                <div class="product__item__pic set-bg" data-setbg="<%= product.productImage[0] %>">
+                <div class="product__item__pic set-bg" data-setbg="<%= product.productImage[0] %>" onclick="window.location.href='/productDetails?id=<%= product._id %>'" style="cursor: pointer;">
                   <ul class="product__hover">
                     <li>
-                      <a class="btn" onclick="addToWishlist('<%= product._id %>')">
+                      <a class="btn" onclick="event.preventDefault(); event.stopPropagation(); addToWishlist('<%= product._id %>')">
                         <img src="img/icon/heart.png" alt="wishlist">
-                      </a>
-                    </li>
-                    <li>
-                      <a class="btn" href="/productDetails?id=<%= product._id %>">
-                        <img src="img/icon/search.png" alt="">
                       </a>
                     </li>
                   </ul>
@@ -246,19 +241,23 @@
         dataType: 'json',
         success: function (response) {
           $('#loading').hide();
-          renderProducts(response.products);
+          renderProducts(response.products, response.cartItems);
           renderPagination(response.currentPage, response.totalPages);
         },
-        error: function (error) {
+        error: function (xhr) {
           $('#loading').hide();
-          console.error('Error fetching products:', error);
+          if (xhr.status === 401) {
+            window.location.href = '/signup';
+            return;
+          }
+          console.error('Error fetching products:', xhr);
         }
       });
     }
 
     // Render product list into .product-details-ajax
-    function renderProducts(products) {
-      let cartProducts = '<%= JSON.stringify(cartItems) %>'// Parse cartItems as an array
+    function renderProducts(products, cartItemsFromServer) {
+      let cartProducts = cartItemsFromServer ? JSON.stringify(cartItemsFromServer) : '[]';
       
   const productContainer = $('.product-details-ajax');
   productContainer.empty();
@@ -296,10 +295,9 @@
       const productHTML = `
         <div class="col-lg-4 col-md-6 col-sm-6">
           <div class="product__item">
-            <div class="product__item__pic set-bg" style="background-image: url('${product.productImage[0]}');"> 
+            <div class="product__item__pic set-bg" style="background-image: url('${product.productImage[0]}'); cursor: pointer;" onclick="window.location.href='/productDetails?id=${product._id}'"> 
               <ul class="product__hover">
-                <li><a onclick="addToWishlist('${product._id}')"><img src="img/icon/heart.png" alt="wishlist"></a></li>
-                <li><a href="/productDetails?id=${product._id}"><img src="img/icon/search.png" alt=""></a></li>
+                <li><a onclick="event.preventDefault(); event.stopPropagation(); addToWishlist('${product._id}')"><img src="img/icon/heart.png" alt="wishlist"></a></li>
               </ul>
             </div>
             <div class="product__item__text">
@@ -436,6 +434,10 @@
             });
         },
         error: function (xhr) {
+            if (xhr.status === 401) {
+                window.location.href = '/signup';
+                return;
+            }
             let errorMessage = "Something went wrong!";
             if (xhr.responseJSON && xhr.responseJSON.message) {
                 errorMessage = xhr.responseJSON.message;
@@ -471,10 +473,14 @@ function addToWishlist(pid)
         });
     }
             },
-            error: function (response) {
+            error: function (xhr) {
+                if (xhr.status === 401) {
+                    window.location.href = '/signup';
+                    return;
+                }
                 Swal.fire({
-            title:response.message,
-            icon: 'success',
+            title: xhr.responseJSON?.message || "Something went wrong!",
+            icon: 'error',
             toast: true,
             position: 'top-end',
             showConfirmButton: false,
