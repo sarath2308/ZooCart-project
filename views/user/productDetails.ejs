@@ -404,13 +404,6 @@ const placeOrder=function()
             return;
     }
 
-    // Check if user is logged in
-    const isLoggedIn = "<%= locals.user ? 'true' : 'false' %>" === "true";
-    if (!isLoggedIn) {
-        window.location.href = '/signup';
-        return;
-    }
-
     window.location.href=`/checkout?pid=${pid}&quantity=${quantityValue}`
 }
 
