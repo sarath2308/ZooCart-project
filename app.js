@@ -83,6 +83,9 @@ app.use(
 
     // ⚠️ This can break third-party integrations
     crossOriginEmbedderPolicy: false, // ✅ safer for Razorpay
+    crossOriginOpenerPolicy: false,
+    crossOriginResourcePolicy: false,
+    referrerPolicy: false,
   })
 );
 
