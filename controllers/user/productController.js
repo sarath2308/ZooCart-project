@@ -10,8 +10,8 @@ const mongoose = require("mongoose");
 const productDetails=async(req,res,next)=>
 {
     try {
-        // const userId=req.session.user || req.user._id;
-        // const userData=await User.findById({_id:userId})
+        const userId=req.session.user || (req.user && req.user._id);
+        const userData= userId ? await User.findById({_id:userId}) : null;
         const productId=req.query.id;
         const productData=await Product.findOne({_id:productId,isBlocked:false}).populate('category').populate('brand')
         if(productData.quantity>0)
@@ -65,7 +65,7 @@ const productDetails=async(req,res,next)=>
         const totalOffer=categoryOffer + productOffer;
         
             return res.render("productDetails",{
-                // user:userData,
+                user:userData,
                 product:productData,
                 quantity:productData.quantity,
                 category:category,

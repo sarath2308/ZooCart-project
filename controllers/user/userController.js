@@ -700,7 +700,9 @@ const productDetails=async(req,res,next)=>
 const loadAbout=async(req,res,next)=>
 {
     try {
-        return res.status(200).render("about")
+        const userId = req.session.user || (req.user && req.user._id);
+        const userData = userId ? await User.findById(userId) : null;
+        return res.status(200).render("about", { user: userData })
     } catch (error) {
         next(error)
     }
@@ -709,7 +711,9 @@ const loadAbout=async(req,res,next)=>
 const loadContact=async(req,res,next)=>
     {
         try {
-            return res.status(200).render("contact")
+            const userId = req.session.user || (req.user && req.user._id);
+            const userData = userId ? await User.findById(userId) : null;
+            return res.status(200).render("contact", { user: userData })
         } catch (error) {
             next(error)
         }

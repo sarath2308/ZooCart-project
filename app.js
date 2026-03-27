@@ -58,7 +58,10 @@ app.use(
 
         connectSrc: [
           "'self'",
-          "https://*.razorpay.com", // ✅ THIS is what you were missing
+          "https://*.razorpay.com",
+          "https://api.razorpay.com",
+          "https://checkout.razorpay.com",
+          "https://lumberjack.razorpay.com",
           "https://cdn.jsdelivr.net",
           "https://cdnjs.cloudflare.com",
         ],
