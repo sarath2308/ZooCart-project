@@ -59,6 +59,8 @@ app.use(
         connectSrc: [
           "'self'",
           "https://*.razorpay.com", // ✅ THIS is what you were missing
+          "https://cdn.jsdelivr.net",
+          "https://cdnjs.cloudflare.com",
         ],
 
         frameSrc: [
@@ -119,7 +121,7 @@ app.use(passport.session());
 
 app.use((req, res, next) => {
     // Exclude API, static paths, auth routes
-    if (req.method === 'GET' && !req.xhr && !req.originalUrl.startsWith('/api') && !req.originalUrl.startsWith('/fetch') && !req.originalUrl.match(/\.(css|js|png|jpg|jpeg|gif|ico)$/i)) {
+    if (req.method === 'GET' && !req.xhr && !req.originalUrl.startsWith('/api') && !req.originalUrl.startsWith('/fetch') && !req.originalUrl.match(/\.(css|js|png|jpg|jpeg|gif|ico|svg|woff|woff2|ttf|json)$/i) && !req.originalUrl.startsWith('/fonts')) {
         if (!['/signup', '/login', '/logout', '/auth/google', '/auth/google/callback','/verify-otp'].includes(req.originalUrl.split('?')[0])) {
             req.session.returnTo = req.originalUrl;
         }
@@ -170,18 +172,6 @@ app.use((err, req, res, next) => {
   });
 });
 
-
-
-app.use((err,req,res,next)=>
-{
-  if(err)
-  {
-    if(err instanceof AggregateError)
-    {
-      
-    }
-  }
-})
 const PORT=process.env.PORT || 3000;
 app.listen(PORT,()=>
 {
