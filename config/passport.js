@@ -6,7 +6,7 @@ const env = require('dotenv').config();
 passport.use(new GoogleStrategy({
     clientID: process.env.GOOGLECLIENT_ID,
     clientSecret: process.env.GOOGLECLIENT_SECRET,
-    callbackURL: "https://zoocart.shop/auth/google/callback"
+    callbackURL: "https://zoocart.online/auth/google/callback"
 },
 async (accessToken, refreshToken, profile, done) => {  
     try {
