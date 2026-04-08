@@ -43,7 +43,7 @@ const loadHomePage=async(req,res,next)=>
             quantity:{$gt:0}
         }).sort({createdOn:-1}).limit(8)
 
-        const user=req.session.user;
+        const user = req.session.user || (req.user && req.user._id);
         if(user)
         {
             const userData=await User.findOne({_id:user});
@@ -56,7 +56,7 @@ const loadHomePage=async(req,res,next)=>
         }  
         else
         {
-            return res.render('home',{bannerData,user:'',products:products,category:category});
+            return res.render('home',{bannerData,products:products,category:category});
           }
 }
     catch(err)
