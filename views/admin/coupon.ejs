@@ -38,7 +38,7 @@
                             <%}%>
                         </td>
                             <td>₹<%= cou.minimumPrice %></td>
-                            <td>
+                            <td id="status-<%=cou._id%>">
                                 <% if (cou.isList) { %>
                                     <span style="color: greenyellow;">Listed</span>
                                 <% } else { %>
@@ -59,11 +59,11 @@
                                             <span style="color: red;">Expired</span>
                                     <% } %>
                                 </td>
-                            <td>
+                            <td id="action-<%=cou._id%>">
                                 <%if(cou.isList){%>
-                                    <button class="btn btn-danger" onclick="unlistCoupon('<%=cou._id%>')">Unlist</button>
+                                    <button id="list-btn-<%=cou._id%>" class="btn btn-danger" onclick="unlistCoupon('<%=cou._id%>')">Unlist</button>
                                     <%}else{%>
-                                        <button class="btn btn-success" onclick="listCoupon('<%=cou._id%>')">list</button>
+                                        <button id="list-btn-<%=cou._id%>" class="btn btn-success" onclick="listCoupon('<%=cou._id%>')">list</button>
                                         <%}%>
                                         <button class="btn btn-info" data-bs-toggle="modal" onclick="populateModel('<%=cou._id%>','<%=cou.code%>','<%=cou.createdOn%>','<%=cou.expiredOn%>','<%=cou.offerPrice%>','<%=cou.minimumPrice%>')" data-bs-target="#couponEditModal">Edit</button>
                             </td>
@@ -471,7 +471,9 @@ function listCoupon(cid) {
                             title: "Updated!",
                             text: "The coupon listing status has been changed.",
                             icon: "success"
-                        }).then(() => location.reload()); // Reload page to reflect changes
+                        });
+                        $(`#status-${cid}`).html('<span style="color: greenyellow;">Listed</span>');
+                        $(`#list-btn-${cid}`).replaceWith(`<button id="list-btn-${cid}" class="btn btn-danger" onclick="unlistCoupon('${cid}')">Unlist</button>`);
                     } else {
                         swalWithBootstrapButtons.fire({
                             title: "Error",
@@ -533,7 +535,9 @@ function unlistCoupon(cid)
                             title: "Updated!",
                             text: "The coupon listing status has been changed.",
                             icon: "success"
-                        }).then(() => location.reload()); // Reload page to reflect changes
+                        });
+                        $(`#status-${cid}`).html('<span style="color: rgb(210, 17, 14);">Not Listed</span>');
+                        $(`#list-btn-${cid}`).replaceWith(`<button id="list-btn-${cid}" class="btn btn-success" onclick="listCoupon('${cid}')">list</button>`);
                     } else {
                         swalWithBootstrapButtons.fire({
                             title: "Error",

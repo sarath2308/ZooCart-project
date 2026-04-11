@@ -23,19 +23,19 @@
                     </thead>
                     <tbody>
                       <% data.forEach((product) => { %>
-                        <tr>
+                        <tr id="row-<%=product._id%>">
                           <td><%= product.productName %></td>
                           <td><%= product.category.name %></td>
                           <td>₹<%= product.regularPrice.toFixed(2) %></td>
                           <td>₹<%= product.salePrice.toFixed(2) %></td>
-                          <td>
+                          <td id="offer-td-<%=product._id%>">
                             <% if (product.productOffer === 0) { %>
                                 <span style="color: red;">0%</span>
                               <% } else { %>
                                 <span style="color: rgb(73, 229, 73);"><%=product.productOffer%>%</span>
                               <% } %>
                           </td>
-                          <td>
+                          <td id="offer-action-<%=product._id%>">
                             <% if (product.productOffer === 0) { %>
                               <button class="btn btn-warning btn-sm" onclick="addOffer('<%= product._id %>')">+ Add</button>
                             <% } else { %>
@@ -44,7 +44,7 @@
                           </td>
                           <td><%= product.quantity %></td>
                           <td><%= product.color %></td>
-                          <td>
+                          <td id="status-<%=product._id%>">
                             <% if (product.isBlocked) { %>
                               <span style="color: red;">Blocked</span>
                             <% } else { %>
@@ -64,9 +64,9 @@
                           <td>
                            <a href="/admin/products/editproduct?id=<%=product._id%>" class="btn btn-dark mb-2">Edit</a>
                             <% if (product.isBlocked) { %>
-                              <button class="btn btn-warning btn-sm" onclick="unblockProduct('<%= product._id %>')">Unblock</button>
+                              <button id="block-btn-<%=product._id%>" class="btn btn-warning btn-sm" onclick="unblockProduct('<%= product._id %>')">Unblock</button>
                             <% } else { %>
-                              <button class="btn btn-info btn-sm" onclick="blockProduct('<%= product._id %>')">Block</button>
+                              <button id="block-btn-<%=product._id%>" class="btn btn-info btn-sm" onclick="blockProduct('<%= product._id %>')">Block</button>
                             <% } %>
                             <button class="btn btn-warning btn-sm mt-2" onclick="removeProduct('<%= product._id %>')">Delete</button>
                           </td>
@@ -157,10 +157,9 @@ $(document).ready(function () {
       toast: true,
       position: 'top-end',
       timer: 3000,
-    }).then(()=>
-  {
-    location.reload()
-  })
+    });
+    $(`#offer-td-${productid}`).html(`<span style="color: rgb(73, 229, 73);">${amount}%</span>`);
+    $(`#offer-action-${productid}`).html(`<button class="btn btn-info btn-sm" onclick="removeOffer('${productid}')">Remove</button>`);
         }},
     error: (response) => {
   // Log the full response for debugging
@@ -217,7 +216,8 @@ try {
         {
             if(response.success)
         {
-            location.reload()
+            $(`#offer-td-${id}`).html('<span style="color: red;">0%</span>');
+            $(`#offer-action-${id}`).html(`<button class="btn btn-warning btn-sm" onclick="addOffer('${id}')">+ Add</button>`);
             Swal.fire({
       title: 'Offer removed',
       text: response.message,
@@ -304,10 +304,9 @@ try {
       toast: true,
       position: 'top-end',
       timer: 3000,
-    }).then(()=>
-  {
-    location.reload()
-  })
+    });
+    $(`#status-${id}`).html('<span style="color: red;">Blocked</span>');
+    $(`#block-btn-${id}`).replaceWith(`<button id="block-btn-${id}" class="btn btn-warning btn-sm" onclick="unblockProduct('${id}')">Unblock</button>`);
         }
         else
         {
@@ -382,10 +381,9 @@ try {
       toast: true,
       position: 'top-end',
       timer: 3000,
-    }).then(()=>
-  {
-    location.reload()
-  })
+    });
+    $(`#status-${id}`).html('<span style="color: green;">Active</span>');
+    $(`#block-btn-${id}`).replaceWith(`<button id="block-btn-${id}" class="btn btn-info btn-sm" onclick="blockProduct('${id}')">Block</button>`);
         }
         else
         {
@@ -453,7 +451,7 @@ try {
         {
             if(response.success)
         {
-            location.reload()
+            $(`#row-${id}`).remove();
             Swal.fire({
       title: 'product removed',
       text: 'successfully removed product',

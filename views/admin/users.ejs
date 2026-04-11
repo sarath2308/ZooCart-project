@@ -24,7 +24,7 @@
                         <!-- <td><%= user.customerId %></td> -->
                         <td><%= user.name %></td>
                         <td><%= user.email %></td>
-                        <td>
+                        <td id="status-<%= user._id %>">
                             <% if (user.isBlocked) { %>
                               <span style="color: red;font-size: 0.85rem;">Blocked</span>
                             <% } else { %>
@@ -33,13 +33,13 @@
                           </td>
                         <td><%= user.CreatedOn ? user.CreatedOn.toLocaleDateString("en-GB") : 'N/A' %></td>
                            
-                                    <td>
+                                    <td id="action-<%= user._id %>">
                                         <%if(user.isBlocked){%>
-                                            <a href="/admin/users/unblock/<%= user._id %>" class="btn btn-warning btn-sm"  style="font-size: 0.75rem;" onclick="return confirmAction(event, this)">
+                                            <a href="/admin/users/unblock/<%= user._id %>" class="btn btn-warning btn-sm"  style="font-size: 0.75rem;" onclick="return confirmAction(event, this, '<%= user._id %>', 'unblock')">
                                            Unblock
                                         </a>
                                         <%}else{%>
-                                            <a href="/admin/users/block/<%= user._id %>" class="btn btn-danger btn-sm"  style="font-size: 0.75rem;" onclick="return confirmAction(event, this)">
+                                            <a href="/admin/users/block/<%= user._id %>" class="btn btn-danger btn-sm"  style="font-size: 0.75rem;" onclick="return confirmAction(event, this, '<%= user._id %>', 'block')">
                                                 Block
                                             </a>
                                             <%}%>
@@ -108,7 +108,7 @@
 })
 
 
-        function confirmAction(event, element) {
+        function confirmAction(event, element, userId, action) {
     event.preventDefault();  // Prevents the default behavior (redirect) of the <a> tag
 
     const swalWithBootstrapButtons = Swal.mixin({
@@ -129,8 +129,43 @@
         reverseButtons: true
     }).then((result) => {
         if (result.isConfirmed) {
-            // Proceed with the redirect
-            window.location.href = element.href;  // Redirect to the href value of the <a> tag
+            $.ajax({
+                url: element.href,
+                type: 'GET',
+                success: function(response) {
+                    if (response.success) {
+                        if (action === 'block') {
+                            $(`#status-${userId}`).html('<span style="color: red;font-size: 0.85rem;">Blocked</span>');
+                            $(`#action-${userId}`).html(`<a href="/admin/users/unblock/${userId}" class="btn btn-warning btn-sm" style="font-size: 0.75rem;" onclick="return confirmAction(event, this, '${userId}', 'unblock')">Unblock</a>`);
+                        } else {
+                            $(`#status-${userId}`).html('<span style="color: green;font-size: 0.85rem;">Active</span>');
+                            $(`#action-${userId}`).html(`<a href="/admin/users/block/${userId}" class="btn btn-danger btn-sm" style="font-size: 0.75rem;" onclick="return confirmAction(event, this, '${userId}', 'block')">Block</a>`);
+                        }
+                        Swal.fire({
+                            title: "Success",
+                            text: response.message,
+                            icon: "success",
+                            toast: true,
+                            position: 'top-end',
+                            showConfirmButton: false,
+                            timer: 3000
+                        });
+                    } else {
+                        Swal.fire({
+                            title: "Error",
+                            text: response.message || "Failed to complete action",
+                            icon: "error"
+                        });
+                    }
+                },
+                error: function() {
+                    Swal.fire({
+                        title: "Error",
+                        text: "Network error occurred",
+                        icon: "error"
+                    });
+                }
+            });
         } else {
             Swal.fire({
                 title: "Cancelled",

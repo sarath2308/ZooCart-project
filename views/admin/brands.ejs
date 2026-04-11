@@ -22,7 +22,7 @@
               </thead>
               <tbody>
                   <% brands.forEach((brand, i) => { %>
-                      <tr>
+                      <tr id="row-<%=brand._id%>">
                           <th scope="row"><%= i + 1 %></th>
                           <td><%= brand.brandName %></td>
                           <td>
@@ -41,7 +41,7 @@
                     style="width:100%;height:auto"/>
                   </div>
                           </td>
-                          <td>
+                          <td id="status-<%=brand._id%>">
                               <% if (brand.isBlocked) { %>
                                 <span style="color: red;font-size: 0.85rem;">Blocked</span>
                               <% } else { %>
@@ -51,11 +51,11 @@
                           <td><%= brand.createdAt ? brand.createdAt.toLocaleDateString("en-GB") : 'N/A' %></td>
                             <td>
                                 <%if(brand.isBlocked){%>
-                                   <button class="btn btn-warning btn-sm"  style="font-size: 0.75rem;" onclick="toggleunblockBrand('<%=brand._id%>')">
+                                   <button id="block-btn-<%=brand._id%>" class="btn btn-warning btn-sm"  style="font-size: 0.75rem;" onclick="toggleunblockBrand('<%=brand._id%>')">
                                    Unblock
                                 </button>
                                 <%}else{%>
-                                    <button  class="btn btn-info btn-sm"  style="font-size: 0.75rem;" onclick="toggleBlockBrand('<%=brand._id%>')">
+                                    <button id="block-btn-<%=brand._id%>" class="btn btn-info btn-sm"  style="font-size: 0.75rem;" onclick="toggleBlockBrand('<%=brand._id%>')">
                                         Block
                                     </button>
                                     <%}%>
@@ -283,7 +283,14 @@ function toggleBlockBrand(brandId) {
         success: function (response) {
        if(response.success)
        {
-        location.reload()
+        $('#status-' + brandId).html('<span style="color: red;font-size: 0.85rem;">Blocked</span>');
+        $('#block-btn-' + brandId).replaceWith(`<button id="block-btn-${brandId}" class="btn btn-warning btn-sm" style="font-size: 0.75rem;" onclick="toggleunblockBrand('${brandId}')">Unblock</button>`);
+        Swal.fire({
+          icon: 'success',
+          title: 'Brand Blocked!',
+          showConfirmButton: false,
+          timer: 1500
+        });
        }
        else
        {
@@ -325,7 +332,13 @@ function toggleremoveBrand(brandId) {
         success: function (response) {
        if(response.success)
        {
-        location.reload()
+        $('#row-' + brandId).remove();
+        Swal.fire({
+          icon: 'success',
+          title: 'Brand Removed!',
+          showConfirmButton: false,
+          timer: 1500
+        });
        }
        else
        {
@@ -367,7 +380,14 @@ function toggleunblockBrand(brandId) {
         success: function (response) {
        if(response.success)
        {
-        location.reload()
+        $('#status-' + brandId).html('<span style="color: green;font-size: 0.85rem;">Active</span>');
+        $('#block-btn-' + brandId).replaceWith(`<button id="block-btn-${brandId}" class="btn btn-info btn-sm" style="font-size: 0.75rem;" onclick="toggleBlockBrand('${brandId}')">Block</button>`);
+        Swal.fire({
+          icon: 'success',
+          title: 'Brand Unblocked!',
+          showConfirmButton: false,
+          timer: 1500
+        });
        }
        else
        {

@@ -22,7 +22,7 @@ const blockUser =  async(req,res,next)=>
     
     user.isBlocked = true;
     await user.save();
-    return res.redirect('/admin/users')
+    return res.json({ success: true, message: 'User blocked successfully.' });
 } catch (error) {
     
     next(error)
@@ -40,7 +40,7 @@ const unblockUser =  async(req,res,next)=>
         
         user.isBlocked = false;
         await user.save();
-        return res.redirect('/admin/users')
+        return res.json({ success: true, message: 'User unblocked successfully.' });
     } catch (error) {
         
         next(error)

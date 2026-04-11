@@ -60,28 +60,28 @@
                 <th scope="row"><%= i + 1 %></th>
                 <td class="category-name"><%= category.name%></td>
                 <td class="category-description"><%= category.discription %></td>
-                <td>
+                <td id="status-<%=category._id%>">
                   <%if(category.isListed){%>
                     <span style="color: green;font-size: 0.85rem;">Listed</span>
                   <%}else{%>
                     <span style="color: red;font-size: 0.85rem;">Not Listed</span>
                     <%}%>
                 </td>
-                <td>
+                <td id="action-<%=category._id%>">
                   <%if(category.isListed){%>
                     <button class="btn btn-danger" onclick="Unlist('<%=category._id%>')">Unlist</button>
                   <%}else{%>
                     <button class="btn btn-success" onclick="List('<%=category._id%>')">List</button>
                     <%}%>
                 </td>
-                <td>
+                <td id="offer-td-<%=category._id%>">
                   <%if(category.CategoryOffer===0){%>
                     <span style="color: rgb(241, 18, 18);font-size: 0.85rem;">0%</span>
                   <%}else{%>
                     <span style="color: green;font-size: 0.85rem;"><%=category.CategoryOffer%>%</span>
                     <%}%>
                 </td>
-                <td>
+                <td id="offer-action-<%=category._id%>">
                   <%if(category.CategoryOffer===0){%>
                     <button class="btn btn-dark" onclick="addOffer('<%=category._id%>')">+ add</button>
                   <%}else{%>
@@ -337,9 +337,6 @@ function deleteCategory(id) {
               icon: "success"
             });
             $(`#row-${id}`).remove();
-            setTimeout(() => {
-              location.reload()
-            },1000);
     
           } else {
             Swal.fire('Error', response.message, 'error');
@@ -385,7 +382,16 @@ function List(id)
         data: { id },  // Send the ID of the category to delete
         success: function (response) {
           if (response.success) {
-          location.reload()
+            $(`#status-${id}`).html('<span style="color: green;font-size: 0.85rem;">Listed</span>');
+            $(`#action-${id}`).html(`<button class="btn btn-danger" onclick="Unlist('${id}')">Unlist</button>`);
+            Swal.fire({
+              toast: true,
+              position: 'top-end',
+              icon: 'success',
+              title: 'Category Listed',
+              showConfirmButton: false,
+              timer: 1500
+            });
           } else {
             Swal.fire('Error', response.message, 'error');
           }
@@ -428,7 +434,16 @@ function Unlist(id)
         data: { id },  // Send the ID of the category to delete
         success: function (response) {
           if (response.success) {
-           location.reload()
+            $(`#status-${id}`).html('<span style="color: red;font-size: 0.85rem;">Not Listed</span>');
+            $(`#action-${id}`).html(`<button class="btn btn-success" onclick="List('${id}')">List</button>`);
+            Swal.fire({
+              toast: true,
+              position: 'top-end',
+              icon: 'success',
+              title: 'Category Unlisted',
+              showConfirmButton: false,
+              timer: 1500
+            });
           } else {
             Swal.fire('Error', response.message, 'error');
           }
@@ -463,7 +478,16 @@ async function addOffer(id)
         data: { id,amount },
         success: function (response) {
           if (response.success) {
-          location.reload()
+            $(`#offer-td-${id}`).html(`<span style="color: green;font-size: 0.85rem;">${amount}%</span>`);
+            $(`#offer-action-${id}`).html(`<button class="btn btn-secondary" onclick="removeOffer('${id}')">remove</button>`);
+            Swal.fire({
+              toast: true,
+              position: 'top-end',
+              icon: 'success',
+              title: 'Offer Added',
+              showConfirmButton: false,
+              timer: 1500
+            });
           } else {
             Swal.fire('Error', response.message, 'error');
           }
@@ -504,7 +528,16 @@ function removeOffer(id)
         data: { id },  // Send the ID of the category to delete
         success: function (response) {
           if (response.success) {
-           location.reload()
+            $(`#offer-td-${id}`).html('<span style="color: rgb(241, 18, 18);font-size: 0.85rem;">0%</span>');
+            $(`#offer-action-${id}`).html(`<button class="btn btn-dark" onclick="addOffer('${id}')">+ add</button>`);
+            Swal.fire({
+              toast: true,
+              position: 'top-end',
+              icon: 'success',
+              title: 'Offer Removed',
+              showConfirmButton: false,
+              timer: 1500
+            });
           } else {
             Swal.fire('Error', response.message, 'error');
           }
