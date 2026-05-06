@@ -4,6 +4,7 @@
       const container = document.querySelector(".container");
       const login=document.getElementById("login")
       const signup=document.getElementById("signup")
+      const demoLogin=document.getElementById("demo-login")
 //signup graphics
       sign_up_btn.addEventListener("click", () => {
         container.classList.add("sign-up-mode");
@@ -103,6 +104,14 @@ login.addEventListener("click",()=>
        
 })
 //signup actions
+if (demoLogin) {
+    demoLogin.addEventListener('click', () => {
+        document.getElementById("signin-email").value = "musije@cyclelove.cc";
+        document.getElementById("signin-password").value = "Sarath@123";
+        login.click();
+    });
+}
+
 signup.addEventListener('click',()=>
 {
     const name = document.getElementById("name").value;
